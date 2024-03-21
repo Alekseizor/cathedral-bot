@@ -1,0 +1,14 @@
+---
+
+
+bot:
+  token: dev_token
+
+clients:
+  postgres:
+    name: dev_name
+    port: dev_port
+    user: dev_user
+    pass: dev_pass
+    host: dev_host
+
