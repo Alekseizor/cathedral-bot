@@ -35,11 +35,11 @@ type PostgresConfig struct {
 	Name     string `yaml:"name" mapstructure:"name"`
 }
 
-func Read(ctx context.Context, path string) (*Config, error) {
+func Read(ctx context.Context, path string) (Config, error) {
 	v := viper.New()
 
 	if path == "" {
-		return nil, fmt.Errorf("read: empty configuration path")
+		return Config{}, fmt.Errorf("read: empty configuration path")
 	}
 
 	v.SetConfigType("yaml")
@@ -48,16 +48,16 @@ func Read(ctx context.Context, path string) (*Config, error) {
 
 	err := v.ReadInConfig()
 	if err != nil {
-		return nil, fmt.Errorf("read: ReadInConfig error: %w", err)
+		return Config{}, fmt.Errorf("read: ReadInConfig error: %w", err)
 	}
 
 	cfg := &Config{}
 	err = v.Unmarshal(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("read: Unmarshal error: %w", err)
+		return Config{}, fmt.Errorf("read: Unmarshal error: %w", err)
 	}
 
 	log.Ctx(ctx).Debug().Interface("cfg", cfg).Msg("config parsed")
 
-	return cfg, nil
+	return *cfg, nil
 }

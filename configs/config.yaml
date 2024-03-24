@@ -2,13 +2,13 @@
 
 
 bot:
-  token: dev_token
+  token: vk1.a.uFRpa2habq8Rmw33Zyrm07JHYnFE5XfftT185wonHkpsHObhKA7-Imwrw00zkeZLhXe9z6ofxX5YUPDZsYL8bnTSs_QX06LRn2I3LGnKtPyoPURTky1YgCruJuyn7Kn80eMsppjB__AhyN9Ka7v3J_z4mnpvUIcDfQeBjJCe5VruAsWv2ugEJQxpoK-4DkSNG7Qy5X59ZJuCQz7XFIqAVA
 
 clients:
   postgres:
-    name: dev_name
-    port: dev_port
+    name: dev_db
+    port: 5432
     user: dev_user
     pass: dev_pass
-    host: dev_host
+    host: localhost
 
