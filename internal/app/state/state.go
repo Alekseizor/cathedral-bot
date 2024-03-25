@@ -67,33 +67,33 @@ func (s *States) Init() error {
 }
 
 // Handler - вся бизнес логика приложения выполняется здесь
-func (s *States) Handler(ctx context.Context, obj object.MessagesMessage) ([]*params.MessagesSendBuilder, error) {
+func (s *States) Handler(ctx context.Context, obj object.MessagesMessage) ([]*params.MessagesSendBuilder, string, error) {
 	message := obj
 	vkID := message.PeerID
 
 	//достаем стейт пользователя
 	stateStr, err := s.postgres.State.Get(ctx, vkID)
-	userState := stateName(stateStr)
 	if err != nil {
 		// пользователь впервые пришел к нам, добавляем в базу
 		if err != sql.ErrNoRows {
-			return nil, fmt.Errorf("[State.Get]: %w", err)
+			return nil, stateStr, fmt.Errorf("[State.Get]: %w", err)
 		} else {
 			err = s.postgres.State.Insert(ctx, vkID)
-			userState = start
+			stateStr = string(start)
 			if err != nil {
-				return nil, fmt.Errorf("[State.Insert]: %w", err)
+				return nil, stateStr, fmt.Errorf("[State.Insert]: %w", err)
 			}
 		}
 	}
 
 	// достали нужную структуру стейта
+	userState := stateName(stateStr)
 	state := s.statesList[userState]
 
 	//выполняем обработку сообщения согласно стейту
 	newState, respMessage, err := state.Handler(obj)
 	if err != nil {
-		return nil, fmt.Errorf("[state.Handler]: %w", err)
+		return nil, stateStr, fmt.Errorf("[state.Handler]: %w", err)
 	}
 
 	// достали нужную структуру стейта
@@ -101,7 +101,7 @@ func (s *States) Handler(ctx context.Context, obj object.MessagesMessage) ([]*pa
 	state = s.statesList[newState]
 	newStateMessage, err := state.Show()
 	if err != nil {
-		return nil, fmt.Errorf("[state.Handler]: %w", err)
+		return nil, stateStr, fmt.Errorf("[state.Handler]: %w", err)
 	}
 
 	respMessage = append(respMessage, newStateMessage...)
@@ -109,8 +109,8 @@ func (s *States) Handler(ctx context.Context, obj object.MessagesMessage) ([]*pa
 	//обновляем стейт пользователя
 	err = s.postgres.State.Update(ctx, vkID, string(newState))
 	if err != nil {
-		return nil, fmt.Errorf("[State.Update]: %w", err)
+		return nil, stateStr, fmt.Errorf("[State.Update]: %w", err)
 	}
 
-	return respMessage, nil
+	return respMessage, stateStr, nil
 }

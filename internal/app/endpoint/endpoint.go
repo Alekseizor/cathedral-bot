@@ -3,7 +3,9 @@ package endpoint
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/Alekseizor/cathedral-bot/internal/app/metrics/prometheus"
 	"github.com/SevereCloud/vksdk/v2/api"
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/events"
@@ -15,16 +17,18 @@ import (
 )
 
 type Endpoint struct {
-	cfg    config.Config
-	lp     *longpoll.LongPoll
-	vk     *api.VK
-	states *state.States
+	cfg     config.Config
+	lp      *longpoll.LongPoll
+	vk      *api.VK
+	states  *state.States
+	metrics *prometheus.Metrics
 }
 
 func New(cfg config.Config) *Endpoint {
 	return &Endpoint{
-		cfg:    cfg,
-		states: state.New(cfg),
+		cfg:     cfg,
+		states:  state.New(cfg),
+		metrics: prometheus.New(cfg.MonitoringConfig.Address),
 	}
 }
 
@@ -49,17 +53,24 @@ func (e *Endpoint) Init(ctx context.Context) error {
 
 	// ждем новые сообщения
 	lp.MessageNew(func(_ context.Context, obj events.MessageNewObject) {
+		// будем считать время выполнения запроса
+		startTime := time.Now()
+
 		// делаем обработку от паники
 		defer func() {
 			if err := recover(); err != nil {
 				log.Ctx(ctx).Error().Msgf("[Endpoint.Init:MessageNew:recover]: vkID -%d ,error - %v", obj.Message.PeerID, err)
+				//TODO: добавить метрику ПАНИК
+
 			}
 		}()
 
-		log.Log().Msgf("%d: %s", obj.Message.PeerID, obj.Message.Text)
+		log.Ctx(ctx).Info().Msgf("User - %d: Message - %s", obj.Message.PeerID, obj.Message.Text)
+
 		// обрабатываем сообщения и подготавливаем ответ
-		respMessages, err := e.states.Handler(ctx, obj.Message)
+		respMessages, oldState, err := e.states.Handler(ctx, obj.Message)
 		if err != nil {
+			// TODO: добавить метрику ошибок ОБРАБОТКИ
 			log.Ctx(ctx).Error().Err(err).Msgf("[Endpoint.Init:MessageNew:states.Handler]: vkID -%d", obj.Message.PeerID)
 
 			// произошла ошибка при работе, напишем об этом пользователю
@@ -69,6 +80,11 @@ func (e *Endpoint) Init(ctx context.Context) error {
 			respMessages = []*params.MessagesSendBuilder{b}
 		}
 
+		// считаем время обработки запроса для каждого из стейтов
+		defer func() {
+			e.metrics.InformationMetrics(time.Since(startTime), oldState)
+		}()
+
 		// происходит отправка сообщений
 		for _, message := range respMessages {
 			message.PeerID(obj.Message.PeerID)
@@ -76,6 +92,7 @@ func (e *Endpoint) Init(ctx context.Context) error {
 			_, err := e.vk.MessagesSend(message.Params)
 			if err != nil {
 				log.Ctx(ctx).Error().Err(err).Msgf("[Endpoint: vk.MessagesSend] vkID - %d", obj.Message.PeerID)
+				//TODO: добавить метрику ошибок ОТПРАВКИ
 			}
 		}
 	})
@@ -85,7 +102,14 @@ func (e *Endpoint) Init(ctx context.Context) error {
 	return nil
 }
 
-func (e *Endpoint) Run() error {
+func (e *Endpoint) Run(ctx context.Context) error {
+	go func() {
+		err := e.metrics.Run()
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("[prometheus.Listen]")
+		}
+	}()
+
 	err := e.lp.Run()
 	if err != nil {
 		return fmt.Errorf("[lp.Run]: %w", err)
