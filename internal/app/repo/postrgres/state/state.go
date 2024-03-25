@@ -10,12 +10,12 @@ import (
 	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
 )
 
-// Repo инстанс репо для работы с пользователями
+// Repo инстанс репо для работы со стейном пользователя
 type Repo struct {
 	db *sqlx.DB
 }
 
-// New - создаем новое объект репо, подключения к бд еще нет!
+// New - создаем новое объект репо для работы со стейтом пользователя
 func New(db *sqlx.DB) *Repo {
 	return &Repo{
 		db: db,
