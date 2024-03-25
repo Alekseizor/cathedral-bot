@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+
+	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
 )
 
 // Repo инстанс репо для работы с пользователями

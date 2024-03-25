@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/Alekseizor/cathedral-bot/internal/app/config"
 	"github.com/Alekseizor/cathedral-bot/internal/app/endpoint"
-	"github.com/rs/zerolog/log"
 )
 
 type App struct {

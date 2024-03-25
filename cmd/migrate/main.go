@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Alekseizor/cathedral-bot/internal/app/config"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+
+	"github.com/Alekseizor/cathedral-bot/internal/app/config"
 )
 
 const (

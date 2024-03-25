@@ -3,9 +3,10 @@ package postrgres
 import (
 	"fmt"
 
+	"github.com/jmoiron/sqlx"
+
 	"github.com/Alekseizor/cathedral-bot/internal/app/config"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/state"
-	"github.com/jmoiron/sqlx"
 )
 
 const (

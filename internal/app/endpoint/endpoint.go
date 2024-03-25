@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Alekseizor/cathedral-bot/internal/app/config"
-	"github.com/Alekseizor/cathedral-bot/internal/app/state"
 	"github.com/SevereCloud/vksdk/v2/api"
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/events"
 	"github.com/SevereCloud/vksdk/v2/longpoll-bot"
-	"github.com/SevereCloud/vksdk/v2/object"
 	"github.com/rs/zerolog/log"
+
+	"github.com/Alekseizor/cathedral-bot/internal/app/config"
+	"github.com/Alekseizor/cathedral-bot/internal/app/state"
 )
 
 type Endpoint struct {
@@ -50,11 +50,11 @@ func (e *Endpoint) Init(ctx context.Context) error {
 	// ждем новые сообщения
 	lp.MessageNew(func(_ context.Context, obj events.MessageNewObject) {
 		// делаем обработку от паники
-		/*	defer func() {
+		defer func() {
 			if err := recover(); err != nil {
 				log.Ctx(ctx).Error().Msgf("[Endpoint.Init:MessageNew:recover]: vkID -%d ,error - %v", obj.Message.PeerID, err)
 			}
-		}()*/
+		}()
 
 		log.Log().Msgf("%d: %s", obj.Message.PeerID, obj.Message.Text)
 		// обрабатываем сообщения и подготавливаем ответ
@@ -71,24 +71,9 @@ func (e *Endpoint) Init(ctx context.Context) error {
 
 		// происходит отправка сообщений
 		for _, message := range respMessages {
-			//message.PeerID(obj.Message.PeerID)
-			log.Ctx(ctx).Info().Any("message", message)
+			message.PeerID(obj.Message.PeerID)
 
-			b := params.NewMessagesSendBuilder()
-			b.RandomID(0)
-			b.Message("Вы предпочитаете команды, которые играют атакующий футбол?")
-			b.PeerID(obj.Message.PeerID)
-			k := object.NewMessagesKeyboard(true)
-			//k := &object.MessagesKeyboard{}
-			k.AddRow()
-			k.AddTextButton("Да", "", "primary")
-			k.AddRow()
-			k.AddTextButton("Нет", "", "negative")
-			k.AddRow()
-			k.AddTextButton("Назад", "", "")
-			b.Keyboard(k)
-
-			_, err := e.vk.MessagesSend(b.Params)
+			_, err := e.vk.MessagesSend(message.Params)
 			if err != nil {
 				log.Ctx(ctx).Error().Err(err).Msgf("[Endpoint: vk.MessagesSend] vkID - %d", obj.Message.PeerID)
 			}

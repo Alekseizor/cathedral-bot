@@ -1,9 +1,10 @@
 package state
 
 import (
-	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
+
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
 )
 
 type PhotoStubState struct {
@@ -25,7 +26,7 @@ func (state PhotoStubState) Show() ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Заглушка для фото")
-	k := &object.MessagesKeyboard{}
+	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
 	b.Keyboard(k)

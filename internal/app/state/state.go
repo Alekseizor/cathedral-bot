@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/Alekseizor/cathedral-bot/internal/app/config"
-	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
+
+	"github.com/Alekseizor/cathedral-bot/internal/app/config"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
 )
 
 type stateName string
@@ -65,6 +66,7 @@ func (s *States) Init() error {
 	return nil
 }
 
+// Handler - вся бизнес логика приложения выполняется здесь
 func (s *States) Handler(ctx context.Context, obj object.MessagesMessage) ([]*params.MessagesSendBuilder, error) {
 	message := obj
 	vkID := message.PeerID
