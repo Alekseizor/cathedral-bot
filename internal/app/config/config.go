@@ -11,8 +11,9 @@ import (
 // Config - структура конфигурации.
 // Содержит все конфигурационные данные о сервисе
 type Config struct {
-	BotConfig     BotConfig     `yaml:"bot" mapstructure:"bot"`
-	ClientsConfig ClientsConfig `yaml:"clients" mapstructure:"clients"`
+	BotConfig        BotConfig        `yaml:"bot" mapstructure:"bot"`
+	ClientsConfig    ClientsConfig    `yaml:"clients" mapstructure:"clients"`
+	MonitoringConfig MonitoringConfig `yaml:"listener" mapstructure:"listener"`
 }
 
 // BotConfig -  конфигурация бота в VK
@@ -24,6 +25,12 @@ type BotConfig struct {
 type ClientsConfig struct {
 	// PostgresConfig - клиент СУБД
 	PostgresConfig PostgresConfig `yaml:"postgres" mapstructure:"postgres"`
+}
+
+// MonitoringConfig - конфигурация для мониторинговых систем
+type MonitoringConfig struct {
+	// Address - адрес, по которому будем принимать запросы касательно метрик
+	Address string `yaml:"address" mapstructure:"address"`
 }
 
 // PostgresConfig - конфигурация для клиента PostgreSQL

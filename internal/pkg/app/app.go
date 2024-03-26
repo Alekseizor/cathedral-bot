@@ -36,7 +36,7 @@ func (a *App) Init() error {
 func (a *App) Run() error {
 	log.Ctx(a.ctx).Info().Msg("[app.Run]: the application is running")
 
-	err := a.endpoint.Run()
+	err := a.endpoint.Run(a.ctx)
 	if err != nil {
 		return fmt.Errorf("[endpoint.Run]: %w", err)
 	}
