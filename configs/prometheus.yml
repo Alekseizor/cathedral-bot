@@ -17,3 +17,15 @@ scrape_configs:
 
     static_configs:
       - targets: ['localhost:9090']
+
+  - job_name: 'cathedral_bot'
+
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 15s
+    scrape_timeout: 15s
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ['host.docker.internal:8090']

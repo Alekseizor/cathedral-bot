@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Alekseizor/cathedral-bot/internal/app/metrics/prometheus"
 	"github.com/SevereCloud/vksdk/v2/api"
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/events"
@@ -13,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/Alekseizor/cathedral-bot/internal/app/config"
+	"github.com/Alekseizor/cathedral-bot/internal/app/metrics/prometheus"
 	"github.com/Alekseizor/cathedral-bot/internal/app/state"
 )
 
@@ -60,8 +60,7 @@ func (e *Endpoint) Init(ctx context.Context) error {
 		defer func() {
 			if err := recover(); err != nil {
 				log.Ctx(ctx).Error().Msgf("[Endpoint.Init:MessageNew:recover]: vkID -%d ,error - %v", obj.Message.PeerID, err)
-				//TODO: добавить метрику ПАНИК
-
+				e.metrics.Panic()
 			}
 		}()
 
@@ -70,8 +69,8 @@ func (e *Endpoint) Init(ctx context.Context) error {
 		// обрабатываем сообщения и подготавливаем ответ
 		respMessages, oldState, err := e.states.Handler(ctx, obj.Message)
 		if err != nil {
-			// TODO: добавить метрику ошибок ОБРАБОТКИ
 			log.Ctx(ctx).Error().Err(err).Msgf("[Endpoint.Init:MessageNew:states.Handler]: vkID -%d", obj.Message.PeerID)
+			e.metrics.HandlerError(oldState)
 
 			// произошла ошибка при работе, напишем об этом пользователю
 			b := params.NewMessagesSendBuilder()
@@ -82,7 +81,7 @@ func (e *Endpoint) Init(ctx context.Context) error {
 
 		// считаем время обработки запроса для каждого из стейтов
 		defer func() {
-			e.metrics.InformationMetrics(time.Since(startTime), oldState)
+			e.metrics.Percentiles(time.Since(startTime), oldState)
 		}()
 
 		// происходит отправка сообщений
@@ -92,7 +91,7 @@ func (e *Endpoint) Init(ctx context.Context) error {
 			_, err := e.vk.MessagesSend(message.Params)
 			if err != nil {
 				log.Ctx(ctx).Error().Err(err).Msgf("[Endpoint: vk.MessagesSend] vkID - %d", obj.Message.PeerID)
-				//TODO: добавить метрику ошибок ОТПРАВКИ
+				e.metrics.SendError(oldState)
 			}
 		}
 	})
