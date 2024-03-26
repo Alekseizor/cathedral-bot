@@ -105,7 +105,7 @@ func (e *Endpoint) Run(ctx context.Context) error {
 	go func() {
 		err := e.metrics.Run()
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Msg("[prometheus.Listen]")
+			log.Ctx(ctx).Error().Err(err).Msg("[metrics.Run]")
 		}
 	}()
 
