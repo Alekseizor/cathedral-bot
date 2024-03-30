@@ -19,7 +19,15 @@ services: # имеджи, которые запустятся по вашему 
       - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "19090:9090"
+  grafana:
+    image: grafana/grafana-oss:9.4.3
+    ports:
+      - "13000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
 
 volumes: # часть настроек для хранения данных
   postgresdb-data:
+    driver: local
+  grafana-data:
     driver: local
