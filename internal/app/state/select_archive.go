@@ -18,7 +18,7 @@ func (state SelectArchiveState) Handler(msg object.MessagesMessage) (stateName, 
 	case "Фото":
 		return photoStub, nil, nil
 	case "Документы":
-		return documentStub, nil, nil
+		return documentStart, nil, nil
 	default:
 		return selectArchive, nil, nil
 	}

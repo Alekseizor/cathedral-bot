@@ -17,8 +17,9 @@ type stateName string
 const (
 	start         = stateName("start")
 	selectArchive = stateName("selectArchive")
-	documentStub  = stateName("documentStub")
+	documentStart = stateName("documentStart")
 	photoStub     = stateName("photoStub")
+	loadDocument  = stateName("loadDocument")
 )
 
 type State interface {
@@ -52,15 +53,17 @@ func (s *States) Init() error {
 	//здесь инициализируются все стейты
 	startState := &StartState{postgres: postgresRepo}
 	selectArchiveState := &SelectArchiveState{postgres: postgresRepo}
-	documentStubState := &DocumentStubState{postgres: postgresRepo}
+	documentStartState := &DocumentStartState{postgres: postgresRepo}
 	photoStubState := &PhotoStubState{postgres: postgresRepo}
+	loadDocumentState := &LoadDocumentState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
 		startState.Name():         startState,
 		selectArchiveState.Name(): selectArchiveState,
-		documentStubState.Name():  documentStubState,
+		documentStartState.Name(): documentStartState,
 		photoStubState.Name():     photoStubState,
+		loadDocumentState.Name():  loadDocumentState,
 	}
 
 	return nil
