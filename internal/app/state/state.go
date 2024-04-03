@@ -16,18 +16,27 @@ import (
 type stateName string
 
 const (
-	start                = stateName("start")
-	selectArchive        = stateName("selectArchive")
-	documentStart        = stateName("documentStart")
-	photoStub            = stateName("photoStub")
-	loadDocument         = stateName("loadDocument")
-	nameDocument         = stateName("nameDocument")
-	authorDocument       = stateName("authorDocument")
-	yearDocument         = stateName("yearDocument")
-	categoryDocument     = stateName("categoryDocument")
-	userCategoryDocument = stateName("userCategoryDocument")
-	hashtagDocument      = stateName("hashtagDocument")
-	checkDocument        = stateName("checkDocument")
+	start                    = stateName("start")
+	selectArchive            = stateName("selectArchive")
+	documentStart            = stateName("documentStart")
+	photoStub                = stateName("photoStub")
+	loadDocument             = stateName("loadDocument")
+	nameDocument             = stateName("nameDocument")
+	authorDocument           = stateName("authorDocument")
+	yearDocument             = stateName("yearDocument")
+	categoryDocument         = stateName("categoryDocument")
+	userCategoryDocument     = stateName("userCategoryDocument")
+	descriptionDocument      = stateName("descriptionDocument")
+	hashtagDocument          = stateName("hashtagDocument")
+	checkDocument            = stateName("checkDocument")
+	editDocument             = stateName("editDocument")
+	editNameDocument         = stateName("editNameDocument")
+	editAuthorDocument       = stateName("editAuthorDocument")
+	editYearDocument         = stateName("editYearDocument")
+	editCategoryDocument     = stateName("editCategoryDocument")
+	editUserCategoryDocument = stateName("editUserCategoryDocument")
+	editDescriptionDocument  = stateName("editDescriptionDocument")
+	editHashtagDocument      = stateName("editHashtagDocument")
 )
 
 type State interface {
@@ -63,29 +72,47 @@ func (s *States) Init(vk *api.VK) error {
 	selectArchiveState := &SelectArchiveState{postgres: postgresRepo}
 	documentStartState := &DocumentStartState{postgres: postgresRepo}
 	photoStubState := &PhotoStubState{postgres: postgresRepo}
-	loadDocumentState := &LoadDocumentState{postgres: postgresRepo}
+	loadDocumentState := &LoadDocumentState{postgres: postgresRepo, vk: vk}
 	nameDocumentState := &NameDocumentState{postgres: postgresRepo}
 	authorDocumentState := &AuthorDocumentState{postgres: postgresRepo}
 	yearDocumentState := &YearDocumentState{postgres: postgresRepo}
 	categoryDocumentState := &CategoryDocumentState{postgres: postgresRepo}
 	userCategoryDocumentState := &UserCategoryDocumentState{postgres: postgresRepo}
+	descriptionDocumentState := &DescriptionDocumentState{postgres: postgresRepo}
 	hashtagDocumentState := &HashtagDocumentState{postgres: postgresRepo}
 	checkDocumentState := &CheckDocumentState{postgres: postgresRepo}
+	editDocumentState := &EditDocumentState{postgres: postgresRepo}
+	editNameDocumentState := &EditNameDocumentState{postgres: postgresRepo}
+	editAuthorDocumentState := &EditAuthorDocumentState{postgres: postgresRepo}
+	editYearDocumentState := &EditYearDocumentState{postgres: postgresRepo}
+	editCategoryDocumentState := &EditCategoryDocumentState{postgres: postgresRepo}
+	editUserCategoryDocumentState := &EditUserCategoryDocumentState{postgres: postgresRepo}
+	editDescriptionDocumentState := &EditDescriptionDocumentState{postgres: postgresRepo}
+	editHashtagDocumentState := &EditHashtagDocumentState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
-		startState.Name():                startState,
-		selectArchiveState.Name():        selectArchiveState,
-		documentStartState.Name():        documentStartState,
-		photoStubState.Name():            photoStubState,
-		loadDocumentState.Name():         loadDocumentState,
-		nameDocumentState.Name():         nameDocumentState,
-		authorDocumentState.Name():       authorDocumentState,
-		yearDocumentState.Name():         yearDocumentState,
-		categoryDocumentState.Name():     categoryDocumentState,
-		userCategoryDocumentState.Name(): userCategoryDocumentState,
-		hashtagDocumentState.Name():      hashtagDocumentState,
-		checkDocumentState.Name():        checkDocumentState,
+		startState.Name():                    startState,
+		selectArchiveState.Name():            selectArchiveState,
+		documentStartState.Name():            documentStartState,
+		photoStubState.Name():                photoStubState,
+		loadDocumentState.Name():             loadDocumentState,
+		nameDocumentState.Name():             nameDocumentState,
+		authorDocumentState.Name():           authorDocumentState,
+		yearDocumentState.Name():             yearDocumentState,
+		categoryDocumentState.Name():         categoryDocumentState,
+		userCategoryDocumentState.Name():     userCategoryDocumentState,
+		descriptionDocumentState.Name():      descriptionDocumentState,
+		hashtagDocumentState.Name():          hashtagDocumentState,
+		checkDocumentState.Name():            checkDocumentState,
+		editDocumentState.Name():             editDocumentState,
+		editNameDocumentState.Name():         editNameDocumentState,
+		editAuthorDocumentState.Name():       editAuthorDocumentState,
+		editYearDocumentState.Name():         editYearDocumentState,
+		editCategoryDocumentState.Name():     editCategoryDocumentState,
+		editUserCategoryDocumentState.Name(): editUserCategoryDocumentState,
+		editDescriptionDocumentState.Name():  editDescriptionDocumentState,
+		editHashtagDocumentState.Name():      editHashtagDocumentState,
 	}
 
 	return nil

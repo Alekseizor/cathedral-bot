@@ -3,6 +3,7 @@ package state
 import (
 	"context"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
+	"github.com/SevereCloud/vksdk/v2/api"
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
 	"regexp"
@@ -23,6 +24,7 @@ var validExtension = map[string]struct{}{
 // LoadDocumentState пользователь загружает документ
 type LoadDocumentState struct {
 	postgres *postrgres.Repo
+	vk       *api.VK
 }
 
 func (state LoadDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
@@ -53,7 +55,7 @@ func (state LoadDocumentState) Handler(msg object.MessagesMessage) (stateName, [
 		return loadDocument, []*params.MessagesSendBuilder{b}, nil
 	}
 
-	err := state.postgres.Document.InsertDocumentURL(context.Background(), attachment[0].Doc.Title, attachment[0].Doc.URL, msg.PeerID)
+	err := state.postgres.Document.UploadDocument(context.Background(), state.vk, attachment[0].Doc, msg.PeerID)
 	if err != nil {
 		return loadDocument, []*params.MessagesSendBuilder{}, err
 	}
@@ -89,6 +91,10 @@ func (state NameDocumentState) Handler(msg object.MessagesMessage) (stateName, [
 
 	switch messageText {
 	case "Назад":
+		err := state.postgres.Document.DeleteDocumentRequest(context.Background(), msg.PeerID)
+		if err != nil {
+			return nameDocument, []*params.MessagesSendBuilder{}, err
+		}
 		return loadDocument, nil, nil
 	case "Пропустить":
 		return authorDocument, nil, nil
@@ -259,7 +265,7 @@ func (state CategoryDocumentState) Handler(msg object.MessagesMessage) (stateNam
 		if err != nil {
 			return categoryDocument, []*params.MessagesSendBuilder{}, err
 		}
-		return hashtagDocument, nil, nil
+		return descriptionDocument, nil, nil
 	}
 }
 
@@ -300,7 +306,7 @@ func (state UserCategoryDocumentState) Handler(msg object.MessagesMessage) (stat
 		if err != nil {
 			return userCategoryDocument, []*params.MessagesSendBuilder{}, err
 		}
-		return hashtagDocument, nil, nil
+		return descriptionDocument, nil, nil
 	}
 }
 
@@ -319,6 +325,45 @@ func (state UserCategoryDocumentState) Name() stateName {
 	return userCategoryDocument
 }
 
+// DescriptionDocumentState пользователь указывает хештег документа
+type DescriptionDocumentState struct {
+	postgres *postrgres.Repo
+}
+
+func (state DescriptionDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+
+	switch messageText {
+	case "Назад":
+		return categoryDocument, nil, nil
+	case "Пропустить":
+		return hashtagDocument, nil, nil
+	default:
+		err := state.postgres.Document.UpdateDescription(context.Background(), msg.PeerID, messageText)
+		if err != nil {
+			return descriptionDocument, []*params.MessagesSendBuilder{}, err
+		}
+		return hashtagDocument, nil, nil
+	}
+}
+
+func (state DescriptionDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Введите описание документа")
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Назад", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Пропустить", "", "secondary")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state DescriptionDocumentState) Name() stateName {
+	return descriptionDocument
+}
+
 // HashtagDocumentState пользователь указывает хештег документа
 type HashtagDocumentState struct {
 	postgres *postrgres.Repo
@@ -329,7 +374,7 @@ func (state HashtagDocumentState) Handler(msg object.MessagesMessage) (stateName
 
 	switch messageText {
 	case "Назад":
-		return categoryDocument, nil, nil
+		return descriptionDocument, nil, nil
 	case "Пропустить":
 		return checkDocument, nil, nil
 	default:
@@ -374,7 +419,7 @@ func (state CheckDocumentState) Handler(msg object.MessagesMessage) (stateName, 
 	case "Отправить":
 		return checkDocument, nil, nil
 	case "Редактировать заявку":
-		return checkDocument, nil, nil
+		return editDocument, nil, nil
 	default:
 		return checkDocument, nil, nil
 	}
