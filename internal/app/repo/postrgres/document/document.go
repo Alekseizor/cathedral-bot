@@ -177,11 +177,11 @@ func (r *Repo) UpdateHashtags(ctx context.Context, vkID int, hashtags []string) 
 }
 
 // CheckParams возвращает все параметры заявки на загрузку документа
-func (r *Repo) CheckParams(ctx context.Context, vkID int) (string, error) {
+func (r *Repo) CheckParams(ctx context.Context, vkID int) (string, string, error) {
 	var doc ds.Document
 	err := r.db.GetContext(ctx, &doc, "SELECT id FROM documents WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
 	if err != nil {
-		return "", fmt.Errorf("[db.GetContext]: %w", err)
+		return "", "", fmt.Errorf("[db.GetContext]: %w", err)
 	}
 
 	sqlQuery := `
@@ -195,19 +195,22 @@ func (r *Repo) CheckParams(ctx context.Context, vkID int) (string, error) {
 	WHERE id = $1;`
 
 	var (
-		name     string
-		author   string
-		year     string
-		category string
-		hashtag  string
+		name       string
+		author     string
+		year       string
+		category   string
+		hashtag    string
+		attachment string
 	)
 
 	err = r.db.QueryRow(sqlQuery, doc.ID).Scan(&name, &author, &year, &category, &hashtag)
 	if err != nil {
-		return "", fmt.Errorf("[db.GetContext]: %w", err)
+		return "", "", fmt.Errorf("[db.GetContext]: %w", err)
 	}
+
+	attachment = "doc" + "185404885" + "_" + "673328305" + "_" + "zdIf99RBZYxvX0EQRfa4drMLgNLgFRzLZRalqSbtyns"
 
 	output := fmt.Sprintf("Ваша заявка на загрузку документа:\n %s\n%s\n%s\n%s\n%s\n", name, author, year, category, hashtag)
 
-	return output, nil
+	return output, attachment, nil
 }

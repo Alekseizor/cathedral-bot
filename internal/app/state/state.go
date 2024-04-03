@@ -69,7 +69,7 @@ func (s *States) Init() error {
 	categoryDocumentState := &CategoryDocumentState{postgres: postgresRepo}
 	userCategoryDocumentState := &UserCategoryDocumentState{postgres: postgresRepo}
 	hashtagDocumentState := &HashtagDocumentState{postgres: postgresRepo}
-	сheckDocumentState := &CheckDocumentState{postgres: postgresRepo}
+	checkDocumentState := &CheckDocumentState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -84,7 +84,7 @@ func (s *States) Init() error {
 		categoryDocumentState.Name():     categoryDocumentState,
 		userCategoryDocumentState.Name(): userCategoryDocumentState,
 		hashtagDocumentState.Name():      hashtagDocumentState,
-		сheckDocumentState.Name():        сheckDocumentState,
+		checkDocumentState.Name():        checkDocumentState,
 	}
 
 	return nil
