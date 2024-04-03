@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/SevereCloud/vksdk/v2/api"
 
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
@@ -24,7 +25,7 @@ const (
 type State interface {
 	Name() stateName
 	Handler(object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error)
-	Show() ([]*params.MessagesSendBuilder, error)
+	Show(vkID int) ([]*params.MessagesSendBuilder, error)
 }
 
 type States struct {
@@ -39,7 +40,7 @@ func New(cfg config.Config) *States {
 	}
 }
 
-func (s *States) Init() error {
+func (s *States) Init(vk *api.VK) error {
 	postgresRepo := postrgres.New(s.cfg.ClientsConfig.PostgresConfig)
 
 	err := postgresRepo.Init()
@@ -99,7 +100,7 @@ func (s *States) Handler(ctx context.Context, obj object.MessagesMessage) ([]*pa
 	// достали нужную структуру стейта
 	// далее берем сообщения, которые надо отправить, для этого стейта
 	state = s.statesList[newState]
-	newStateMessage, err := state.Show()
+	newStateMessage, err := state.Show(vkID)
 	if err != nil {
 		return nil, stateStr, fmt.Errorf("[state.Handler]: %w", err)
 	}
