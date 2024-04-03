@@ -7,6 +7,7 @@ import (
 	"github.com/SevereCloud/vksdk/v2/object"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -194,7 +195,7 @@ func (state YearDocumentState) Handler(msg object.MessagesMessage) (stateName, [
 		if !(year >= 1800 && year <= currentYear) {
 			b := params.NewMessagesSendBuilder()
 			b.RandomID(0)
-			b.Message("Введите год в формате YYYY")
+			b.Message("Введите существующий год в формате YYYY")
 			return yearDocument, []*params.MessagesSendBuilder{b}, nil
 		}
 		err = state.postgres.Document.UpdateYear(context.Background(), msg.PeerID, year)
@@ -234,7 +235,7 @@ func (state CategoryDocumentState) Handler(msg object.MessagesMessage) (stateNam
 	case "Назад":
 		return yearDocument, nil, nil
 	case "Своя категория":
-		return categoryDocument, nil, nil
+		return userCategoryDocument, nil, nil
 	default:
 		maxID, err := state.postgres.Document.GetCategoryMaxID()
 		if err != nil {
@@ -258,7 +259,7 @@ func (state CategoryDocumentState) Handler(msg object.MessagesMessage) (stateNam
 		if err != nil {
 			return categoryDocument, []*params.MessagesSendBuilder{}, err
 		}
-		return categoryDocument, nil, nil
+		return hashtagDocument, nil, nil
 	}
 }
 
@@ -281,4 +282,133 @@ func (state CategoryDocumentState) Show() ([]*params.MessagesSendBuilder, error)
 
 func (state CategoryDocumentState) Name() stateName {
 	return categoryDocument
+}
+
+// UserCategoryDocumentState пользователь указывает свою категорию документа
+type UserCategoryDocumentState struct {
+	postgres *postrgres.Repo
+}
+
+func (state UserCategoryDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+
+	switch messageText {
+	case "Назад":
+		return categoryDocument, nil, nil
+	default:
+		err := state.postgres.Document.UpdateUserCategory(context.Background(), msg.PeerID, messageText)
+		if err != nil {
+			return userCategoryDocument, []*params.MessagesSendBuilder{}, err
+		}
+		return hashtagDocument, nil, nil
+	}
+}
+
+func (state UserCategoryDocumentState) Show() ([]*params.MessagesSendBuilder, error) {
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Введите название своей категории. Оно будет рассмотрено администратором")
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Назад", "", "secondary")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state UserCategoryDocumentState) Name() stateName {
+	return userCategoryDocument
+}
+
+// HashtagDocumentState пользователь указывает хештег документа
+type HashtagDocumentState struct {
+	postgres *postrgres.Repo
+}
+
+func (state HashtagDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+
+	switch messageText {
+	case "Назад":
+		return categoryDocument, nil, nil
+	case "Пропустить":
+		return checkDocument, nil, nil
+	default:
+		hashtags := strings.Split(messageText, " ")
+
+		err := state.postgres.Document.UpdateHashtags(context.Background(), msg.PeerID, hashtags)
+		if err != nil {
+			return hashtagDocument, []*params.MessagesSendBuilder{}, err
+		}
+		return checkDocument, nil, nil
+	}
+}
+
+func (state HashtagDocumentState) Show() ([]*params.MessagesSendBuilder, error) {
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Введите названия хештегов через пробел (например, фамилия преподавателя или название предмета)")
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Назад", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Пропустить", "", "secondary")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state HashtagDocumentState) Name() stateName {
+	return hashtagDocument
+}
+
+// CheckDocumentState пользователь
+type CheckDocumentState struct {
+	postgres *postrgres.Repo
+}
+
+func (state CheckDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	//messageText := msg.Text
+
+	output, err := state.postgres.Document.CheckParams(context.Background(), msg.PeerID)
+	if err != nil {
+		return checkDocument, []*params.MessagesSendBuilder{}, err
+	}
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message(output)
+	return checkDocument, []*params.MessagesSendBuilder{b}, nil
+
+	//switch messageText {
+	//case "Назад":
+	//	return hashtagDocument, nil, nil
+	//case "Отправить":
+	//	return checkDocument, nil, nil
+	//case "Редактировать заявку":
+	//	return checkDocument, nil, nil
+	//default:
+	//
+	//	err := state.postgres.Document.CheckParams(context.Background(), msg.PeerID)
+	//	if err != nil {
+	//		return checkDocument, []*params.MessagesSendBuilder{}, err
+	//	}
+	//	return checkDocument, nil, nil
+	//}
+}
+
+func (state CheckDocumentState) Show() ([]*params.MessagesSendBuilder, error) {
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Проверьте правильность введенных параметров:")
+	//k := object.NewMessagesKeyboard(true)
+	//k.AddRow()
+	//k.AddTextButton("Назад", "", "secondary")
+	//k.AddRow()
+	//k.AddTextButton("Отправить", "", "secondary")
+	//k.AddRow()
+	//k.AddTextButton("Редактировать заявку", "", "secondary")
+	//b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state CheckDocumentState) Name() stateName {
+	return checkDocument
 }

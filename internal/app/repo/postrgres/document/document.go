@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 // Repo инстанс репо для работы с документами пользователя
@@ -140,4 +141,73 @@ func (r *Repo) UpdateCategory(ctx context.Context, vkID, categoryNumber int) err
 	}
 
 	return nil
+}
+
+// UpdateUserCategory добавляет пользовательскую категорию документа
+func (r *Repo) UpdateUserCategory(ctx context.Context, vkID int, category string) error {
+	var doc ds.Document
+
+	err := r.db.GetContext(ctx, &doc, "SELECT id FROM documents WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	_, err = r.db.ExecContext(ctx, "UPDATE documents SET (category, is_category_new) = ($1, $2) WHERE id = $3", category, true, doc.ID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateHashtags добавляет хештеги к документу
+func (r *Repo) UpdateHashtags(ctx context.Context, vkID int, hashtags []string) error {
+	var doc ds.Document
+	err := r.db.GetContext(ctx, &doc, "SELECT id FROM documents WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	_, err = r.db.ExecContext(ctx, "UPDATE documents SET hashtags = $1 WHERE id = $2", pq.Array(hashtags), doc.ID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// CheckParams возвращает все параметры заявки на загрузку документа
+func (r *Repo) CheckParams(ctx context.Context, vkID int) (string, error) {
+	var doc ds.Document
+	err := r.db.GetContext(ctx, &doc, "SELECT id FROM documents WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
+	if err != nil {
+		return "", fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	sqlQuery := `
+	SELECT 
+    	'1. Название: ' || COALESCE(title, 'Не указано') AS name,
+    	'2. Автор: ' || COALESCE(author, 'Не указано') AS author,
+    	'3. Год создания документа: ' || COALESCE(CAST(year AS VARCHAR), 'Не указано') AS year,
+    	'4. Категория: ' || COALESCE(category, 'Не указано') AS category,
+    	'5. Хэштеги: ' || COALESCE(array_to_string(hashtags, ', '), 'Не указано') AS hashtag
+	FROM documents
+	WHERE id = $1;`
+
+	var (
+		name     string
+		author   string
+		year     string
+		category string
+		hashtag  string
+	)
+
+	err = r.db.QueryRow(sqlQuery, doc.ID).Scan(&name, &author, &year, &category, &hashtag)
+	if err != nil {
+		return "", fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	output := fmt.Sprintf("Ваша заявка на загрузку документа:\n %s\n%s\n%s\n%s\n%s\n", name, author, year, category, hashtag)
+
+	return output, nil
 }

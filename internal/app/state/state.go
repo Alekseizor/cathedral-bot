@@ -25,6 +25,8 @@ const (
 	yearDocument         = stateName("yearDocument")
 	categoryDocument     = stateName("categoryDocument")
 	userCategoryDocument = stateName("userCategoryDocument")
+	hashtagDocument      = stateName("hashtagDocument")
+	checkDocument        = stateName("checkDocument")
 )
 
 type State interface {
@@ -64,19 +66,25 @@ func (s *States) Init() error {
 	nameDocumentState := &NameDocumentState{postgres: postgresRepo}
 	authorDocumentState := &AuthorDocumentState{postgres: postgresRepo}
 	yearDocumentState := &YearDocumentState{postgres: postgresRepo}
-	сategoryDocumentState := &CategoryDocumentState{postgres: postgresRepo}
+	categoryDocumentState := &CategoryDocumentState{postgres: postgresRepo}
+	userCategoryDocumentState := &UserCategoryDocumentState{postgres: postgresRepo}
+	hashtagDocumentState := &HashtagDocumentState{postgres: postgresRepo}
+	сheckDocumentState := &CheckDocumentState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
-		startState.Name():            startState,
-		selectArchiveState.Name():    selectArchiveState,
-		documentStartState.Name():    documentStartState,
-		photoStubState.Name():        photoStubState,
-		loadDocumentState.Name():     loadDocumentState,
-		nameDocumentState.Name():     nameDocumentState,
-		authorDocumentState.Name():   authorDocumentState,
-		yearDocumentState.Name():     yearDocumentState,
-		сategoryDocumentState.Name(): сategoryDocumentState,
+		startState.Name():                startState,
+		selectArchiveState.Name():        selectArchiveState,
+		documentStartState.Name():        documentStartState,
+		photoStubState.Name():            photoStubState,
+		loadDocumentState.Name():         loadDocumentState,
+		nameDocumentState.Name():         nameDocumentState,
+		authorDocumentState.Name():       authorDocumentState,
+		yearDocumentState.Name():         yearDocumentState,
+		categoryDocumentState.Name():     categoryDocumentState,
+		userCategoryDocumentState.Name(): userCategoryDocumentState,
+		hashtagDocumentState.Name():      hashtagDocumentState,
+		сheckDocumentState.Name():        сheckDocumentState,
 	}
 
 	return nil
