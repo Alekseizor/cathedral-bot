@@ -22,7 +22,7 @@ func (state DocumentStubState) Handler(msg object.MessagesMessage) (stateName, [
 	}
 }
 
-func (state DocumentStubState) Show() ([]*params.MessagesSendBuilder, error) {
+func (state DocumentStubState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Заглушка для документов")
