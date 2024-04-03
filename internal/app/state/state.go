@@ -32,7 +32,7 @@ const (
 type State interface {
 	Name() stateName
 	Handler(object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error)
-	Show() ([]*params.MessagesSendBuilder, error)
+	Show(vkID int) ([]*params.MessagesSendBuilder, error)
 }
 
 type States struct {
@@ -123,7 +123,7 @@ func (s *States) Handler(ctx context.Context, obj object.MessagesMessage) ([]*pa
 	// достали нужную структуру стейта
 	// далее берем сообщения, которые надо отправить, для этого стейта
 	state = s.statesList[newState]
-	newStateMessage, err := state.Show()
+	newStateMessage, err := state.Show(vkID)
 	if err != nil {
 		return nil, stateStr, fmt.Errorf("[state.Handler]: %w", err)
 	}

@@ -24,7 +24,7 @@ func (state DocumentStartState) Handler(msg object.MessagesMessage) (stateName, 
 	}
 }
 
-func (state DocumentStartState) Show() ([]*params.MessagesSendBuilder, error) {
+func (state DocumentStartState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Добро пожаловать в архив документов. Выберите нужный пункт из списка ниже:")

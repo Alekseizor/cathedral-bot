@@ -22,7 +22,7 @@ func (state PhotoStubState) Handler(msg object.MessagesMessage) (stateName, []*p
 	}
 }
 
-func (state PhotoStubState) Show() ([]*params.MessagesSendBuilder, error) {
+func (state PhotoStubState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Заглушка для фото")

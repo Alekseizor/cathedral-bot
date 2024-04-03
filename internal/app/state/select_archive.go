@@ -24,7 +24,7 @@ func (state SelectArchiveState) Handler(msg object.MessagesMessage) (stateName, 
 	}
 }
 
-func (state SelectArchiveState) Show() ([]*params.MessagesSendBuilder, error) {
+func (state SelectArchiveState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("В нашем боте есть 2 архива: фотоархив и документоархив. С каким хочешь поработать?")
