@@ -33,12 +33,12 @@ func New(cfg config.Config) *Endpoint {
 }
 
 func (e *Endpoint) Init(ctx context.Context) error {
-	err := e.states.Init()
+	vk := api.NewVK(e.cfg.BotConfig.Token)
+	err := e.states.Init(vk)
 	if err != nil {
 		return fmt.Errorf("[state.Init]: %w", err)
 	}
 
-	vk := api.NewVK(e.cfg.BotConfig.Token)
 	e.vk = vk
 
 	group, err := vk.GroupsGetByID(nil)
