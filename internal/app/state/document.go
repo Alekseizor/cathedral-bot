@@ -1,6 +1,8 @@
 package state
 
 import (
+	"context"
+
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
 
@@ -11,7 +13,7 @@ type DocumentStubState struct {
 	postgres *postrgres.Repo
 }
 
-func (state DocumentStubState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state DocumentStubState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
@@ -22,7 +24,7 @@ func (state DocumentStubState) Handler(msg object.MessagesMessage) (stateName, [
 	}
 }
 
-func (state DocumentStubState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state DocumentStubState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Заглушка для документов")

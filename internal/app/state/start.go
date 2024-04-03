@@ -1,6 +1,8 @@
 package state
 
 import (
+	"context"
+
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
 
@@ -11,7 +13,7 @@ type StartState struct {
 	postgres *postrgres.Repo
 }
 
-func (state StartState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state StartState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 	if messageText == "Начать" {
 		return selectArchive, nil, nil
@@ -20,7 +22,7 @@ func (state StartState) Handler(msg object.MessagesMessage) (stateName, []*param
 	return start, nil, nil
 }
 
-func (state StartState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state StartState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.PeerID(236322856)

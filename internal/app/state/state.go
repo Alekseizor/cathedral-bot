@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	"github.com/SevereCloud/vksdk/v2/api"
 
 	"github.com/SevereCloud/vksdk/v2/api/params"
@@ -24,8 +25,8 @@ const (
 
 type State interface {
 	Name() stateName
-	Handler(object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error)
-	Show(vkID int) ([]*params.MessagesSendBuilder, error)
+	Handler(context.Context, object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error)
+	Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error)
 }
 
 type States struct {
@@ -92,7 +93,7 @@ func (s *States) Handler(ctx context.Context, obj object.MessagesMessage) ([]*pa
 	state := s.statesList[userState]
 
 	//выполняем обработку сообщения согласно стейту
-	newState, respMessage, err := state.Handler(obj)
+	newState, respMessage, err := state.Handler(ctx, obj)
 	if err != nil {
 		return nil, stateStr, fmt.Errorf("[state.Handler]: %w", err)
 	}
@@ -100,7 +101,7 @@ func (s *States) Handler(ctx context.Context, obj object.MessagesMessage) ([]*pa
 	// достали нужную структуру стейта
 	// далее берем сообщения, которые надо отправить, для этого стейта
 	state = s.statesList[newState]
-	newStateMessage, err := state.Show(vkID)
+	newStateMessage, err := state.Show(ctx, vkID)
 	if err != nil {
 		return nil, stateStr, fmt.Errorf("[state.Handler]: %w", err)
 	}
