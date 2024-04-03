@@ -69,7 +69,7 @@ func (e *Endpoint) Init(ctx context.Context) error {
 		// обрабатываем сообщения и подготавливаем ответ
 		respMessages, oldState, err := e.states.Handler(ctx, obj.Message)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Msgf("[Endpoint.Init:MessageNew:states.Handler]: vkID -%d", obj.Message.PeerID)
+			log.Ctx(ctx).Error().Err(err).Msgf("[Endpoint.Init:MessageNew:state.Handler]: vkID -%d", obj.Message.PeerID)
 			e.metrics.HandlerError(oldState)
 
 			// произошла ошибка при работе, напишем об этом пользователю

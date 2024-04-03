@@ -17,10 +17,14 @@ import (
 type stateName string
 
 const (
-	start         = stateName("start")
-	selectArchive = stateName("selectArchive")
-	documentStub  = stateName("documentStub")
-	photoStub     = stateName("photoStub")
+	start           = stateName("start")
+	selectArchive   = stateName("selectArchive")
+	documentStub    = stateName("documentStub")
+	photoStub       = stateName("photoStub")
+	documentCabinet = stateName("documentCabinet")
+	albumsCabinet   = stateName("albumsCabinet")
+	blocking        = stateName("blocking")
+	blockUser       = stateName("blockUser")
 )
 
 type State interface {
@@ -56,13 +60,21 @@ func (s *States) Init(vk *api.VK) error {
 	selectArchiveState := &SelectArchiveState{postgres: postgresRepo}
 	documentStubState := &DocumentStubState{postgres: postgresRepo}
 	photoStubState := &PhotoStubState{postgres: postgresRepo}
+	albumsCabinetState := &AlbumsCabinetState{postgres: postgresRepo}
+	documentCabinetState := &DocumentCabinetState{postgres: postgresRepo}
+	blockUserState := &BlockUserState{postgres: postgresRepo}
+	blockingState := &BlockingState{}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
-		startState.Name():         startState,
-		selectArchiveState.Name(): selectArchiveState,
-		documentStubState.Name():  documentStubState,
-		photoStubState.Name():     photoStubState,
+		startState.Name():           startState,
+		selectArchiveState.Name():   selectArchiveState,
+		documentStubState.Name():    documentStubState,
+		photoStubState.Name():       photoStubState,
+		albumsCabinetState.Name():   albumsCabinetState,
+		documentCabinetState.Name(): documentCabinetState,
+		blockUserState.Name():       blockUserState,
+		blockingState.Name():        blockingState,
 	}
 
 	return nil
@@ -103,7 +115,7 @@ func (s *States) Handler(ctx context.Context, obj object.MessagesMessage) ([]*pa
 	state = s.statesList[newState]
 	newStateMessage, err := state.Show(ctx, vkID)
 	if err != nil {
-		return nil, stateStr, fmt.Errorf("[state.Handler]: %w", err)
+		return nil, stateStr, fmt.Errorf("[state.Show]: %w", err)
 	}
 
 	respMessage = append(respMessage, newStateMessage...)

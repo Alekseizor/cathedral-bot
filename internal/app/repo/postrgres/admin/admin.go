@@ -23,7 +23,7 @@ func New(db *sqlx.DB) *Repo {
 
 func (r *Repo) CheckExistence(ctx context.Context, vkID int) (bool, error) {
 	var exists bool
-	err := r.db.GetContext(ctx, &exists, "SELECT * FROM admin WHERE vk_id = $1", vkID)
+	err := r.db.GetContext(ctx, &exists, "SELECT EXISTS (SELECT 1 FROM admin WHERE vk_id = $1)", vkID)
 	if err != nil && err != sql.ErrNoRows {
 		return false, fmt.Errorf("[db.GetContext]: %w", err)
 	}
@@ -63,11 +63,11 @@ func (r *Repo) DeleteAlbumsAdmin(ctx context.Context, vkID int) error {
 	return nil
 }
 
-func (r *Repo) GetAlbumsAdmins(ctx context.Context) ([]int, error) {
-	var vkIDAdmins []int
-	err := r.db.GetContext(ctx, &vkIDAdmins, "SELECT vk_id FROM admin WHERE albums = true")
+func (r *Repo) GetAlbumsAdmins(ctx context.Context) ([]int64, error) {
+	var vkIDAdmins []int64
+	err := r.db.SelectContext(ctx, &vkIDAdmins, "SELECT vk_id FROM admin WHERE albums = true")
 	if err != nil && err != sql.ErrNoRows {
-		return nil, fmt.Errorf("[db.ExecContext]: %w", err)
+		return nil, fmt.Errorf("[db.SelectContext]: %w", err)
 	}
 
 	return vkIDAdmins, nil
@@ -105,11 +105,11 @@ func (r *Repo) DeleteDocumentAdmin(ctx context.Context, vkID int) error {
 	return nil
 }
 
-func (r *Repo) GetDocumentsAdmins(ctx context.Context) ([]int, error) {
-	var vkIDAdmins []int
-	err := r.db.GetContext(ctx, &vkIDAdmins, "SELECT vk_id FROM admin WHERE documents = true")
+func (r *Repo) GetDocumentsAdmins(ctx context.Context) ([]int64, error) {
+	var vkIDAdmins []int64
+	err := r.db.SelectContext(ctx, &vkIDAdmins, "SELECT vk_id FROM admin WHERE documents = true")
 	if err != nil && err != sql.ErrNoRows {
-		return nil, fmt.Errorf("[db.ExecContext]: %w", err)
+		return nil, fmt.Errorf("[db.SelectContext]: %w", err)
 	}
 
 	return vkIDAdmins, nil
