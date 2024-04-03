@@ -3,6 +3,7 @@ package postrgres
 import (
 	"fmt"
 
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/admin"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/Alekseizor/cathedral-bot/internal/app/config"
@@ -18,6 +19,7 @@ const (
 type Repo struct {
 	repoCfg config.PostgresConfig
 	State   *state.Repo
+	Admin   *admin.Repo
 }
 
 // New - создаем новое объект репо, подключения к бд еще нет!
@@ -37,6 +39,7 @@ func (r *Repo) Init() error {
 	}
 
 	r.State = state.New(db)
+	r.Admin = admin.New(db)
 
 	return nil
 }

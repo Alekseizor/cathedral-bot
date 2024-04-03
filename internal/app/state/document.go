@@ -14,6 +14,7 @@ type DocumentStubState struct {
 func (state DocumentStubState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
+	state.postgres.Admin.GetDocumentsAdmins()
 	switch messageText {
 	case "Назад":
 		return selectArchive, nil, nil
