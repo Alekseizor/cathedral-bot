@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/SevereCloud/vksdk/v2/api"
 
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
@@ -39,7 +40,7 @@ func New(cfg config.Config) *States {
 	}
 }
 
-func (s *States) Init() error {
+func (s *States) Init(vk *api.VK) error {
 	postgresRepo := postrgres.New(s.cfg.ClientsConfig.PostgresConfig)
 
 	err := postgresRepo.Init()
