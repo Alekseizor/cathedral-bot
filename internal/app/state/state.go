@@ -15,11 +15,16 @@ import (
 type stateName string
 
 const (
-	start         = stateName("start")
-	selectArchive = stateName("selectArchive")
-	documentStart = stateName("documentStart")
-	photoStub     = stateName("photoStub")
-	loadDocument  = stateName("loadDocument")
+	start                = stateName("start")
+	selectArchive        = stateName("selectArchive")
+	documentStart        = stateName("documentStart")
+	photoStub            = stateName("photoStub")
+	loadDocument         = stateName("loadDocument")
+	nameDocument         = stateName("nameDocument")
+	authorDocument       = stateName("authorDocument")
+	yearDocument         = stateName("yearDocument")
+	categoryDocument     = stateName("categoryDocument")
+	userCategoryDocument = stateName("userCategoryDocument")
 )
 
 type State interface {
@@ -56,14 +61,22 @@ func (s *States) Init() error {
 	documentStartState := &DocumentStartState{postgres: postgresRepo}
 	photoStubState := &PhotoStubState{postgres: postgresRepo}
 	loadDocumentState := &LoadDocumentState{postgres: postgresRepo}
+	nameDocumentState := &NameDocumentState{postgres: postgresRepo}
+	authorDocumentState := &AuthorDocumentState{postgres: postgresRepo}
+	yearDocumentState := &YearDocumentState{postgres: postgresRepo}
+	сategoryDocumentState := &CategoryDocumentState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
-		startState.Name():         startState,
-		selectArchiveState.Name(): selectArchiveState,
-		documentStartState.Name(): documentStartState,
-		photoStubState.Name():     photoStubState,
-		loadDocumentState.Name():  loadDocumentState,
+		startState.Name():            startState,
+		selectArchiveState.Name():    selectArchiveState,
+		documentStartState.Name():    documentStartState,
+		photoStubState.Name():        photoStubState,
+		loadDocumentState.Name():     loadDocumentState,
+		nameDocumentState.Name():     nameDocumentState,
+		authorDocumentState.Name():   authorDocumentState,
+		yearDocumentState.Name():     yearDocumentState,
+		сategoryDocumentState.Name(): сategoryDocumentState,
 	}
 
 	return nil

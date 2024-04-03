@@ -1,9 +1,13 @@
 package state
 
 import (
+	"context"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
+	"regexp"
+	"strconv"
+	"time"
 )
 
 var validExtension = map[string]struct{}{
@@ -15,13 +19,24 @@ var validExtension = map[string]struct{}{
 	"pdf":  struct{}{},
 }
 
+// LoadDocumentState пользователь загружает документ
 type LoadDocumentState struct {
 	postgres *postrgres.Repo
 }
 
 func (state LoadDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
+	if messageText == "Назад" {
+		return documentStart, nil, nil
+	}
 	attachment := msg.Attachments
+
+	if len(attachment) == 0 {
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Загрузите ваш документ, прикрепив его к сообщению")
+		return loadDocument, []*params.MessagesSendBuilder{b}, nil
+	}
 
 	if len(attachment) > 1 {
 		b := params.NewMessagesSendBuilder()
@@ -37,11 +52,14 @@ func (state LoadDocumentState) Handler(msg object.MessagesMessage) (stateName, [
 		return loadDocument, []*params.MessagesSendBuilder{b}, nil
 	}
 
+	err := state.postgres.Document.InsertDocumentURL(context.Background(), attachment[0].Doc.Title, attachment[0].Doc.URL, msg.PeerID)
+	if err != nil {
+		return loadDocument, []*params.MessagesSendBuilder{}, err
+	}
+
 	switch messageText {
-	case "Назад":
-		return documentStart, nil, nil
 	default:
-		return loadDocument, nil, nil
+		return nameDocument, nil, nil
 	}
 }
 
@@ -58,4 +76,209 @@ func (state LoadDocumentState) Show() ([]*params.MessagesSendBuilder, error) {
 
 func (state LoadDocumentState) Name() stateName {
 	return loadDocument
+}
+
+// NameDocumentState пользователь указывает название документа
+type NameDocumentState struct {
+	postgres *postrgres.Repo
+}
+
+func (state NameDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+
+	switch messageText {
+	case "Назад":
+		return loadDocument, nil, nil
+	case "Пропустить":
+		return authorDocument, nil, nil
+	default:
+		err := state.postgres.Document.UpdateName(context.Background(), msg.PeerID, msg.Text)
+		if err != nil {
+			return nameDocument, []*params.MessagesSendBuilder{}, err
+		}
+		return authorDocument, nil, nil
+	}
+}
+
+func (state NameDocumentState) Show() ([]*params.MessagesSendBuilder, error) {
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Введите название загружаемого документа(пропустить - будет использовано название документа)")
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Назад", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Пропустить", "", "secondary")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state NameDocumentState) Name() stateName {
+	return nameDocument
+}
+
+// AuthorDocumentState пользователь указывает ФИО автора документа
+type AuthorDocumentState struct {
+	postgres *postrgres.Repo
+}
+
+func (state AuthorDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+
+	switch messageText {
+	case "Назад":
+		return nameDocument, nil, nil
+	case "Пропустить":
+		return yearDocument, nil, nil
+	default:
+		if len(messageText) > 60 {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("ФИО автора слишком длинное, повторите ввод")
+			return authorDocument, []*params.MessagesSendBuilder{b}, nil
+		}
+		russianRegex := regexp.MustCompile("^[а-яА-Я\\s]+$")
+		if !russianRegex.MatchString(messageText) {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("ФИО автора должно состоять из русских букв, повторите ввод")
+			return authorDocument, []*params.MessagesSendBuilder{b}, nil
+		}
+		err := state.postgres.Document.UpdateAuthor(context.Background(), msg.PeerID, msg.Text)
+		if err != nil {
+			return authorDocument, []*params.MessagesSendBuilder{}, err
+		}
+		return yearDocument, nil, nil
+	}
+}
+
+func (state AuthorDocumentState) Show() ([]*params.MessagesSendBuilder, error) {
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Введите ФИО автора. ФИО может быть неполным")
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Назад", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Пропустить", "", "secondary")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state AuthorDocumentState) Name() stateName {
+	return authorDocument
+}
+
+// YearDocumentState пользователь указывает год создания документа
+type YearDocumentState struct {
+	postgres *postrgres.Repo
+}
+
+func (state YearDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+
+	switch messageText {
+	case "Назад":
+		return authorDocument, nil, nil
+	case "Пропустить":
+		return categoryDocument, nil, nil
+	default:
+		year, err := strconv.Atoi(messageText)
+		if err != nil {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("Введите год числом в формате YYYY")
+			return yearDocument, []*params.MessagesSendBuilder{b}, nil
+		}
+		currentYear := time.Now().Year()
+		if !(year >= 1800 && year <= currentYear) {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("Введите год в формате YYYY")
+			return yearDocument, []*params.MessagesSendBuilder{b}, nil
+		}
+		err = state.postgres.Document.UpdateYear(context.Background(), msg.PeerID, year)
+		if err != nil {
+			return yearDocument, []*params.MessagesSendBuilder{}, err
+		}
+		return categoryDocument, nil, nil
+	}
+}
+
+func (state YearDocumentState) Show() ([]*params.MessagesSendBuilder, error) {
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Введите год создания документа в формате YYYY")
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Назад", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Пропустить", "", "secondary")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state YearDocumentState) Name() stateName {
+	return yearDocument
+}
+
+// CategoryDocumentState пользователь указывает существующую категорию документа
+type CategoryDocumentState struct {
+	postgres *postrgres.Repo
+}
+
+func (state CategoryDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+
+	switch messageText {
+	case "Назад":
+		return yearDocument, nil, nil
+	case "Своя категория":
+		return categoryDocument, nil, nil
+	default:
+		maxID, err := state.postgres.Document.GetCategoryMaxID()
+		if err != nil {
+			return categoryDocument, []*params.MessagesSendBuilder{}, err
+		}
+		categoryNumber, err := strconv.Atoi(messageText)
+		if err != nil {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("Введите номер категории числом, повторите ввод")
+			return categoryDocument, []*params.MessagesSendBuilder{b}, nil
+		}
+		if !(categoryNumber >= 1 && categoryNumber <= maxID) {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("Категории с таким номером нет в списке, повторите ввод")
+			return categoryDocument, []*params.MessagesSendBuilder{b}, nil
+		}
+
+		err = state.postgres.Document.UpdateCategory(context.Background(), msg.PeerID, categoryNumber)
+		if err != nil {
+			return categoryDocument, []*params.MessagesSendBuilder{}, err
+		}
+		return categoryDocument, nil, nil
+	}
+}
+
+func (state CategoryDocumentState) Show() ([]*params.MessagesSendBuilder, error) {
+	categories, err := state.postgres.Document.GetCategoryNames()
+	if err != nil {
+		return []*params.MessagesSendBuilder{}, err
+	}
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Введите номер категории документа из списка ниже:\n" + categories)
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Назад", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Своя категория", "", "secondary")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state CategoryDocumentState) Name() stateName {
+	return categoryDocument
 }

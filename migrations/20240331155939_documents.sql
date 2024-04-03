@@ -1,13 +1,14 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE documents (
-    id         UUID PRIMARY KEY,
+    id         serial PRIMARY KEY,
     title      VARCHAR(255),
     author     VARCHAR(100),
     year       INT,
     category   VARCHAR(50),
     hashtags   TEXT[],
-    url        VARCHAR(255)
+    url        VARCHAR(255),
+    user_id    INT NOT NULL
 );
 -- +goose StatementEnd
 
