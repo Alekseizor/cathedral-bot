@@ -2,6 +2,7 @@ package state
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
@@ -21,6 +22,8 @@ func (state DocumentStartState) Handler(ctx context.Context, msg object.Messages
 		return loadDocument, nil, nil
 	case "Загрузка архива":
 		return loadArchive, nil, nil
+	case "Кабинет администратора документоархива":
+		return documentCabinet, nil, nil
 	case "Назад":
 		return selectArchive, nil, nil
 	default:
@@ -34,6 +37,16 @@ func (state DocumentStartState) Show(ctx context.Context, vkID int) ([]*params.M
 	b.RandomID(0)
 	b.Message("Добро пожаловать в архив документов. Выберите нужный пункт из списка ниже:")
 	k := object.NewMessagesKeyboard(true)
+	documentsAdmins, err := state.postgres.Admin.GetDocumentsAdmins(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("[admin.GetDocumentsAdmins]: %w", err)
+	}
+
+	if contains(documentsAdmins, int64(vkID)) {
+		k.AddRow()
+		k.AddTextButton("Кабинет администратора документоархива", "", "secondary")
+	}
+
 	k.AddRow()
 	k.AddTextButton("Загрузка документа", "", "secondary")
 	k.AddRow()
