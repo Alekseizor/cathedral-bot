@@ -27,7 +27,7 @@ type LoadDocumentState struct {
 	vk       *api.VK
 }
 
-func (state LoadDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state LoadDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 	if messageText == "Назад" {
 		return documentStart, nil, nil
@@ -55,7 +55,7 @@ func (state LoadDocumentState) Handler(msg object.MessagesMessage) (stateName, [
 		return loadDocument, []*params.MessagesSendBuilder{b}, nil
 	}
 
-	err := state.postgres.Document.UploadDocument(context.Background(), state.vk, attachment[0].Doc, msg.PeerID)
+	err := state.postgres.Document.UploadDocument(ctx, state.vk, attachment[0].Doc, msg.PeerID)
 	if err != nil {
 		return loadDocument, []*params.MessagesSendBuilder{}, err
 	}
@@ -66,7 +66,7 @@ func (state LoadDocumentState) Handler(msg object.MessagesMessage) (stateName, [
 	}
 }
 
-func (state LoadDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state LoadDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Загрузите ваш документ")
@@ -86,12 +86,12 @@ type NameDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state NameDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state NameDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
 	case "Назад":
-		err := state.postgres.Document.DeleteDocumentRequest(context.Background(), msg.PeerID)
+		err := state.postgres.Document.DeleteDocumentRequest(ctx, msg.PeerID)
 		if err != nil {
 			return nameDocument, []*params.MessagesSendBuilder{}, err
 		}
@@ -99,7 +99,7 @@ func (state NameDocumentState) Handler(msg object.MessagesMessage) (stateName, [
 	case "Пропустить":
 		return authorDocument, nil, nil
 	default:
-		err := state.postgres.Document.UpdateName(context.Background(), msg.PeerID, msg.Text)
+		err := state.postgres.Document.UpdateName(ctx, msg.PeerID, msg.Text)
 		if err != nil {
 			return nameDocument, []*params.MessagesSendBuilder{}, err
 		}
@@ -107,7 +107,7 @@ func (state NameDocumentState) Handler(msg object.MessagesMessage) (stateName, [
 	}
 }
 
-func (state NameDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state NameDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите название загружаемого документа(пропустить - будет использовано название документа)")
@@ -129,7 +129,7 @@ type AuthorDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state AuthorDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state AuthorDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
@@ -151,7 +151,7 @@ func (state AuthorDocumentState) Handler(msg object.MessagesMessage) (stateName,
 			b.Message("ФИО автора должно состоять из русских букв, повторите ввод")
 			return authorDocument, []*params.MessagesSendBuilder{b}, nil
 		}
-		err := state.postgres.Document.UpdateAuthor(context.Background(), msg.PeerID, msg.Text)
+		err := state.postgres.Document.UpdateAuthor(ctx, msg.PeerID, msg.Text)
 		if err != nil {
 			return authorDocument, []*params.MessagesSendBuilder{}, err
 		}
@@ -159,7 +159,7 @@ func (state AuthorDocumentState) Handler(msg object.MessagesMessage) (stateName,
 	}
 }
 
-func (state AuthorDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state AuthorDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите ФИО автора. ФИО может быть неполным")
@@ -181,7 +181,7 @@ type YearDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state YearDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state YearDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
@@ -204,7 +204,7 @@ func (state YearDocumentState) Handler(msg object.MessagesMessage) (stateName, [
 			b.Message("Введите существующий год в формате YYYY")
 			return yearDocument, []*params.MessagesSendBuilder{b}, nil
 		}
-		err = state.postgres.Document.UpdateYear(context.Background(), msg.PeerID, year)
+		err = state.postgres.Document.UpdateYear(ctx, msg.PeerID, year)
 		if err != nil {
 			return yearDocument, []*params.MessagesSendBuilder{}, err
 		}
@@ -212,7 +212,7 @@ func (state YearDocumentState) Handler(msg object.MessagesMessage) (stateName, [
 	}
 }
 
-func (state YearDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state YearDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите год создания документа в формате YYYY")
@@ -234,7 +234,7 @@ type CategoryDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state CategoryDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state CategoryDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
@@ -261,7 +261,7 @@ func (state CategoryDocumentState) Handler(msg object.MessagesMessage) (stateNam
 			return categoryDocument, []*params.MessagesSendBuilder{b}, nil
 		}
 
-		err = state.postgres.Document.UpdateCategory(context.Background(), msg.PeerID, categoryNumber)
+		err = state.postgres.Document.UpdateCategory(ctx, msg.PeerID, categoryNumber)
 		if err != nil {
 			return categoryDocument, []*params.MessagesSendBuilder{}, err
 		}
@@ -269,7 +269,7 @@ func (state CategoryDocumentState) Handler(msg object.MessagesMessage) (stateNam
 	}
 }
 
-func (state CategoryDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state CategoryDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	categories, err := state.postgres.Document.GetCategoryNames()
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
@@ -295,14 +295,14 @@ type UserCategoryDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state UserCategoryDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state UserCategoryDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
 	case "Назад":
 		return categoryDocument, nil, nil
 	default:
-		err := state.postgres.Document.UpdateUserCategory(context.Background(), msg.PeerID, messageText)
+		err := state.postgres.Document.UpdateUserCategory(ctx, msg.PeerID, messageText)
 		if err != nil {
 			return userCategoryDocument, []*params.MessagesSendBuilder{}, err
 		}
@@ -310,7 +310,7 @@ func (state UserCategoryDocumentState) Handler(msg object.MessagesMessage) (stat
 	}
 }
 
-func (state UserCategoryDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state UserCategoryDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите название своей категории. Оно будет рассмотрено администратором")
@@ -330,7 +330,7 @@ type DescriptionDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state DescriptionDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state DescriptionDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
@@ -339,7 +339,7 @@ func (state DescriptionDocumentState) Handler(msg object.MessagesMessage) (state
 	case "Пропустить":
 		return hashtagDocument, nil, nil
 	default:
-		err := state.postgres.Document.UpdateDescription(context.Background(), msg.PeerID, messageText)
+		err := state.postgres.Document.UpdateDescription(ctx, msg.PeerID, messageText)
 		if err != nil {
 			return descriptionDocument, []*params.MessagesSendBuilder{}, err
 		}
@@ -347,7 +347,7 @@ func (state DescriptionDocumentState) Handler(msg object.MessagesMessage) (state
 	}
 }
 
-func (state DescriptionDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state DescriptionDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите описание документа")
@@ -369,7 +369,7 @@ type HashtagDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state HashtagDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state HashtagDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
@@ -380,7 +380,7 @@ func (state HashtagDocumentState) Handler(msg object.MessagesMessage) (stateName
 	default:
 		hashtags := strings.Split(messageText, " ")
 
-		err := state.postgres.Document.UpdateHashtags(context.Background(), msg.PeerID, hashtags)
+		err := state.postgres.Document.UpdateHashtags(ctx, msg.PeerID, hashtags)
 		if err != nil {
 			return hashtagDocument, []*params.MessagesSendBuilder{}, err
 		}
@@ -388,7 +388,7 @@ func (state HashtagDocumentState) Handler(msg object.MessagesMessage) (stateName
 	}
 }
 
-func (state HashtagDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state HashtagDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите названия хештегов через пробел (например, фамилия преподавателя или название предмета)")
@@ -410,7 +410,7 @@ type CheckDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state CheckDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state CheckDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
@@ -428,8 +428,8 @@ func (state CheckDocumentState) Handler(msg object.MessagesMessage) (stateName, 
 	}
 }
 
-func (state CheckDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
-	output, attachment, err := state.postgres.Document.CheckParams(context.Background(), vkID)
+func (state CheckDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	output, attachment, err := state.postgres.Document.CheckParams(ctx, vkID)
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
 	}
