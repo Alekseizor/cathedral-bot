@@ -415,7 +415,7 @@ func (state CheckArchiveState) Handler(msg object.MessagesMessage) (stateName, [
 	case "Отправить":
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
-		b.Message("Ваша заявка отправлена на одобрение администратору. Вы можете отслеживать статус своей заявки в личном кабинете")
+		b.Message("Ваша заявка на загрузку архива отправлена на одобрение администратору. Вы можете отслеживать статус своей заявки в личном кабинете")
 		return documentStart, []*params.MessagesSendBuilder{b}, nil
 	case "Редактировать заявку":
 		return editDocument, nil, nil
@@ -431,7 +431,7 @@ func (state CheckArchiveState) Show(vkID int) ([]*params.MessagesSendBuilder, er
 	}
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Проверьте правильность введенных параметров на загрузку архива:\n" + output)
+	b.Message("Проверьте правильность введенных параметров:\n" + output)
 	b.Attachment(attachment)
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()

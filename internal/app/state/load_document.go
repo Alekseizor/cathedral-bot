@@ -419,7 +419,7 @@ func (state CheckDocumentState) Handler(msg object.MessagesMessage) (stateName, 
 	case "Отправить":
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
-		b.Message("Ваша заявка отправлена на одобрение администратору. Вы можете отслеживать статус своей заявки в личном кабинете")
+		b.Message("Ваша заявка на загрузку документа отправлена на одобрение администратору. Вы можете отслеживать статус своей заявки в личном кабинете")
 		return documentStart, []*params.MessagesSendBuilder{b}, nil
 	case "Редактировать заявку":
 		return editDocument, nil, nil
@@ -435,7 +435,7 @@ func (state CheckDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, e
 	}
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Проверьте правильность введенных параметров заявки на загрузку документа:\n" + output)
+	b.Message("Проверьте правильность введенных параметров заявки:\n" + output)
 	b.Attachment(attachment)
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
