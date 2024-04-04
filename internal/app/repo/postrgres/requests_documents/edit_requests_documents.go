@@ -1,8 +1,9 @@
-package document
+package requests_documents
 
 import (
 	"context"
 	"fmt"
+
 	"github.com/lib/pq"
 )
 

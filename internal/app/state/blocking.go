@@ -19,6 +19,7 @@ func (state BlockUserState) Handler(ctx context.Context, msg object.MessagesMess
 	if messageText == "Назад" {
 		return documentCabinet, nil, nil
 	}
+
 	vkID, err := strconv.Atoi(messageText)
 	if err != nil || vkID < 100000000 || vkID >= 1000000000 {
 		b := params.NewMessagesSendBuilder()
