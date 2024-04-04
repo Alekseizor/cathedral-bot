@@ -31,7 +31,6 @@ func (state DocumentStartState) Handler(ctx context.Context, msg object.Messages
 	}
 }
 
-
 func (state DocumentStartState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)

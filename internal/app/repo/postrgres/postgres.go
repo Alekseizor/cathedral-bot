@@ -3,7 +3,6 @@ package postrgres
 import (
 	"fmt"
 
-	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/document"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/Alekseizor/cathedral-bot/internal/app/config"
@@ -23,7 +22,6 @@ type Repo struct {
 	State             *state.Repo
 	RequestsDocuments *requests_documents.Repo
 	Admin             *admin.Repo
-	Document          *document.Repo
 }
 
 // New - создаем новое объект репо, подключения к бд еще нет!

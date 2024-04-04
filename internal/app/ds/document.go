@@ -1,5 +1,12 @@
 package ds
 
+const (
+	StatusInProgress = iota
+	StatusUserConfirmed
+	StatusAdminConfirmed
+	StatusAdminDeclined
+)
+
 type RequestDocument struct {
 	ID            int      `db:"id"`
 	Title         string   `db:"title"`
@@ -11,4 +18,5 @@ type RequestDocument struct {
 	Hashtags      []string `db:"hashtags"`
 	Attachment    string   `db:"attachment"`
 	UserID        int      `db:"user_id"`
+	Status        int      `db:"status"`
 }
