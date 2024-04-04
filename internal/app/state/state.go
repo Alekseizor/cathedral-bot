@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/SevereCloud/vksdk/v2/api"
 
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
@@ -19,6 +20,7 @@ const (
 	selectArchive = stateName("selectArchive")
 	documentStub  = stateName("documentStub")
 	photoStub     = stateName("photoStub")
+	loadPhoto     = stateName("loadPhoto")
 )
 
 type State interface {
@@ -39,7 +41,7 @@ func New(cfg config.Config) *States {
 	}
 }
 
-func (s *States) Init() error {
+func (s *States) Init(vk *api.VK) error {
 	postgresRepo := postrgres.New(s.cfg.ClientsConfig.PostgresConfig)
 
 	err := postgresRepo.Init()
@@ -54,6 +56,7 @@ func (s *States) Init() error {
 	selectArchiveState := &SelectArchiveState{postgres: postgresRepo}
 	documentStubState := &DocumentStubState{postgres: postgresRepo}
 	photoStubState := &PhotoStubState{postgres: postgresRepo}
+	loadPhotoState := &LoadPhotoState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -61,6 +64,7 @@ func (s *States) Init() error {
 		selectArchiveState.Name(): selectArchiveState,
 		documentStubState.Name():  documentStubState,
 		photoStubState.Name():     photoStubState,
+		loadPhotoState.Name():     loadPhotoState,
 	}
 
 	return nil

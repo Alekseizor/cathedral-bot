@@ -15,6 +15,8 @@ func (state PhotoStubState) Handler(msg object.MessagesMessage) (stateName, []*p
 	messageText := msg.Text
 
 	switch messageText {
+	case "Загрузка фото":
+		return loadPhoto, nil, nil
 	case "Назад":
 		return selectArchive, nil, nil
 	default:
@@ -25,8 +27,14 @@ func (state PhotoStubState) Handler(msg object.MessagesMessage) (stateName, []*p
 func (state PhotoStubState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Заглушка для фото")
+	b.Message("Добро пожаловать в архив фотографий. Выберите нужное действие")
 	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Загрузка фото", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Загрузка архива", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Поиск альбома", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
 	b.Keyboard(k)
