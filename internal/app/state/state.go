@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	"github.com/SevereCloud/vksdk/v2/api"
 
 	"github.com/SevereCloud/vksdk/v2/api/params"
@@ -16,17 +17,43 @@ import (
 type stateName string
 
 const (
-	start         = stateName("start")
-	selectArchive = stateName("selectArchive")
-	documentStub  = stateName("documentStub")
-	photoStub     = stateName("photoStub")
-	loadPhoto     = stateName("loadPhoto")
+	start                    = stateName("start")
+	selectArchive            = stateName("selectArchive")
+	photoStub                = stateName("photoStub")
+	loadPhoto                = stateName("loadPhoto")
+	documentStart            = stateName("documentStart")
+	loadDocument             = stateName("loadDocument")
+	nameDocument             = stateName("nameDocument")
+	authorDocument           = stateName("authorDocument")
+	yearDocument             = stateName("yearDocument")
+	categoryDocument         = stateName("categoryDocument")
+	userCategoryDocument     = stateName("userCategoryDocument")
+	descriptionDocument      = stateName("descriptionDocument")
+	hashtagDocument          = stateName("hashtagDocument")
+	checkDocument            = stateName("checkDocument")
+	editDocument             = stateName("editDocument")
+	editNameDocument         = stateName("editNameDocument")
+	editAuthorDocument       = stateName("editAuthorDocument")
+	editYearDocument         = stateName("editYearDocument")
+	editCategoryDocument     = stateName("editCategoryDocument")
+	editUserCategoryDocument = stateName("editUserCategoryDocument")
+	editDescriptionDocument  = stateName("editDescriptionDocument")
+	editHashtagDocument      = stateName("editHashtagDocument")
+	loadArchive              = stateName("loadArchive")
+	nameArchive              = stateName("nameArchive")
+	authorArchive            = stateName("authorArchive")
+	yearArchive              = stateName("yearArchive")
+	categoryArchive          = stateName("categoryArchive")
+	userCategoryArchive      = stateName("userCategoryArchive")
+	descriptionArchive       = stateName("descriptionArchive")
+	hashtagArchive           = stateName("hashtagArchive")
+	checkArchive             = stateName("checkArchive")
 )
 
 type State interface {
 	Name() stateName
-	Handler(object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error)
-	Show(vkID int) ([]*params.MessagesSendBuilder, error)
+	Handler(context.Context, object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error)
+	Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error)
 }
 
 type States struct {
@@ -54,17 +81,72 @@ func (s *States) Init(vk *api.VK) error {
 	//здесь инициализируются все стейты
 	startState := &StartState{postgres: postgresRepo}
 	selectArchiveState := &SelectArchiveState{postgres: postgresRepo}
-	documentStubState := &DocumentStubState{postgres: postgresRepo}
 	photoStubState := &PhotoStubState{postgres: postgresRepo}
+	documentStartState := &DocumentStartState{postgres: postgresRepo}
 	loadPhotoState := &LoadPhotoState{postgres: postgresRepo}
+	loadDocumentState := &LoadDocumentState{postgres: postgresRepo, vk: vk}
+	nameDocumentState := &NameDocumentState{postgres: postgresRepo}
+	authorDocumentState := &AuthorDocumentState{postgres: postgresRepo}
+	yearDocumentState := &YearDocumentState{postgres: postgresRepo}
+	categoryDocumentState := &CategoryDocumentState{postgres: postgresRepo}
+	userCategoryDocumentState := &UserCategoryDocumentState{postgres: postgresRepo}
+	descriptionDocumentState := &DescriptionDocumentState{postgres: postgresRepo}
+	hashtagDocumentState := &HashtagDocumentState{postgres: postgresRepo}
+	checkDocumentState := &CheckDocumentState{postgres: postgresRepo}
+	editDocumentState := &EditDocumentState{postgres: postgresRepo}
+	editNameDocumentState := &EditNameDocumentState{postgres: postgresRepo}
+	editAuthorDocumentState := &EditAuthorDocumentState{postgres: postgresRepo}
+	editYearDocumentState := &EditYearDocumentState{postgres: postgresRepo}
+	editCategoryDocumentState := &EditCategoryDocumentState{postgres: postgresRepo}
+	editUserCategoryDocumentState := &EditUserCategoryDocumentState{postgres: postgresRepo}
+	editDescriptionDocumentState := &EditDescriptionDocumentState{postgres: postgresRepo}
+	editHashtagDocumentState := &EditHashtagDocumentState{postgres: postgresRepo}
+	loadArchiveState := &LoadArchiveState{postgres: postgresRepo, vk: vk}
+	nameArchiveState := &NameArchiveState{postgres: postgresRepo}
+	authorArchiveState := &AuthorArchiveState{postgres: postgresRepo}
+	yearArchiveState := &YearArchiveState{postgres: postgresRepo}
+	categoryArchiveState := &CategoryArchiveState{postgres: postgresRepo}
+	userCategoryArchiveState := &UserCategoryArchiveState{postgres: postgresRepo}
+	descriptionArchiveState := &DescriptionArchiveState{postgres: postgresRepo}
+	hashtagArchiveState := &HashtagArchiveState{postgres: postgresRepo}
+	checkArchiveState := &CheckArchiveState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
-		startState.Name():         startState,
-		selectArchiveState.Name(): selectArchiveState,
-		documentStubState.Name():  documentStubState,
-		photoStubState.Name():     photoStubState,
-		loadPhotoState.Name():     loadPhotoState,
+		startState.Name():                    startState,
+		selectArchiveState.Name():            selectArchiveState,
+		photoStubState.Name():                photoStubState,
+		loadPhotoState.Name():                loadPhotoState,
+		startState.Name():                    startState,
+		selectArchiveState.Name():            selectArchiveState,
+		documentStartState.Name():            documentStartState,
+		photoStubState.Name():                photoStubState,
+		loadDocumentState.Name():             loadDocumentState,
+		nameDocumentState.Name():             nameDocumentState,
+		authorDocumentState.Name():           authorDocumentState,
+		yearDocumentState.Name():             yearDocumentState,
+		categoryDocumentState.Name():         categoryDocumentState,
+		userCategoryDocumentState.Name():     userCategoryDocumentState,
+		descriptionDocumentState.Name():      descriptionDocumentState,
+		hashtagDocumentState.Name():          hashtagDocumentState,
+		checkDocumentState.Name():            checkDocumentState,
+		editDocumentState.Name():             editDocumentState,
+		editNameDocumentState.Name():         editNameDocumentState,
+		editAuthorDocumentState.Name():       editAuthorDocumentState,
+		editYearDocumentState.Name():         editYearDocumentState,
+		editCategoryDocumentState.Name():     editCategoryDocumentState,
+		editUserCategoryDocumentState.Name(): editUserCategoryDocumentState,
+		editDescriptionDocumentState.Name():  editDescriptionDocumentState,
+		editHashtagDocumentState.Name():      editHashtagDocumentState,
+		loadArchiveState.Name():              loadArchiveState,
+		nameArchiveState.Name():              nameArchiveState,
+		authorArchiveState.Name():            authorArchiveState,
+		yearArchiveState.Name():              yearArchiveState,
+		categoryArchiveState.Name():          categoryArchiveState,
+		userCategoryArchiveState.Name():      userCategoryArchiveState,
+		descriptionArchiveState.Name():       descriptionArchiveState,
+		hashtagArchiveState.Name():           hashtagArchiveState,
+		checkArchiveState.Name():             checkArchiveState,
 	}
 
 	return nil
@@ -95,7 +177,7 @@ func (s *States) Handler(ctx context.Context, obj object.MessagesMessage) ([]*pa
 	state := s.statesList[userState]
 
 	//выполняем обработку сообщения согласно стейту
-	newState, respMessage, err := state.Handler(obj)
+	newState, respMessage, err := state.Handler(ctx, obj)
 	if err != nil {
 		return nil, stateStr, fmt.Errorf("[state.Handler]: %w", err)
 	}
@@ -103,7 +185,7 @@ func (s *States) Handler(ctx context.Context, obj object.MessagesMessage) ([]*pa
 	// достали нужную структуру стейта
 	// далее берем сообщения, которые надо отправить, для этого стейта
 	state = s.statesList[newState]
-	newStateMessage, err := state.Show(vkID)
+	newStateMessage, err := state.Show(ctx, vkID)
 	if err != nil {
 		return nil, stateStr, fmt.Errorf("[state.Handler]: %w", err)
 	}

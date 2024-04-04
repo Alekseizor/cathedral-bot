@@ -2,6 +2,7 @@ package postrgres
 
 import (
 	"fmt"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/document"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/photo"
 
 	"github.com/jmoiron/sqlx"
@@ -17,9 +18,10 @@ const (
 
 // Repo инстанс репо для работы с postgres
 type Repo struct {
-	repoCfg config.PostgresConfig
-	State   *state.Repo
-	Photo   *photo.Repo
+	repoCfg  config.PostgresConfig
+	Photo    *photo.Repo
+	State    *state.Repo
+	Document *document.Repo
 }
 
 // New - создаем новое объект репо, подключения к бд еще нет!
@@ -40,6 +42,7 @@ func (r *Repo) Init() error {
 
 	r.State = state.New(db)
 	r.Photo = photo.New(db)
+	r.Document = document.New(db)
 
 	return nil
 }

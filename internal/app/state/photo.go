@@ -1,6 +1,8 @@
 package state
 
 import (
+	"context"
+
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
 
@@ -11,7 +13,7 @@ type PhotoStubState struct {
 	postgres *postrgres.Repo
 }
 
-func (state PhotoStubState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state PhotoStubState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
@@ -24,7 +26,7 @@ func (state PhotoStubState) Handler(msg object.MessagesMessage) (stateName, []*p
 	}
 }
 
-func (state PhotoStubState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state PhotoStubState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Добро пожаловать в архив фотографий. Выберите нужное действие")
