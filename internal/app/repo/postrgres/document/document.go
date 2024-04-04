@@ -302,7 +302,7 @@ func (r *Repo) CheckParams(ctx context.Context, vkID int) (string, string, error
 		return "", "", fmt.Errorf("[db.GetContext]: %w", err)
 	}
 
-	output := fmt.Sprintf("Ваша заявка на загрузку документа:\n %s\n%s\n%s\n%s\n%s\n%s\n", name, author, year, category, description, hashtag)
+	output := fmt.Sprintf("Ваша заявка на загрузку:\n %s\n%s\n%s\n%s\n%s\n%s\n", name, author, year, category, description, hashtag)
 
 	return output, attachment, nil
 }

@@ -37,6 +37,15 @@ const (
 	editUserCategoryDocument = stateName("editUserCategoryDocument")
 	editDescriptionDocument  = stateName("editDescriptionDocument")
 	editHashtagDocument      = stateName("editHashtagDocument")
+	loadArchive              = stateName("loadArchive")
+	nameArchive              = stateName("nameArchive")
+	authorArchive            = stateName("authorArchive")
+	yearArchive              = stateName("yearArchive")
+	categoryArchive          = stateName("categoryArchive")
+	userCategoryArchive      = stateName("userCategoryArchive")
+	descriptionArchive       = stateName("descriptionArchive")
+	hashtagArchive           = stateName("hashtagArchive")
+	checkArchive             = stateName("checkArchive")
 )
 
 type State interface {
@@ -89,6 +98,15 @@ func (s *States) Init(vk *api.VK) error {
 	editUserCategoryDocumentState := &EditUserCategoryDocumentState{postgres: postgresRepo}
 	editDescriptionDocumentState := &EditDescriptionDocumentState{postgres: postgresRepo}
 	editHashtagDocumentState := &EditHashtagDocumentState{postgres: postgresRepo}
+	loadArchiveState := &LoadArchiveState{postgres: postgresRepo, vk: vk}
+	nameArchiveState := &NameArchiveState{postgres: postgresRepo}
+	authorArchiveState := &AuthorArchiveState{postgres: postgresRepo}
+	yearArchiveState := &YearArchiveState{postgres: postgresRepo}
+	categoryArchiveState := &CategoryArchiveState{postgres: postgresRepo}
+	userCategoryArchiveState := &UserCategoryArchiveState{postgres: postgresRepo}
+	descriptionArchiveState := &DescriptionArchiveState{postgres: postgresRepo}
+	hashtagArchiveState := &HashtagArchiveState{postgres: postgresRepo}
+	checkArchiveState := &CheckArchiveState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -113,6 +131,15 @@ func (s *States) Init(vk *api.VK) error {
 		editUserCategoryDocumentState.Name(): editUserCategoryDocumentState,
 		editDescriptionDocumentState.Name():  editDescriptionDocumentState,
 		editHashtagDocumentState.Name():      editHashtagDocumentState,
+		loadArchiveState.Name():              loadArchiveState,
+		nameArchiveState.Name():              nameArchiveState,
+		authorArchiveState.Name():            authorArchiveState,
+		yearArchiveState.Name():              yearArchiveState,
+		categoryArchiveState.Name():          categoryArchiveState,
+		userCategoryArchiveState.Name():      userCategoryArchiveState,
+		descriptionArchiveState.Name():       descriptionArchiveState,
+		hashtagArchiveState.Name():           hashtagArchiveState,
+		checkArchiveState.Name():             checkArchiveState,
 	}
 
 	return nil

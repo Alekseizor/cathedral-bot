@@ -17,6 +17,8 @@ func (state DocumentStartState) Handler(msg object.MessagesMessage) (stateName, 
 	switch messageText {
 	case "Загрузка документа":
 		return loadDocument, nil, nil
+	case "Загрузка архива":
+		return loadArchive, nil, nil
 	case "Назад":
 		return selectArchive, nil, nil
 	default:

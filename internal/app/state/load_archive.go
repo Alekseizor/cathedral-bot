@@ -12,22 +12,18 @@ import (
 	"time"
 )
 
-var validExtensionDoc = map[string]struct{}{
-	"doc":  struct{}{},
-	"docx": struct{}{},
-	"ppt":  struct{}{},
-	"pptx": struct{}{},
-	"txt":  struct{}{},
-	"pdf":  struct{}{},
+var validExtensionArchive = map[string]struct{}{
+	"rar": struct{}{},
+	"zip": struct{}{},
 }
 
-// LoadDocumentState пользователь загружает документ
-type LoadDocumentState struct {
+// LoadArchiveState пользователь загружает архив
+type LoadArchiveState struct {
 	postgres *postrgres.Repo
 	vk       *api.VK
 }
 
-func (state LoadDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state LoadArchiveState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 	if messageText == "Назад" {
 		return documentStart, nil, nil
@@ -37,39 +33,39 @@ func (state LoadDocumentState) Handler(msg object.MessagesMessage) (stateName, [
 	if len(attachment) == 0 {
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
-		b.Message("Загрузите ваш документ, прикрепив его к сообщению")
-		return loadDocument, []*params.MessagesSendBuilder{b}, nil
+		b.Message("Загрузите ваш архив, прикрепив его к сообщению")
+		return loadArchive, []*params.MessagesSendBuilder{b}, nil
 	}
 
 	if len(attachment) > 1 {
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
-		b.Message("Можно загрузить лишь один документ, для загрузки множества документов воспользуйтесь загрузкой архива")
-		return loadDocument, []*params.MessagesSendBuilder{b}, nil
+		b.Message("Можно загрузить лишь один архив")
+		return loadArchive, []*params.MessagesSendBuilder{b}, nil
 	}
 
-	if _, ok := validExtensionDoc[attachment[0].Doc.Ext]; !ok {
+	if _, ok := validExtensionArchive[attachment[0].Doc.Ext]; !ok {
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
-		b.Message("Поддерживаются только документы формата doc/docx, pdf, txt, ppt/pptx.")
-		return loadDocument, []*params.MessagesSendBuilder{b}, nil
+		b.Message("Поддерживаются только архивы форматов rar и zip.")
+		return loadArchive, []*params.MessagesSendBuilder{b}, nil
 	}
 
 	err := state.postgres.Document.UploadDocument(context.Background(), state.vk, attachment[0].Doc, msg.PeerID)
 	if err != nil {
-		return loadDocument, []*params.MessagesSendBuilder{}, err
+		return loadArchive, []*params.MessagesSendBuilder{}, err
 	}
 
 	switch messageText {
 	default:
-		return nameDocument, nil, nil
+		return nameArchive, nil, nil
 	}
 }
 
-func (state LoadDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state LoadArchiveState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Загрузите ваш документ")
+	b.Message("Загрузите ваш архив. Убедитесь, что все документы в архиве могут быть описаны одинаковыми параметрами.\nПоддерживаются форматы rar и zip.")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
@@ -77,40 +73,40 @@ func (state LoadDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, er
 	return []*params.MessagesSendBuilder{b}, nil
 }
 
-func (state LoadDocumentState) Name() stateName {
-	return loadDocument
+func (state LoadArchiveState) Name() stateName {
+	return loadArchive
 }
 
-// NameDocumentState пользователь указывает название документа
-type NameDocumentState struct {
+// NameArchiveState пользователь указывает название документа
+type NameArchiveState struct {
 	postgres *postrgres.Repo
 }
 
-func (state NameDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state NameArchiveState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
 	case "Назад":
 		err := state.postgres.Document.DeleteDocumentRequest(context.Background(), msg.PeerID)
 		if err != nil {
-			return nameDocument, []*params.MessagesSendBuilder{}, err
+			return nameArchive, []*params.MessagesSendBuilder{}, err
 		}
-		return loadDocument, nil, nil
+		return loadArchive, nil, nil
 	case "Пропустить":
-		return authorDocument, nil, nil
+		return authorArchive, nil, nil
 	default:
 		err := state.postgres.Document.UpdateName(context.Background(), msg.PeerID, msg.Text)
 		if err != nil {
-			return nameDocument, []*params.MessagesSendBuilder{}, err
+			return nameArchive, []*params.MessagesSendBuilder{}, err
 		}
-		return authorDocument, nil, nil
+		return authorArchive, nil, nil
 	}
 }
 
-func (state NameDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state NameArchiveState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Введите название загружаемого документа(пропустить - будет использовано название документа)")
+	b.Message("Введите название загружаемого архива(пропустить - будет использовано название архива)")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
@@ -120,49 +116,49 @@ func (state NameDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, er
 	return []*params.MessagesSendBuilder{b}, nil
 }
 
-func (state NameDocumentState) Name() stateName {
-	return nameDocument
+func (state NameArchiveState) Name() stateName {
+	return nameArchive
 }
 
-// AuthorDocumentState пользователь указывает ФИО автора документа
-type AuthorDocumentState struct {
+// AuthorArchiveState пользователь указывает ФИО автора документа
+type AuthorArchiveState struct {
 	postgres *postrgres.Repo
 }
 
-func (state AuthorDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state AuthorArchiveState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
 	case "Назад":
-		return nameDocument, nil, nil
+		return nameArchive, nil, nil
 	case "Пропустить":
-		return yearDocument, nil, nil
+		return yearArchive, nil, nil
 	default:
 		if len(messageText) > 60 {
 			b := params.NewMessagesSendBuilder()
 			b.RandomID(0)
 			b.Message("ФИО автора слишком длинное, повторите ввод")
-			return authorDocument, []*params.MessagesSendBuilder{b}, nil
+			return authorArchive, []*params.MessagesSendBuilder{b}, nil
 		}
 		russianRegex := regexp.MustCompile("^[а-яА-Я\\s]+$")
 		if !russianRegex.MatchString(messageText) {
 			b := params.NewMessagesSendBuilder()
 			b.RandomID(0)
 			b.Message("ФИО автора должно состоять из русских букв, повторите ввод")
-			return authorDocument, []*params.MessagesSendBuilder{b}, nil
+			return authorArchive, []*params.MessagesSendBuilder{b}, nil
 		}
 		err := state.postgres.Document.UpdateAuthor(context.Background(), msg.PeerID, msg.Text)
 		if err != nil {
-			return authorDocument, []*params.MessagesSendBuilder{}, err
+			return authorArchive, []*params.MessagesSendBuilder{}, err
 		}
-		return yearDocument, nil, nil
+		return yearArchive, nil, nil
 	}
 }
 
-func (state AuthorDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state AuthorArchiveState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Введите ФИО автора. ФИО может быть неполным")
+	b.Message("Введите ФИО автора архива. ФИО может быть неполным")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
@@ -172,50 +168,50 @@ func (state AuthorDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, 
 	return []*params.MessagesSendBuilder{b}, nil
 }
 
-func (state AuthorDocumentState) Name() stateName {
-	return authorDocument
+func (state AuthorArchiveState) Name() stateName {
+	return authorArchive
 }
 
-// YearDocumentState пользователь указывает год создания документа
-type YearDocumentState struct {
+// YearArchiveState пользователь указывает год создания архива
+type YearArchiveState struct {
 	postgres *postrgres.Repo
 }
 
-func (state YearDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state YearArchiveState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
 	case "Назад":
-		return authorDocument, nil, nil
+		return authorArchive, nil, nil
 	case "Пропустить":
-		return categoryDocument, nil, nil
+		return categoryArchive, nil, nil
 	default:
 		year, err := strconv.Atoi(messageText)
 		if err != nil {
 			b := params.NewMessagesSendBuilder()
 			b.RandomID(0)
 			b.Message("Введите год числом в формате YYYY")
-			return yearDocument, []*params.MessagesSendBuilder{b}, nil
+			return yearArchive, []*params.MessagesSendBuilder{b}, nil
 		}
 		currentYear := time.Now().Year()
 		if !(year >= 1800 && year <= currentYear) {
 			b := params.NewMessagesSendBuilder()
 			b.RandomID(0)
 			b.Message("Введите существующий год в формате YYYY")
-			return yearDocument, []*params.MessagesSendBuilder{b}, nil
+			return yearArchive, []*params.MessagesSendBuilder{b}, nil
 		}
 		err = state.postgres.Document.UpdateYear(context.Background(), msg.PeerID, year)
 		if err != nil {
-			return yearDocument, []*params.MessagesSendBuilder{}, err
+			return yearArchive, []*params.MessagesSendBuilder{}, err
 		}
-		return categoryDocument, nil, nil
+		return categoryArchive, nil, nil
 	}
 }
 
-func (state YearDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state YearArchiveState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Введите год создания документа в формате YYYY")
+	b.Message("Введите год создания архива в формате YYYY")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
@@ -225,58 +221,58 @@ func (state YearDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, er
 	return []*params.MessagesSendBuilder{b}, nil
 }
 
-func (state YearDocumentState) Name() stateName {
-	return yearDocument
+func (state YearArchiveState) Name() stateName {
+	return yearArchive
 }
 
-// CategoryDocumentState пользователь указывает существующую категорию документа
-type CategoryDocumentState struct {
+// CategoryArchiveState пользователь указывает существующую категорию для документов в архиве
+type CategoryArchiveState struct {
 	postgres *postrgres.Repo
 }
 
-func (state CategoryDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state CategoryArchiveState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
 	case "Назад":
-		return yearDocument, nil, nil
+		return yearArchive, nil, nil
 	case "Своя категория":
-		return userCategoryDocument, nil, nil
+		return userCategoryArchive, nil, nil
 	default:
 		maxID, err := state.postgres.Document.GetCategoryMaxID()
 		if err != nil {
-			return categoryDocument, []*params.MessagesSendBuilder{}, err
+			return categoryArchive, []*params.MessagesSendBuilder{}, err
 		}
 		categoryNumber, err := strconv.Atoi(messageText)
 		if err != nil {
 			b := params.NewMessagesSendBuilder()
 			b.RandomID(0)
 			b.Message("Введите номер категории числом, повторите ввод")
-			return categoryDocument, []*params.MessagesSendBuilder{b}, nil
+			return categoryArchive, []*params.MessagesSendBuilder{b}, nil
 		}
 		if !(categoryNumber >= 1 && categoryNumber <= maxID) {
 			b := params.NewMessagesSendBuilder()
 			b.RandomID(0)
 			b.Message("Категории с таким номером нет в списке, повторите ввод")
-			return categoryDocument, []*params.MessagesSendBuilder{b}, nil
+			return categoryArchive, []*params.MessagesSendBuilder{b}, nil
 		}
 
 		err = state.postgres.Document.UpdateCategory(context.Background(), msg.PeerID, categoryNumber)
 		if err != nil {
-			return categoryDocument, []*params.MessagesSendBuilder{}, err
+			return categoryArchive, []*params.MessagesSendBuilder{}, err
 		}
-		return descriptionDocument, nil, nil
+		return descriptionArchive, nil, nil
 	}
 }
 
-func (state CategoryDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state CategoryArchiveState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
 	categories, err := state.postgres.Document.GetCategoryNames()
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
 	}
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Введите номер категории документа из списка ниже:\n" + categories)
+	b.Message("Введите номер категории документов в архиве из списка ниже:\n" + categories)
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
@@ -286,31 +282,31 @@ func (state CategoryDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder
 	return []*params.MessagesSendBuilder{b}, nil
 }
 
-func (state CategoryDocumentState) Name() stateName {
-	return categoryDocument
+func (state CategoryArchiveState) Name() stateName {
+	return categoryArchive
 }
 
-// UserCategoryDocumentState пользователь указывает свою категорию документа
-type UserCategoryDocumentState struct {
+// UserCategoryArchiveState пользователь указывает свою категорию документов в архиве
+type UserCategoryArchiveState struct {
 	postgres *postrgres.Repo
 }
 
-func (state UserCategoryDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state UserCategoryArchiveState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
 	case "Назад":
-		return categoryDocument, nil, nil
+		return categoryArchive, nil, nil
 	default:
 		err := state.postgres.Document.UpdateUserCategory(context.Background(), msg.PeerID, messageText)
 		if err != nil {
-			return userCategoryDocument, []*params.MessagesSendBuilder{}, err
+			return userCategoryArchive, []*params.MessagesSendBuilder{}, err
 		}
-		return descriptionDocument, nil, nil
+		return descriptionArchive, nil, nil
 	}
 }
 
-func (state UserCategoryDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state UserCategoryArchiveState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите название своей категории. Оно будет рассмотрено администратором")
@@ -321,36 +317,36 @@ func (state UserCategoryDocumentState) Show(vkID int) ([]*params.MessagesSendBui
 	return []*params.MessagesSendBuilder{b}, nil
 }
 
-func (state UserCategoryDocumentState) Name() stateName {
-	return userCategoryDocument
+func (state UserCategoryArchiveState) Name() stateName {
+	return userCategoryArchive
 }
 
-// DescriptionDocumentState пользователь указывает хештег документа
-type DescriptionDocumentState struct {
+// DescriptionArchiveState пользователь указывает хештег документа
+type DescriptionArchiveState struct {
 	postgres *postrgres.Repo
 }
 
-func (state DescriptionDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state DescriptionArchiveState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
 	case "Назад":
-		return categoryDocument, nil, nil
+		return categoryArchive, nil, nil
 	case "Пропустить":
-		return hashtagDocument, nil, nil
+		return hashtagArchive, nil, nil
 	default:
 		err := state.postgres.Document.UpdateDescription(context.Background(), msg.PeerID, messageText)
 		if err != nil {
-			return descriptionDocument, []*params.MessagesSendBuilder{}, err
+			return descriptionArchive, []*params.MessagesSendBuilder{}, err
 		}
-		return hashtagDocument, nil, nil
+		return hashtagArchive, nil, nil
 	}
 }
 
-func (state DescriptionDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state DescriptionArchiveState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Введите описание документа")
+	b.Message("Введите описание архива")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
@@ -360,35 +356,35 @@ func (state DescriptionDocumentState) Show(vkID int) ([]*params.MessagesSendBuil
 	return []*params.MessagesSendBuilder{b}, nil
 }
 
-func (state DescriptionDocumentState) Name() stateName {
-	return descriptionDocument
+func (state DescriptionArchiveState) Name() stateName {
+	return descriptionArchive
 }
 
-// HashtagDocumentState пользователь указывает хештег документа
-type HashtagDocumentState struct {
+// HashtagArchiveState пользователь указывает хештег документа
+type HashtagArchiveState struct {
 	postgres *postrgres.Repo
 }
 
-func (state HashtagDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state HashtagArchiveState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
 	case "Назад":
-		return descriptionDocument, nil, nil
+		return descriptionArchive, nil, nil
 	case "Пропустить":
-		return checkDocument, nil, nil
+		return checkArchive, nil, nil
 	default:
 		hashtags := strings.Split(messageText, " ")
 
 		err := state.postgres.Document.UpdateHashtags(context.Background(), msg.PeerID, hashtags)
 		if err != nil {
-			return hashtagDocument, []*params.MessagesSendBuilder{}, err
+			return hashtagArchive, []*params.MessagesSendBuilder{}, err
 		}
-		return checkDocument, nil, nil
+		return checkArchive, nil, nil
 	}
 }
 
-func (state HashtagDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state HashtagArchiveState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите названия хештегов через пробел (например, фамилия преподавателя или название предмета)")
@@ -401,21 +397,21 @@ func (state HashtagDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder,
 	return []*params.MessagesSendBuilder{b}, nil
 }
 
-func (state HashtagDocumentState) Name() stateName {
-	return hashtagDocument
+func (state HashtagArchiveState) Name() stateName {
+	return hashtagArchive
 }
 
-// CheckDocumentState пользователь проверяет заявку на загрузку документа
-type CheckDocumentState struct {
+// CheckArchiveState пользователь проверяет заявку на загрузку архива
+type CheckArchiveState struct {
 	postgres *postrgres.Repo
 }
 
-func (state CheckDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state CheckArchiveState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
 	case "Назад":
-		return hashtagDocument, nil, nil
+		return hashtagArchive, nil, nil
 	case "Отправить":
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
@@ -424,18 +420,18 @@ func (state CheckDocumentState) Handler(msg object.MessagesMessage) (stateName, 
 	case "Редактировать заявку":
 		return editDocument, nil, nil
 	default:
-		return checkDocument, nil, nil
+		return checkArchive, nil, nil
 	}
 }
 
-func (state CheckDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state CheckArchiveState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
 	output, attachment, err := state.postgres.Document.CheckParams(context.Background(), vkID)
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
 	}
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Проверьте правильность введенных параметров заявки на загрузку документа:\n" + output)
+	b.Message("Проверьте правильность введенных параметров на загрузку архива:\n" + output)
 	b.Attachment(attachment)
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
@@ -448,6 +444,6 @@ func (state CheckDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, e
 	return []*params.MessagesSendBuilder{b}, nil
 }
 
-func (state CheckDocumentState) Name() stateName {
-	return checkDocument
+func (state CheckArchiveState) Name() stateName {
+	return checkArchive
 }
