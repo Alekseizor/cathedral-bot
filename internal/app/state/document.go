@@ -1,6 +1,8 @@
 package state
 
 import (
+	"context"
+
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
 
@@ -11,7 +13,7 @@ type DocumentStartState struct {
 	postgres *postrgres.Repo
 }
 
-func (state DocumentStartState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state DocumentStartState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
@@ -26,7 +28,8 @@ func (state DocumentStartState) Handler(msg object.MessagesMessage) (stateName, 
 	}
 }
 
-func (state DocumentStartState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+
+func (state DocumentStartState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Добро пожаловать в архив документов. Выберите нужный пункт из списка ниже:")

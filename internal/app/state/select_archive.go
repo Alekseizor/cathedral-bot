@@ -1,6 +1,8 @@
 package state
 
 import (
+	"context"
+
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
 
@@ -11,7 +13,7 @@ type SelectArchiveState struct {
 	postgres *postrgres.Repo
 }
 
-func (state SelectArchiveState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state SelectArchiveState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
@@ -24,7 +26,7 @@ func (state SelectArchiveState) Handler(msg object.MessagesMessage) (stateName, 
 	}
 }
 
-func (state SelectArchiveState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state SelectArchiveState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("В нашем боте есть 2 архива: фотоархив и документоархив. С каким хочешь поработать?")
