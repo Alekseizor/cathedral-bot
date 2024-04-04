@@ -14,4 +14,3 @@ clients:
     user: dev_user
     pass: dev_pass
     host: localhost
-

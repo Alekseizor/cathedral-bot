@@ -2,15 +2,15 @@ package state
 
 import (
 	"context"
-	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
-	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
-	"github.com/SevereCloud/vksdk/v2/api"
-	"github.com/SevereCloud/vksdk/v2/api/params"
-	"github.com/SevereCloud/vksdk/v2/object"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
+	"github.com/SevereCloud/vksdk/v2/api"
+	"github.com/SevereCloud/vksdk/v2/api/params"
+	"github.com/SevereCloud/vksdk/v2/object"
 )
 
 var validExtensionArchive = map[string]struct{}{
@@ -52,7 +52,7 @@ func (state LoadArchiveState) Handler(ctx context.Context, msg object.MessagesMe
 		return loadArchive, []*params.MessagesSendBuilder{b}, nil
 	}
 
-	err := state.postgres.Document.UploadDocument(ctx, state.vk, attachment[0].Doc, msg.PeerID)
+	err := state.postgres.RequestsDocuments.UploadDocument(ctx, state.vk, attachment[0].Doc, msg.PeerID)
 	if err != nil {
 		return loadArchive, []*params.MessagesSendBuilder{}, err
 	}
@@ -88,7 +88,7 @@ func (state NameArchiveState) Handler(ctx context.Context, msg object.MessagesMe
 
 	switch messageText {
 	case "Назад":
-		err := state.postgres.Document.DeleteDocumentRequest(ctx, msg.PeerID)
+		err := state.postgres.RequestsDocuments.DeleteDocumentRequest(ctx, msg.PeerID)
 		if err != nil {
 			return nameArchive, []*params.MessagesSendBuilder{}, err
 		}
@@ -96,7 +96,7 @@ func (state NameArchiveState) Handler(ctx context.Context, msg object.MessagesMe
 	case "Пропустить":
 		return authorArchive, nil, nil
 	default:
-		err := state.postgres.Document.UpdateName(ctx, msg.PeerID, msg.Text)
+		err := state.postgres.RequestsDocuments.UpdateName(ctx, msg.PeerID, msg.Text)
 		if err != nil {
 			return nameArchive, []*params.MessagesSendBuilder{}, err
 		}
@@ -148,7 +148,7 @@ func (state AuthorArchiveState) Handler(ctx context.Context, msg object.Messages
 			b.Message("ФИО автора должно состоять из русских букв, повторите ввод")
 			return authorArchive, []*params.MessagesSendBuilder{b}, nil
 		}
-		err := state.postgres.Document.UpdateAuthor(ctx, msg.PeerID, msg.Text)
+		err := state.postgres.RequestsDocuments.UpdateAuthor(ctx, msg.PeerID, msg.Text)
 		if err != nil {
 			return authorArchive, []*params.MessagesSendBuilder{}, err
 		}
@@ -201,7 +201,7 @@ func (state YearArchiveState) Handler(ctx context.Context, msg object.MessagesMe
 			b.Message("Введите существующий год в формате YYYY")
 			return yearArchive, []*params.MessagesSendBuilder{b}, nil
 		}
-		err = state.postgres.Document.UpdateYear(ctx, msg.PeerID, year)
+		err = state.postgres.RequestsDocuments.UpdateYear(ctx, msg.PeerID, year)
 		if err != nil {
 			return yearArchive, []*params.MessagesSendBuilder{}, err
 		}
@@ -240,7 +240,7 @@ func (state CategoryArchiveState) Handler(ctx context.Context, msg object.Messag
 	case "Своя категория":
 		return userCategoryArchive, nil, nil
 	default:
-		maxID, err := state.postgres.Document.GetCategoryMaxID()
+		maxID, err := state.postgres.RequestsDocuments.GetCategoryMaxID()
 		if err != nil {
 			return categoryArchive, []*params.MessagesSendBuilder{}, err
 		}
@@ -258,7 +258,7 @@ func (state CategoryArchiveState) Handler(ctx context.Context, msg object.Messag
 			return categoryArchive, []*params.MessagesSendBuilder{b}, nil
 		}
 
-		err = state.postgres.Document.UpdateCategory(ctx, msg.PeerID, categoryNumber)
+		err = state.postgres.RequestsDocuments.UpdateCategory(ctx, msg.PeerID, categoryNumber)
 		if err != nil {
 			return categoryArchive, []*params.MessagesSendBuilder{}, err
 		}
@@ -267,7 +267,7 @@ func (state CategoryArchiveState) Handler(ctx context.Context, msg object.Messag
 }
 
 func (state CategoryArchiveState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
-	categories, err := state.postgres.Document.GetCategoryNames()
+	categories, err := state.postgres.RequestsDocuments.GetCategoryNames()
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
 	}
@@ -299,7 +299,7 @@ func (state UserCategoryArchiveState) Handler(ctx context.Context, msg object.Me
 	case "Назад":
 		return categoryArchive, nil, nil
 	default:
-		err := state.postgres.Document.UpdateUserCategory(ctx, msg.PeerID, messageText)
+		err := state.postgres.RequestsDocuments.UpdateUserCategory(ctx, msg.PeerID, messageText)
 		if err != nil {
 			return userCategoryArchive, []*params.MessagesSendBuilder{}, err
 		}
@@ -336,7 +336,7 @@ func (state DescriptionArchiveState) Handler(ctx context.Context, msg object.Mes
 	case "Пропустить":
 		return hashtagArchive, nil, nil
 	default:
-		err := state.postgres.Document.UpdateDescription(ctx, msg.PeerID, messageText)
+		err := state.postgres.RequestsDocuments.UpdateDescription(ctx, msg.PeerID, messageText)
 		if err != nil {
 			return descriptionArchive, []*params.MessagesSendBuilder{}, err
 		}
@@ -377,7 +377,7 @@ func (state HashtagArchiveState) Handler(ctx context.Context, msg object.Message
 	default:
 		hashtags := strings.Split(messageText, " ")
 
-		err := state.postgres.Document.UpdateHashtags(ctx, msg.PeerID, hashtags)
+		err := state.postgres.RequestsDocuments.UpdateHashtags(ctx, msg.PeerID, hashtags)
 		if err != nil {
 			return hashtagArchive, []*params.MessagesSendBuilder{}, err
 		}
@@ -414,14 +414,6 @@ func (state CheckArchiveState) Handler(ctx context.Context, msg object.MessagesM
 	case "Назад":
 		return hashtagArchive, nil, nil
 	case "Отправить":
-		reqID, err := state.postgres.Document.GetDocumentLastID(ctx, msg.PeerID)
-		if err != nil {
-			return checkArchive, []*params.MessagesSendBuilder{}, err
-		}
-		err = state.postgres.Document.UpdateStatus(ctx, ds.StatusUserConfirmed, reqID)
-		if err != nil {
-			return checkArchive, []*params.MessagesSendBuilder{}, err
-		}
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
 		b.Message("Ваша заявка на загрузку архива отправлена на одобрение администратору. Вы можете отслеживать статус своей заявки в личном кабинете")
@@ -434,7 +426,7 @@ func (state CheckArchiveState) Handler(ctx context.Context, msg object.MessagesM
 }
 
 func (state CheckArchiveState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
-	output, attachment, err := state.postgres.Document.CheckParams(ctx, vkID)
+	output, attachment, err := state.postgres.RequestsDocuments.CheckParams(ctx, vkID)
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
 	}

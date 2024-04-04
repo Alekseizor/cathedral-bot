@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/SevereCloud/vksdk/v2/api"
-
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
 
@@ -47,6 +46,12 @@ const (
 	descriptionArchive       = stateName("descriptionArchive")
 	hashtagArchive           = stateName("hashtagArchive")
 	checkArchive             = stateName("checkArchive")
+	documentCabinet          = stateName("documentCabinet")
+	albumsCabinet            = stateName("albumsCabinet")
+	blocking                 = stateName("blocking")
+	blockUser                = stateName("blockUser")
+	workingRequestDocument   = stateName("workingRequestDocument")
+	workingDocument          = stateName("workingDocument")
 )
 
 type State interface {
@@ -108,6 +113,11 @@ func (s *States) Init(vk *api.VK) error {
 	descriptionArchiveState := &DescriptionArchiveState{postgres: postgresRepo}
 	hashtagArchiveState := &HashtagArchiveState{postgres: postgresRepo}
 	checkArchiveState := &CheckArchiveState{postgres: postgresRepo}
+	albumsCabinetState := &AlbumsCabinetState{postgres: postgresRepo}
+	documentCabinetState := &DocumentCabinetState{postgres: postgresRepo}
+	blockUserState := &BlockUserState{postgres: postgresRepo}
+	blockingState := &BlockingState{}
+	workingRequestDocumentState := &WorkingRequestDocumentState{}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -141,6 +151,11 @@ func (s *States) Init(vk *api.VK) error {
 		descriptionArchiveState.Name():       descriptionArchiveState,
 		hashtagArchiveState.Name():           hashtagArchiveState,
 		checkArchiveState.Name():             checkArchiveState,
+		albumsCabinetState.Name():            albumsCabinetState,
+		documentCabinetState.Name():          documentCabinetState,
+		blockUserState.Name():                blockUserState,
+		blockingState.Name():                 blockingState,
+		workingRequestDocumentState.Name():   workingRequestDocumentState,
 	}
 
 	return nil
@@ -181,7 +196,7 @@ func (s *States) Handler(ctx context.Context, obj object.MessagesMessage) ([]*pa
 	state = s.statesList[newState]
 	newStateMessage, err := state.Show(ctx, vkID)
 	if err != nil {
-		return nil, stateStr, fmt.Errorf("[state.Handler]: %w", err)
+		return nil, stateStr, fmt.Errorf("[state.Show]: %w", err)
 	}
 
 	respMessage = append(respMessage, newStateMessage...)
