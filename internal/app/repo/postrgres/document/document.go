@@ -21,9 +21,9 @@ func New(db *sqlx.DB) *Repo {
 	}
 }
 
-func (r *Repo) CheckExistence(ctx context.Context, vkID int) (bool, error) {
+func (r *Repo) CheckExistence(ctx context.Context, documentID int) (bool, error) {
 	var exists bool
-	err := r.db.GetContext(ctx, &exists, "SELECT EXISTS (SELECT 1 FROM document WHERE id = $1)", vkID)
+	err := r.db.GetContext(ctx, &exists, "SELECT EXISTS (SELECT 1 FROM document WHERE id = $1)", documentID)
 	if err != nil && err != sql.ErrNoRows {
 		return false, fmt.Errorf("[db.GetContext]: %w", err)
 	}

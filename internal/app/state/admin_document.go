@@ -2,6 +2,7 @@ package state
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
@@ -107,8 +108,7 @@ func (state WorkingDocumentState) Handler(ctx context.Context, msg object.Messag
 		return documentCabinet, nil, nil
 	}
 
-	return documentCabinet, nil, nil
-	/*documentID, err := strconv.Atoi(messageText)
+	documentID, err := strconv.Atoi(messageText)
 	if err != nil {
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
@@ -116,7 +116,19 @@ func (state WorkingDocumentState) Handler(ctx context.Context, msg object.Messag
 		return workingDocument, []*params.MessagesSendBuilder{b}, nil
 	}
 
-	state.postgres.*/
+	exists, err := state.postgres.Document.CheckExistence(ctx, documentID)
+	if err != nil {
+		return workingDocument, nil, err
+	}
+
+	if !exists {
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("ID c таким документом не найдено")
+		return workingDocument, []*params.MessagesSendBuilder{b}, nil
+	}
+
+	return workingDocument, nil, nil
 }
 
 func (state WorkingDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
