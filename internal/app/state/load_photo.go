@@ -19,7 +19,7 @@ type LoadPhotoState struct {
 	postgres *postrgres.Repo
 }
 
-func (state LoadPhotoState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state LoadPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 	if messageText == "Назад" {
 		return photoStub, nil, nil
@@ -58,7 +58,7 @@ func (state LoadPhotoState) Handler(msg object.MessagesMessage) (stateName, []*p
 	}
 }
 
-func (state LoadPhotoState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state LoadPhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Загрузите фото. Допустимые  форматы фото: jpg, jpeg, png, tiff")

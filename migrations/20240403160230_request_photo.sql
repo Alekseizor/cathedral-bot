@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE photo
+CREATE TABLE request_photo
 (
     id              serial PRIMARY KEY,
     year            INT,
@@ -9,11 +9,11 @@ CREATE TABLE photo
     is_event_new    boolean DEFAULT FALSE,
     description     VARCHAR(255),
     marked_people   VARCHAR(255),
-    url             VARCHAR(255)
+    attachment      VARCHAR(255)
 );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS photo;
+DROP TABLE IF EXISTS request_photo;
 -- +goose StatementEnd

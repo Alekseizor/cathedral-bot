@@ -1,6 +1,6 @@
 package ds
 
-type Photo struct {
+type RequestPhoto struct {
 	ID           int      `db:"id"`
 	Year         int      `db:"year"`
 	StudyProgram string   `db:"study_program"`
@@ -8,5 +8,5 @@ type Photo struct {
 	IsEventNew   bool     `db:"is_event_new"`
 	Description  bool     `db:"description"`
 	MarkedPeople []string `db:"marked_people"`
-	URL          string   `db:"url"`
+	Attachment   string   `db:"attachment"`
 }

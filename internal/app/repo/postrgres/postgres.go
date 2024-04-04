@@ -3,7 +3,7 @@ package postrgres
 import (
 	"fmt"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/document"
-	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/photo"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/request_photo"
 
 	"github.com/jmoiron/sqlx"
 
@@ -19,7 +19,7 @@ const (
 // Repo инстанс репо для работы с postgres
 type Repo struct {
 	repoCfg  config.PostgresConfig
-	Photo    *photo.Repo
+	Photo    *request_photo.Repo
 	State    *state.Repo
 	Document *document.Repo
 }
@@ -41,7 +41,7 @@ func (r *Repo) Init() error {
 	}
 
 	r.State = state.New(db)
-	r.Photo = photo.New(db)
+	r.Photo = request_photo.New(db)
 	r.Document = document.New(db)
 
 	return nil

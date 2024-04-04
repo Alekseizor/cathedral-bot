@@ -1,4 +1,4 @@
-package photo
+package request_photo
 
 import (
 	"context"
