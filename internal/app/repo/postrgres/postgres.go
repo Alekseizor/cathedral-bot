@@ -3,10 +3,11 @@ package postrgres
 import (
 	"fmt"
 
-	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/admin"
 	"github.com/jmoiron/sqlx"
 
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/admin"
 	"github.com/Alekseizor/cathedral-bot/internal/app/config"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/document"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/state"
 )
 
@@ -17,8 +18,9 @@ const (
 
 // Repo инстанс репо для работы с postgres
 type Repo struct {
-	repoCfg config.PostgresConfig
-	State   *state.Repo
+	repoCfg  config.PostgresConfig
+	State    *state.Repo
+	Document *document.Repo
 	Admin   *admin.Repo
 }
 
@@ -39,6 +41,7 @@ func (r *Repo) Init() error {
 	}
 
 	r.State = state.New(db)
+	r.Document = document.New(db)
 	r.Admin = admin.New(db)
 
 	return nil
