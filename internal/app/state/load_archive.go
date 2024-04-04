@@ -2,6 +2,7 @@ package state
 
 import (
 	"context"
+	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
 	"github.com/SevereCloud/vksdk/v2/api"
 	"github.com/SevereCloud/vksdk/v2/api/params"
@@ -413,6 +414,14 @@ func (state CheckArchiveState) Handler(ctx context.Context, msg object.MessagesM
 	case "Назад":
 		return hashtagArchive, nil, nil
 	case "Отправить":
+		reqID, err := state.postgres.Document.GetDocumentLastID(ctx, msg.PeerID)
+		if err != nil {
+			return checkArchive, []*params.MessagesSendBuilder{}, err
+		}
+		err = state.postgres.Document.UpdateStatus(ctx, ds.StatusUserConfirmed, reqID)
+		if err != nil {
+			return checkArchive, []*params.MessagesSendBuilder{}, err
+		}
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
 		b.Message("Ваша заявка на загрузку архива отправлена на одобрение администратору. Вы можете отслеживать статус своей заявки в личном кабинете")

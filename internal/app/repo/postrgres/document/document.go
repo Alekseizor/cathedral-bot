@@ -64,7 +64,7 @@ func (r *Repo) UploadDocument(ctx context.Context, VK *api.VK, doc object.DocsDo
 
 	attachment := "doc" + strconv.Itoa(savedDoc.Doc.OwnerID) + "_" + strconv.Itoa(savedDoc.Doc.ID)
 
-	_, err = r.db.ExecContext(ctx, "INSERT INTO requests_documents(title, attachment, user_id) VALUES ($1, $2, $3)", doc.Title, attachment, vkID)
+	_, err = r.db.ExecContext(ctx, "INSERT INTO requests_documents(title, attachment, user_id, status) VALUES ($1, $2, $3, $4)", doc.Title, attachment, vkID, ds.StatusInProgress)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -102,6 +102,16 @@ func (r *Repo) GetDocumentLastID(ctx context.Context, vkID int) (int, error) {
 	}
 
 	return doc.ID, nil
+}
+
+// UpdateStatus изменяет статус заявки на загрузку документа
+func (r *Repo) UpdateStatus(ctx context.Context, status int, reqDocID int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE requests_documents SET status = $1 WHERE id = $2", status, reqDocID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
 }
 
 // UpdateName добавляет название документа

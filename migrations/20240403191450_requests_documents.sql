@@ -11,7 +11,8 @@ CREATE TABLE requests_documents
     description     VARCHAR(255),
     hashtags        TEXT[],
     attachment      VARCHAR(255),
-    user_id         INT NOT NULL
+    user_id         INT NOT NULL,
+    status          INT NOT NULL
 );
 -- +goose StatementEnd
 
