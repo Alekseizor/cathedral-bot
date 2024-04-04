@@ -2,6 +2,7 @@ package postrgres
 
 import (
 	"fmt"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/search_document"
 
 	"github.com/jmoiron/sqlx"
 
@@ -22,6 +23,7 @@ type Repo struct {
 	State             *state.Repo
 	RequestsDocuments *requests_documents.Repo
 	Admin             *admin.Repo
+	SearchDocument    *search_document.Repo
 }
 
 // New - создаем новое объект репо, подключения к бд еще нет!
@@ -43,6 +45,7 @@ func (r *Repo) Init() error {
 	r.State = state.New(db)
 	r.RequestsDocuments = requests_documents.New(db)
 	r.Admin = admin.New(db)
+	r.SearchDocument = search_document.New(db)
 
 	return nil
 }

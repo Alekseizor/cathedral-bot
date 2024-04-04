@@ -52,6 +52,11 @@ const (
 	blockUser                = stateName("blockUser")
 	workingRequestDocument   = stateName("workingRequestDocument")
 	workingDocument          = stateName("workingDocument")
+	nameSearchDocument       = stateName("nameSearchDocument")
+	authorSearchDocument     = stateName("authorSearchDocument")
+	yearSearchDocument       = stateName("yearSearchDocument")
+	categoriesSearchDocument = stateName("categoriesSearchDocument")
+	hashtagSearchDocument    = stateName("hashtagSearchDocument")
 )
 
 type State interface {
@@ -118,6 +123,11 @@ func (s *States) Init(vk *api.VK) error {
 	blockUserState := &BlockUserState{postgres: postgresRepo}
 	blockingState := &BlockingState{}
 	workingRequestDocumentState := &WorkingRequestDocumentState{}
+	nameSearchDocumentState := &NameSearchDocumentState{postgres: postgresRepo}
+	authorSearchDocumentState := &AuthorSearchDocumentState{postgres: postgresRepo}
+	yearSearchDocumentState := &YearSearchDocumentState{postgres: postgresRepo}
+	categoriesSearchDocumentState := &CategoriesSearchDocumentState{postgres: postgresRepo}
+	hashtagSearchDocumentState := &HashtagSearchDocumentState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -156,6 +166,11 @@ func (s *States) Init(vk *api.VK) error {
 		blockUserState.Name():                blockUserState,
 		blockingState.Name():                 blockingState,
 		workingRequestDocumentState.Name():   workingRequestDocumentState,
+		nameSearchDocumentState.Name():       nameSearchDocumentState,
+		authorSearchDocumentState.Name():     authorSearchDocumentState,
+		yearSearchDocumentState.Name():       yearSearchDocumentState,
+		categoriesSearchDocumentState.Name(): categoriesSearchDocumentState,
+		hashtagSearchDocumentState.Name():    hashtagSearchDocumentState,
 	}
 
 	return nil
