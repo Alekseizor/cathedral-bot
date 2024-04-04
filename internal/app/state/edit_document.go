@@ -16,7 +16,7 @@ type EditDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state EditDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state EditDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
@@ -39,7 +39,7 @@ func (state EditDocumentState) Handler(msg object.MessagesMessage) (stateName, [
 	}
 }
 
-func (state EditDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state EditDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Выберите параметр для редактирования")
@@ -68,9 +68,9 @@ type EditNameDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state EditNameDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state EditNameDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	reqID, err := state.postgres.Document.GetDocumentLastID(context.Background(), msg.PeerID)
+	reqID, err := state.postgres.Document.GetDocumentLastID(ctx, msg.PeerID)
 	if err != nil {
 		return editNameDocument, []*params.MessagesSendBuilder{}, err
 	}
@@ -79,7 +79,7 @@ func (state EditNameDocumentState) Handler(msg object.MessagesMessage) (stateNam
 	case "Назад":
 		return editDocument, nil, nil
 	default:
-		err = state.postgres.Document.EditName(context.Background(), messageText, reqID)
+		err = state.postgres.Document.EditName(ctx, messageText, reqID)
 		if err != nil {
 			return editNameDocument, []*params.MessagesSendBuilder{}, err
 		}
@@ -87,7 +87,7 @@ func (state EditNameDocumentState) Handler(msg object.MessagesMessage) (stateNam
 	}
 }
 
-func (state EditNameDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state EditNameDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите новое название загружаемого документа")
@@ -107,9 +107,9 @@ type EditAuthorDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state EditAuthorDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state EditAuthorDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	reqID, err := state.postgres.Document.GetDocumentLastID(context.Background(), msg.PeerID)
+	reqID, err := state.postgres.Document.GetDocumentLastID(ctx, msg.PeerID)
 	if err != nil {
 		return editAuthorDocument, []*params.MessagesSendBuilder{}, err
 	}
@@ -131,7 +131,7 @@ func (state EditAuthorDocumentState) Handler(msg object.MessagesMessage) (stateN
 			b.Message("ФИО автора должно состоять из русских букв, повторите ввод")
 			return editAuthorDocument, []*params.MessagesSendBuilder{b}, nil
 		}
-		err = state.postgres.Document.EditAuthor(context.Background(), messageText, reqID)
+		err = state.postgres.Document.EditAuthor(ctx, messageText, reqID)
 		if err != nil {
 			return editAuthorDocument, []*params.MessagesSendBuilder{}, err
 		}
@@ -139,7 +139,7 @@ func (state EditAuthorDocumentState) Handler(msg object.MessagesMessage) (stateN
 	}
 }
 
-func (state EditAuthorDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state EditAuthorDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите новое ФИО автора загружаемого документа")
@@ -159,9 +159,9 @@ type EditYearDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state EditYearDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state EditYearDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	reqID, err := state.postgres.Document.GetDocumentLastID(context.Background(), msg.PeerID)
+	reqID, err := state.postgres.Document.GetDocumentLastID(ctx, msg.PeerID)
 	if err != nil {
 		return editYearDocument, []*params.MessagesSendBuilder{}, err
 	}
@@ -184,7 +184,7 @@ func (state EditYearDocumentState) Handler(msg object.MessagesMessage) (stateNam
 			b.Message("Введите существующий год в формате YYYY")
 			return editYearDocument, []*params.MessagesSendBuilder{b}, nil
 		}
-		err = state.postgres.Document.EditYear(context.Background(), year, reqID)
+		err = state.postgres.Document.EditYear(ctx, year, reqID)
 		if err != nil {
 			return editYearDocument, []*params.MessagesSendBuilder{}, err
 		}
@@ -192,7 +192,7 @@ func (state EditYearDocumentState) Handler(msg object.MessagesMessage) (stateNam
 	}
 }
 
-func (state EditYearDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state EditYearDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите новый год создания документа")
@@ -212,9 +212,9 @@ type EditCategoryDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state EditCategoryDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state EditCategoryDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	reqID, err := state.postgres.Document.GetDocumentLastID(context.Background(), msg.PeerID)
+	reqID, err := state.postgres.Document.GetDocumentLastID(ctx, msg.PeerID)
 	if err != nil {
 		return editCategoryDocument, []*params.MessagesSendBuilder{}, err
 	}
@@ -242,7 +242,7 @@ func (state EditCategoryDocumentState) Handler(msg object.MessagesMessage) (stat
 			b.Message("Категории с таким номером нет в списке, повторите ввод")
 			return editCategoryDocument, []*params.MessagesSendBuilder{b}, nil
 		}
-		err = state.postgres.Document.EditCategory(context.Background(), categoryNumber, reqID)
+		err = state.postgres.Document.EditCategory(ctx, categoryNumber, reqID)
 		if err != nil {
 			return editCategoryDocument, []*params.MessagesSendBuilder{}, err
 		}
@@ -250,7 +250,7 @@ func (state EditCategoryDocumentState) Handler(msg object.MessagesMessage) (stat
 	}
 }
 
-func (state EditCategoryDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state EditCategoryDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	categories, err := state.postgres.Document.GetCategoryNames()
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
@@ -276,9 +276,9 @@ type EditUserCategoryDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state EditUserCategoryDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state EditUserCategoryDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	reqID, err := state.postgres.Document.GetDocumentLastID(context.Background(), msg.PeerID)
+	reqID, err := state.postgres.Document.GetDocumentLastID(ctx, msg.PeerID)
 	if err != nil {
 		return editUserCategoryDocument, []*params.MessagesSendBuilder{}, err
 	}
@@ -287,7 +287,7 @@ func (state EditUserCategoryDocumentState) Handler(msg object.MessagesMessage) (
 	case "Назад":
 		return editCategoryDocument, nil, nil
 	default:
-		err = state.postgres.Document.EditUserCategory(context.Background(), messageText, reqID)
+		err = state.postgres.Document.EditUserCategory(ctx, messageText, reqID)
 		if err != nil {
 			return editUserCategoryDocument, []*params.MessagesSendBuilder{}, err
 		}
@@ -295,7 +295,7 @@ func (state EditUserCategoryDocumentState) Handler(msg object.MessagesMessage) (
 	}
 }
 
-func (state EditUserCategoryDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state EditUserCategoryDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите новое название своей категории. Оно будет рассмотрено администратором")
@@ -315,9 +315,9 @@ type EditDescriptionDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state EditDescriptionDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state EditDescriptionDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	reqID, err := state.postgres.Document.GetDocumentLastID(context.Background(), msg.PeerID)
+	reqID, err := state.postgres.Document.GetDocumentLastID(ctx, msg.PeerID)
 	if err != nil {
 		return editDescriptionDocument, []*params.MessagesSendBuilder{}, err
 	}
@@ -326,7 +326,7 @@ func (state EditDescriptionDocumentState) Handler(msg object.MessagesMessage) (s
 	case "Назад":
 		return editDocument, nil, nil
 	default:
-		err = state.postgres.Document.EditDescription(context.Background(), messageText, reqID)
+		err = state.postgres.Document.EditDescription(ctx, messageText, reqID)
 		if err != nil {
 			return editDescriptionDocument, []*params.MessagesSendBuilder{}, err
 		}
@@ -334,7 +334,7 @@ func (state EditDescriptionDocumentState) Handler(msg object.MessagesMessage) (s
 	}
 }
 
-func (state EditDescriptionDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state EditDescriptionDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите новое описание документа")
@@ -354,9 +354,9 @@ type EditHashtagDocumentState struct {
 	postgres *postrgres.Repo
 }
 
-func (state EditHashtagDocumentState) Handler(msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state EditHashtagDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	reqID, err := state.postgres.Document.GetDocumentLastID(context.Background(), msg.PeerID)
+	reqID, err := state.postgres.Document.GetDocumentLastID(ctx, msg.PeerID)
 	if err != nil {
 		return editHashtagDocument, []*params.MessagesSendBuilder{}, err
 	}
@@ -366,7 +366,7 @@ func (state EditHashtagDocumentState) Handler(msg object.MessagesMessage) (state
 		return editDocument, nil, nil
 	default:
 		hashtags := strings.Split(messageText, " ")
-		err = state.postgres.Document.EditHashtags(context.Background(), hashtags, reqID)
+		err = state.postgres.Document.EditHashtags(ctx, hashtags, reqID)
 		if err != nil {
 			return editHashtagDocument, []*params.MessagesSendBuilder{}, err
 		}
@@ -374,7 +374,7 @@ func (state EditHashtagDocumentState) Handler(msg object.MessagesMessage) (state
 	}
 }
 
-func (state EditHashtagDocumentState) Show(vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state EditHashtagDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите новые названия хештегов через пробел (например, фамилия преподавателя или название предмета)")
