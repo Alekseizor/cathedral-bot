@@ -3,6 +3,8 @@ package postrgres
 import (
 	"fmt"
 
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/documents"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/object_admin"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/Alekseizor/cathedral-bot/internal/app/config"
@@ -22,6 +24,8 @@ type Repo struct {
 	State             *state.Repo
 	RequestsDocuments *requests_documents.Repo
 	Admin             *admin.Repo
+	Documents         *documents.Repo
+	ObjectAdmin       *object_admin.Repo
 }
 
 // New - создаем новое объект репо, подключения к бд еще нет!
@@ -43,6 +47,8 @@ func (r *Repo) Init() error {
 	r.State = state.New(db)
 	r.RequestsDocuments = requests_documents.New(db)
 	r.Admin = admin.New(db)
+	r.Documents = documents.New(db)
+	r.ObjectAdmin = object_admin.New(db)
 
 	return nil
 }
