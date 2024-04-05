@@ -57,6 +57,9 @@ const (
 	yearSearchDocument       = stateName("yearSearchDocument")
 	categoriesSearchDocument = stateName("categoriesSearchDocument")
 	hashtagSearchDocument    = stateName("hashtagSearchDocument")
+	checkSearchDocument      = stateName("checkSearchDocument")
+	editSearchDocument       = stateName("editSearchDocument")
+	doSearchDocument         = stateName("doSearchDocument")
 )
 
 type State interface {
@@ -128,6 +131,8 @@ func (s *States) Init(vk *api.VK) error {
 	yearSearchDocumentState := &YearSearchDocumentState{postgres: postgresRepo}
 	categoriesSearchDocumentState := &CategoriesSearchDocumentState{postgres: postgresRepo}
 	hashtagSearchDocumentState := &HashtagSearchDocumentState{postgres: postgresRepo}
+	checkSearchDocumentState := &CheckSearchDocumentState{postgres: postgresRepo}
+	doSearchDocumentState := &DoSearchDocumentState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -171,6 +176,8 @@ func (s *States) Init(vk *api.VK) error {
 		yearSearchDocumentState.Name():       yearSearchDocumentState,
 		categoriesSearchDocumentState.Name(): categoriesSearchDocumentState,
 		hashtagSearchDocumentState.Name():    hashtagSearchDocumentState,
+		checkSearchDocumentState.Name():      checkSearchDocumentState,
+		doSearchDocumentState.Name():         doSearchDocumentState,
 	}
 
 	return nil

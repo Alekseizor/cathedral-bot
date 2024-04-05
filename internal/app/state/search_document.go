@@ -175,7 +175,7 @@ func (state YearSearchDocumentState) Handler(ctx context.Context, msg object.Mes
 		} else {
 			b := params.NewMessagesSendBuilder()
 			b.RandomID(0)
-			b.Message("Укажите год создания документа в формате YYYY или временной интервал в формате YYYY-YYYY")
+			b.Message("Параметры не действительны")
 			return yearSearchDocument, []*params.MessagesSendBuilder{b}, nil
 		}
 		return categoriesSearchDocument, nil, nil
@@ -276,21 +276,21 @@ func (state HashtagSearchDocumentState) Handler(ctx context.Context, msg object.
 	case "Назад":
 		return categoriesSearchDocument, nil, nil
 	case "Пропустить":
-		return hashtagSearchDocument, nil, nil
+		return checkSearchDocument, nil, nil
 	default:
 		hashtags := strings.Split(messageText, " ")
 		err := state.postgres.SearchDocument.UpdateHashtagsSearch(ctx, hashtags, msg.PeerID)
 		if err != nil {
 			return hashtagSearchDocument, []*params.MessagesSendBuilder{}, err
 		}
-		return hashtagSearchDocument, nil, nil
+		return checkSearchDocument, nil, nil
 	}
 }
 
 func (state HashtagSearchDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Введите названия хэштегов через пробел (например, фамилия преподавателя)")
+	b.Message("Введите названия хештегов через пробел (например, фамилия преподавателя)")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
@@ -302,4 +302,47 @@ func (state HashtagSearchDocumentState) Show(ctx context.Context, vkID int) ([]*
 
 func (state HashtagSearchDocumentState) Name() stateName {
 	return hashtagSearchDocument
+}
+
+// CheckSearchDocumentState пользователь проверяет параметры для поиска документа
+type CheckSearchDocumentState struct {
+	postgres *postrgres.Repo
+}
+
+func (state CheckSearchDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+
+	switch messageText {
+	case "Назад":
+		return hashtagSearchDocument, nil, nil
+	case "Найти":
+		return doSearchDocument, nil, nil
+	case "Редактировать параметры":
+		return editSearchDocument, nil, nil
+	default:
+		return checkSearchDocument, nil, nil
+	}
+}
+
+func (state CheckSearchDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	output, err := state.postgres.SearchDocument.CheckSearchParams(ctx, vkID)
+	if err != nil {
+		return []*params.MessagesSendBuilder{}, err
+	}
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Проверьте правильность введенных параметров для поиска:\n" + output)
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Назад", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Найти", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Редактировать параметры", "", "secondary")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state CheckSearchDocumentState) Name() stateName {
+	return checkSearchDocument
 }

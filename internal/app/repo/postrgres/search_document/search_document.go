@@ -3,6 +3,7 @@ package search_document
 import (
 	"context"
 	"fmt"
+	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
@@ -103,4 +104,45 @@ func (r *Repo) UpdateHashtagsSearch(ctx context.Context, hashtags []string, vkID
 	}
 
 	return nil
+}
+
+// CheckSearchParams возвращает все параметры для поиска документа
+func (r *Repo) CheckSearchParams(ctx context.Context, vkID int) (string, error) {
+
+	sqlQuery := `
+	SELECT
+    	CONCAT('Название: ', COALESCE(title, 'Не указано')) AS title,
+    	CONCAT('Автор: ', COALESCE(author, 'Не указано')) AS author,
+    	CASE
+        	WHEN year IS NOT NULL THEN CONCAT('Год создания документа: ', year)
+        	WHEN start_year IS NOT NULL AND end_year IS NOT NULL THEN CONCAT('Временной интервал: ', start_year, '-', end_year)
+        	ELSE 'Не указано'
+    	END AS year_interval,
+    	CONCAT('Список категорий: ', COALESCE(ARRAY_TO_STRING(categories, ', '), 'Не указано')) AS categories,
+    	CONCAT('Хэштеги: ', COALESCE(ARRAY_TO_STRING(hashtags, ', '), 'Не указано')) AS hashtags
+	FROM
+    	search_document
+	WHERE user_id = $1;`
+
+	var searchParams ds.ParseSearchDocument
+
+	err := r.db.QueryRowContext(ctx, sqlQuery, vkID).Scan(&searchParams.Title, &searchParams.Author, &searchParams.YearInterval, &searchParams.Categories, &searchParams.Hashtags)
+	if err != nil {
+		return "", fmt.Errorf("[db.QueryRowContext]: %w", err)
+	}
+
+	output := fmt.Sprintf("Ваши параметры для поиска:\n %s\n%s\n%s\n%s\n%s\n", searchParams.Title, searchParams.Author, searchParams.YearInterval, searchParams.Categories, searchParams.Hashtags)
+
+	return output, nil
+}
+
+// ParseSearch парсит параметры поиска по id юзера
+func (r *Repo) ParseSearch(ctx context.Context, vkID int) (ds.SearchDocument, error) {
+	var doc ds.SearchDocument
+	err := r.db.QueryRowContext(ctx, "SELECT id, title, author, year, start_year, end_year, categories, hashtags FROM search_document WHERE user_id = $1", vkID).Scan(&doc.ID, &doc.Title, &doc.Author, &doc.Year, &doc.StartYear, &doc.EndYear, &doc.Categories, &doc.Hashtags)
+	if err != nil {
+		return ds.SearchDocument{}, fmt.Errorf("[db.QueryRowContext]: %w", err)
+	}
+
+	return doc, nil
 }
