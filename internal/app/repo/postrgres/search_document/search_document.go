@@ -116,7 +116,7 @@ func (r *Repo) CheckSearchParams(ctx context.Context, vkID int) (string, error) 
     	CASE
         	WHEN year IS NOT NULL THEN CONCAT('Год создания документа: ', year)
         	WHEN start_year IS NOT NULL AND end_year IS NOT NULL THEN CONCAT('Временной интервал: ', start_year, '-', end_year)
-        	ELSE 'Не указано'
+        	ELSE 'Год создания/Временной интервал: Не указано'
     	END AS year_interval,
     	CONCAT('Список категорий: ', COALESCE(ARRAY_TO_STRING(categories, ', '), 'Не указано')) AS categories,
     	CONCAT('Хэштеги: ', COALESCE(ARRAY_TO_STRING(hashtags, ', '), 'Не указано')) AS hashtags

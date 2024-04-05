@@ -16,50 +16,55 @@ import (
 type stateName string
 
 const (
-	start                    = stateName("start")
-	selectArchive            = stateName("selectArchive")
-	documentStart            = stateName("documentStart")
-	photoStub                = stateName("photoStub")
-	loadDocument             = stateName("loadDocument")
-	nameDocument             = stateName("nameDocument")
-	authorDocument           = stateName("authorDocument")
-	yearDocument             = stateName("yearDocument")
-	categoryDocument         = stateName("categoryDocument")
-	userCategoryDocument     = stateName("userCategoryDocument")
-	descriptionDocument      = stateName("descriptionDocument")
-	hashtagDocument          = stateName("hashtagDocument")
-	checkDocument            = stateName("checkDocument")
-	editDocument             = stateName("editDocument")
-	editNameDocument         = stateName("editNameDocument")
-	editAuthorDocument       = stateName("editAuthorDocument")
-	editYearDocument         = stateName("editYearDocument")
-	editCategoryDocument     = stateName("editCategoryDocument")
-	editUserCategoryDocument = stateName("editUserCategoryDocument")
-	editDescriptionDocument  = stateName("editDescriptionDocument")
-	editHashtagDocument      = stateName("editHashtagDocument")
-	loadArchive              = stateName("loadArchive")
-	nameArchive              = stateName("nameArchive")
-	authorArchive            = stateName("authorArchive")
-	yearArchive              = stateName("yearArchive")
-	categoryArchive          = stateName("categoryArchive")
-	userCategoryArchive      = stateName("userCategoryArchive")
-	descriptionArchive       = stateName("descriptionArchive")
-	hashtagArchive           = stateName("hashtagArchive")
-	checkArchive             = stateName("checkArchive")
-	documentCabinet          = stateName("documentCabinet")
-	albumsCabinet            = stateName("albumsCabinet")
-	blocking                 = stateName("blocking")
-	blockUser                = stateName("blockUser")
-	workingRequestDocument   = stateName("workingRequestDocument")
-	workingDocument          = stateName("workingDocument")
-	nameSearchDocument       = stateName("nameSearchDocument")
-	authorSearchDocument     = stateName("authorSearchDocument")
-	yearSearchDocument       = stateName("yearSearchDocument")
-	categoriesSearchDocument = stateName("categoriesSearchDocument")
-	hashtagSearchDocument    = stateName("hashtagSearchDocument")
-	checkSearchDocument      = stateName("checkSearchDocument")
-	editSearchDocument       = stateName("editSearchDocument")
-	doSearchDocument         = stateName("doSearchDocument")
+	start                        = stateName("start")
+	selectArchive                = stateName("selectArchive")
+	documentStart                = stateName("documentStart")
+	photoStub                    = stateName("photoStub")
+	loadDocument                 = stateName("loadDocument")
+	nameDocument                 = stateName("nameDocument")
+	authorDocument               = stateName("authorDocument")
+	yearDocument                 = stateName("yearDocument")
+	categoryDocument             = stateName("categoryDocument")
+	userCategoryDocument         = stateName("userCategoryDocument")
+	descriptionDocument          = stateName("descriptionDocument")
+	hashtagDocument              = stateName("hashtagDocument")
+	checkDocument                = stateName("checkDocument")
+	editDocument                 = stateName("editDocument")
+	editNameDocument             = stateName("editNameDocument")
+	editAuthorDocument           = stateName("editAuthorDocument")
+	editYearDocument             = stateName("editYearDocument")
+	editCategoryDocument         = stateName("editCategoryDocument")
+	editUserCategoryDocument     = stateName("editUserCategoryDocument")
+	editDescriptionDocument      = stateName("editDescriptionDocument")
+	editHashtagDocument          = stateName("editHashtagDocument")
+	loadArchive                  = stateName("loadArchive")
+	nameArchive                  = stateName("nameArchive")
+	authorArchive                = stateName("authorArchive")
+	yearArchive                  = stateName("yearArchive")
+	categoryArchive              = stateName("categoryArchive")
+	userCategoryArchive          = stateName("userCategoryArchive")
+	descriptionArchive           = stateName("descriptionArchive")
+	hashtagArchive               = stateName("hashtagArchive")
+	checkArchive                 = stateName("checkArchive")
+	documentCabinet              = stateName("documentCabinet")
+	albumsCabinet                = stateName("albumsCabinet")
+	blocking                     = stateName("blocking")
+	blockUser                    = stateName("blockUser")
+	workingRequestDocument       = stateName("workingRequestDocument")
+	workingDocument              = stateName("workingDocument")
+	nameSearchDocument           = stateName("nameSearchDocument")
+	authorSearchDocument         = stateName("authorSearchDocument")
+	yearSearchDocument           = stateName("yearSearchDocument")
+	categoriesSearchDocument     = stateName("categoriesSearchDocument")
+	hashtagSearchDocument        = stateName("hashtagSearchDocument")
+	checkSearchDocument          = stateName("checkSearchDocument")
+	editSearchDocument           = stateName("editSearchDocument")
+	doSearchDocument             = stateName("doSearchDocument")
+	editNameSearchDocument       = stateName("editNameSearchDocument")
+	editAuthorSearchDocument     = stateName("editAuthorSearchDocument")
+	editYearSearchDocument       = stateName("editYearSearchDocument")
+	editCategoriesSearchDocument = stateName("editCategoriesSearchDocument")
+	editHashtagSearchDocument    = stateName("editHashtagSearchDocument")
 )
 
 type State interface {
@@ -133,6 +138,9 @@ func (s *States) Init(vk *api.VK) error {
 	hashtagSearchDocumentState := &HashtagSearchDocumentState{postgres: postgresRepo}
 	checkSearchDocumentState := &CheckSearchDocumentState{postgres: postgresRepo}
 	doSearchDocumentState := &DoSearchDocumentState{postgres: postgresRepo}
+	editSearchDocumentState := &EditSearchDocumentState{postgres: postgresRepo}
+	editNameSearchDocumentState := &EditNameSearchDocumentState{postgres: postgresRepo}
+	editAuthorSearchDocumentState := &EditAuthorSearchDocumentState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -178,6 +186,9 @@ func (s *States) Init(vk *api.VK) error {
 		hashtagSearchDocumentState.Name():    hashtagSearchDocumentState,
 		checkSearchDocumentState.Name():      checkSearchDocumentState,
 		doSearchDocumentState.Name():         doSearchDocumentState,
+		editSearchDocumentState.Name():       editSearchDocumentState,
+		editNameSearchDocumentState.Name():   editNameSearchDocumentState,
+		editAuthorSearchDocumentState.Name(): editAuthorSearchDocumentState,
 	}
 
 	return nil
