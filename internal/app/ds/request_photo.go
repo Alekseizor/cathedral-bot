@@ -9,4 +9,5 @@ type RequestPhoto struct {
 	Description  bool     `db:"description"`
 	MarkedPeople []string `db:"marked_people"`
 	Attachment   string   `db:"attachment"`
+	UserID       int      `db:"user_id"`
 }

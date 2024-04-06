@@ -3,6 +3,7 @@ package state
 import (
 	"context"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
+	"github.com/SevereCloud/vksdk/v2/api"
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
 )
@@ -17,6 +18,7 @@ var validExtension = map[string]struct{}{
 // LoadPhotoState пользователь загружает документ
 type LoadPhotoState struct {
 	postgres *postrgres.Repo
+	vk       *api.VK
 }
 
 func (state LoadPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
@@ -40,6 +42,18 @@ func (state LoadPhotoState) Handler(ctx context.Context, msg object.MessagesMess
 		return loadPhoto, []*params.MessagesSendBuilder{b}, nil
 	}
 
+	if attachment[0].Photo.AccessKey != "" {
+		err := state.postgres.RequestPhoto.UploadPhoto(ctx, state.vk, attachment[0].Photo, msg.PeerID)
+		if err != nil {
+			return loadPhoto, []*params.MessagesSendBuilder{}, err
+		}
+
+		switch messageText {
+		default:
+			return loadPhoto, nil, nil
+		}
+	}
+
 	if _, ok := validExtension[attachment[0].Doc.Ext]; !ok {
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
@@ -47,14 +61,14 @@ func (state LoadPhotoState) Handler(ctx context.Context, msg object.MessagesMess
 		return loadPhoto, []*params.MessagesSendBuilder{b}, nil
 	}
 
-	err := state.postgres.Photo.InsertPhotoURL(context.Background(), attachment[0].Doc.Title, attachment[0].Doc.URL, msg.PeerID)
+	err := state.postgres.RequestPhoto.UploadPhotoAsFile(ctx, state.vk, attachment[0].Doc, msg.PeerID)
 	if err != nil {
 		return loadPhoto, []*params.MessagesSendBuilder{}, err
 	}
 
 	switch messageText {
 	default:
-		return "namePhoto", nil, nil
+		return loadPhoto, nil, nil
 	}
 }
 

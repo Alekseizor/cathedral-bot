@@ -9,7 +9,8 @@ CREATE TABLE request_photo
     is_event_new    boolean DEFAULT FALSE,
     description     VARCHAR(255),
     marked_people   VARCHAR(255),
-    attachment      VARCHAR(255)
+    attachment      VARCHAR(255),
+    user_id         INT NOT NULL
 );
 -- +goose StatementEnd
 
