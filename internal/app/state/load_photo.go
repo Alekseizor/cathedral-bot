@@ -12,6 +12,7 @@ var validExtension = map[string]struct{}{
 	"jpg":  struct{}{},
 	"jpeg": struct{}{},
 	"png":  struct{}{},
+	"tif":  struct{}{},
 	"tiff": struct{}{},
 }
 
@@ -42,7 +43,7 @@ func (state LoadPhotoState) Handler(ctx context.Context, msg object.MessagesMess
 		return loadPhoto, []*params.MessagesSendBuilder{b}, nil
 	}
 
-	if attachment[0].Photo.AccessKey != "" {
+	if attachment[0].Type == "photo" {
 		err := state.postgres.RequestPhoto.UploadPhoto(ctx, state.vk, attachment[0].Photo, msg.PeerID)
 		if err != nil {
 			return loadPhoto, []*params.MessagesSendBuilder{}, err
@@ -54,16 +55,23 @@ func (state LoadPhotoState) Handler(ctx context.Context, msg object.MessagesMess
 		}
 	}
 
-	if _, ok := validExtension[attachment[0].Doc.Ext]; !ok {
-		b := params.NewMessagesSendBuilder()
-		b.RandomID(0)
-		b.Message("Данная фотография недопустимого формата")
-		return loadPhoto, []*params.MessagesSendBuilder{b}, nil
-	}
+	if attachment[0].Type == "doc" {
+		if _, ok := validExtension[attachment[0].Doc.Ext]; !ok {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("Данная фотография недопустимого формата")
+			return loadPhoto, []*params.MessagesSendBuilder{b}, nil
+		}
 
-	err := state.postgres.RequestPhoto.UploadPhotoAsFile(ctx, state.vk, attachment[0].Doc, msg.PeerID)
-	if err != nil {
-		return loadPhoto, []*params.MessagesSendBuilder{}, err
+		err := state.postgres.RequestPhoto.UploadPhotoAsFile(ctx, state.vk, attachment[0].Doc, msg.PeerID)
+		if err != nil {
+			return loadPhoto, []*params.MessagesSendBuilder{}, err
+		}
+
+		switch messageText {
+		default:
+			return loadPhoto, nil, nil
+		}
 	}
 
 	switch messageText {
@@ -75,7 +83,7 @@ func (state LoadPhotoState) Handler(ctx context.Context, msg object.MessagesMess
 func (state LoadPhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Загрузите фото. Допустимые  форматы фото: jpg, jpeg, png, tiff")
+	b.Message("Загрузите фото. Допустимые  форматы фото: jpg, jpeg, png, tif, tiff")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")

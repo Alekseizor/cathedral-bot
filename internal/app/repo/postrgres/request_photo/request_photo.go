@@ -31,75 +31,153 @@ type docsDoc struct {
 	File string `json:"file"`
 }
 
-// UploadDocument загружает документ
+// UploadPhotoAsFile загружает фотографию как документ
 func (r *Repo) UploadPhotoAsFile(ctx context.Context, VK *api.VK, doc object.DocsDoc, vkID int) error {
 	resp, err := http.Get(doc.URL)
 	if err != nil {
-		log.Println(err)
+		return fmt.Errorf("failed to retrieve document URL: %w", err)
 	}
-	upload, _ := VK.DocsGetMessagesUploadServer(api.Params{
+	defer resp.Body.Close()
+
+	upload, err := VK.DocsGetMessagesUploadServer(api.Params{
 		"type":    "doc",
 		"peer_id": vkID,
 	})
+	if err != nil {
+		return fmt.Errorf("failed to get upload server URL: %w", err)
+	}
+
 	file, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read document content: %w", err)
+	}
 	fileBody := bytes.NewReader(file)
+
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	part, _ := writer.CreateFormFile("file", doc.Title)
-	io.Copy(part, fileBody)
-	writer.Close()
-	req, _ := http.NewRequest("POST", upload.UploadURL, bytes.NewReader(body.Bytes()))
+	part, err := writer.CreateFormFile("file", doc.Title)
+	if err != nil {
+		return fmt.Errorf("failed to create form file: %w", err)
+	}
+	_, err = io.Copy(part, fileBody)
+	if err != nil {
+		return fmt.Errorf("failed to copy file content to form file: %w", err)
+	}
+	err = writer.Close()
+	if err != nil {
+		return fmt.Errorf("failed to close multipart writer: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", upload.UploadURL, body)
+	if err != nil {
+		return fmt.Errorf("failed to create HTTP request: %w", err)
+	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
+
 	client := &http.Client{}
-	response, _ := client.Do(req)
+	response, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to perform HTTP request: %w", err)
+	}
+	defer response.Body.Close()
+
 	docs := &docsDoc{}
-	json.NewDecoder(response.Body).Decode(docs)
+	err = json.NewDecoder(response.Body).Decode(docs)
+	if err != nil {
+		return fmt.Errorf("failed to decode response body: %w", err)
+	}
+
 	log.Println(docs.File)
-	savedDoc, _ := VK.DocsSave(api.Params{
+
+	savedDoc, err := VK.DocsSave(api.Params{
 		"file":  docs.File,
 		"title": doc.Title,
 	})
+	if err != nil {
+		return fmt.Errorf("failed to save document: %w", err)
+	}
 
 	attachment := "doc" + strconv.Itoa(savedDoc.Doc.OwnerID) + "_" + strconv.Itoa(savedDoc.Doc.ID)
 
 	_, err = r.db.ExecContext(ctx, "INSERT INTO request_photo(attachment, user_id) VALUES ($1, $2)", attachment, vkID)
 	if err != nil {
-		return fmt.Errorf("[db.ExecContext]: %w", err)
+		return fmt.Errorf("failed to insert into database: %w", err)
 	}
 
 	return nil
 }
 
-// UploadDocument загружает документ
-func (r *Repo) UploadPhoto(ctx context.Context, VK *api.VK, doc object.PhotosPhoto, vkID int) error {
-	resp, err := http.Get(doc.Sizes[9].URL)
+type photosPhoto struct {
+	Server int    `json:"server"`
+	Photo  string `json:"photo"`
+	Hash   string `json:"hash"`
+}
+
+// UploadPhoto загружает фотографию
+func (r *Repo) UploadPhoto(ctx context.Context, VK *api.VK, photo object.PhotosPhoto, vkID int) error {
+	resp, err := http.Get(photo.Sizes[4].URL)
 	if err != nil {
 		log.Println(err)
+		return err
 	}
-	upload, _ := VK.DocsGetMessagesUploadServer(api.Params{
-		"type":    "doc",
+	defer resp.Body.Close()
+
+	uploadServer, err := VK.PhotosGetMessagesUploadServer(api.Params{
 		"peer_id": vkID,
 	})
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
 	file, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	fileBody := bytes.NewReader(file)
+
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	part, _ := writer.CreateFormFile("file", doc.Title)
-	io.Copy(part, fileBody)
+	part, err := writer.CreateFormFile("photo", "photo.jpg")
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	_, err = io.Copy(part, fileBody)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	writer.Close()
-	req, _ := http.NewRequest("POST", upload.UploadURL, bytes.NewReader(body.Bytes()))
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-	client := &http.Client{}
-	response, _ := client.Do(req)
-	docs := &docsDoc{}
-	json.NewDecoder(response.Body).Decode(docs)
-	log.Println(docs.File)
-	savedDoc, _ := VK.DocsSave(api.Params{
-		"file":  docs.File,
-		"title": doc.Title,
-	})
 
-	attachment := "doc" + strconv.Itoa(savedDoc.Doc.OwnerID) + "_" + strconv.Itoa(savedDoc.Doc.ID)
+	req, err := http.NewRequest("POST", uploadServer.UploadURL, bytes.NewReader(body.Bytes()))
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client := &http.Client{}
+	response, err := client.Do(req)
+
+	uploadResult := &photosPhoto{}
+	err = json.NewDecoder(response.Body).Decode(uploadResult)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	savedPhoto, err := VK.PhotosSaveMessagesPhoto(api.Params{
+		"photo":  uploadResult.Photo,
+		"server": uploadResult.Server,
+		"hash":   uploadResult.Hash,
+	})
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	attachment := "photo" + strconv.Itoa(savedPhoto[0].OwnerID) + "_" + strconv.Itoa(savedPhoto[0].ID)
 
 	_, err = r.db.ExecContext(ctx, "INSERT INTO request_photo(attachment, user_id) VALUES ($1, $2)", attachment, vkID)
 	if err != nil {
