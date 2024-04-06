@@ -2,8 +2,10 @@ package state
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
@@ -46,8 +48,8 @@ func (state ChangeTitleDocumentState) Show(ctx context.Context, vkID int) ([]*pa
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите новое название для документа")
-	k := object.NewMessagesKeyboard(true)
-	addWBackButton(k)
+	k := object.NewMessagesKeyboard(false)
+	addBackButton(k)
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -91,8 +93,8 @@ func (state ChangeDescriptionDocumentState) Show(ctx context.Context, vkID int) 
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите новое описание для документа")
-	k := object.NewMessagesKeyboard(true)
-	addWBackButton(k)
+	k := object.NewMessagesKeyboard(false)
+	addBackButton(k)
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -136,8 +138,8 @@ func (state ChangeAuthorDocumentState) Show(ctx context.Context, vkID int) ([]*p
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите автора документа")
-	k := object.NewMessagesKeyboard(true)
-	addWBackButton(k)
+	k := object.NewMessagesKeyboard(false)
+	addBackButton(k)
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -197,8 +199,8 @@ func (state ChangeYearDocumentState) Show(ctx context.Context, vkID int) ([]*par
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Введите год публикации документа")
-	k := object.NewMessagesKeyboard(true)
-	addWBackButton(k)
+	k := object.NewMessagesKeyboard(false)
+	addBackButton(k)
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -214,17 +216,11 @@ type ChangeCategoryDocumentState struct {
 }
 
 func (state ChangeCategoryDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	var categoryName string
+
 	messageText := msg.Text
 	if messageText == "Назад" {
 		return workingDocument, nil, nil
-	}
-
-	year, err := strconv.Atoi(messageText)
-	if err != nil {
-		b := params.NewMessagesSendBuilder()
-		b.RandomID(0)
-		b.Message("Год должен быть числом, например, 2020")
-		return workingDocument, []*params.MessagesSendBuilder{b}, nil
 	}
 
 	fileID, err := state.postgres.ObjectAdmin.Get(ctx, msg.PeerID)
@@ -232,18 +228,48 @@ func (state ChangeCategoryDocumentState) Handler(ctx context.Context, msg object
 		return "", nil, fmt.Errorf("[object_admin.Get]: %w", err)
 	}
 
-	err = state.postgres.Documents.EditYear(ctx, year, fileID)
+	categoryID, err := strconv.Atoi(messageText)
 	if err != nil {
-		return "", nil, fmt.Errorf("[documents.EditTitle]: %w", err)
+		exists, err := state.postgres.RequestsDocuments.CheckCategoryExistence(ctx, messageText)
+		if err != nil {
+			return "", nil, err
+		}
+		if exists {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("Такая категория уже существует, выберите ее из списка")
+			return changeCategoryDocument, []*params.MessagesSendBuilder{b}, nil
+		}
+		err = state.postgres.RequestsDocuments.InsertCategory(ctx, messageText)
+		if err != nil {
+			return "", nil, err
+		}
+		categoryName = messageText
+	} else {
+		categoryName, err = state.postgres.RequestsDocuments.GetCategoryNameByID(ctx, categoryID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				b := params.NewMessagesSendBuilder()
+				b.RandomID(0)
+				b.Message("Категории с таким ID нет")
+				return changeCategoryDocument, []*params.MessagesSendBuilder{b}, nil
+			}
+			return "", nil, err
+		}
 	}
 
-	resp := fmt.Sprintf("Категория для документа №%d изменена на - %s", fileID, messageText)
+	err = state.postgres.Documents.UpdateCategoryByCategoryName(ctx, fileID, categoryName)
+	if err != nil {
+		return "", nil, err
+	}
+
+	resp := fmt.Sprintf("Категория для документа №%d изменена на - %s", fileID, categoryName)
 
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message(resp)
 
-	return documentCabinet, []*params.MessagesSendBuilder{b}, nil
+	return workingDocument, []*params.MessagesSendBuilder{b}, nil
 }
 
 func (state ChangeCategoryDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
@@ -258,8 +284,8 @@ func (state ChangeCategoryDocumentState) Show(ctx context.Context, vkID int) ([]
 	b1 := params.NewMessagesSendBuilder()
 	b1.RandomID(0)
 	b1.Message("Если хотите выбрать из существующих, отправьте ее номер, иначе напишите название для новой категории")
-	k := object.NewMessagesKeyboard(true)
-	addWBackButton(k)
+	k := object.NewMessagesKeyboard(false)
+	addBackButton(k)
 	b1.Keyboard(k)
 
 	return []*params.MessagesSendBuilder{b, b1}, nil
@@ -267,4 +293,51 @@ func (state ChangeCategoryDocumentState) Show(ctx context.Context, vkID int) ([]
 
 func (state ChangeCategoryDocumentState) Name() stateName {
 	return changeCategoryDocument
+}
+
+///////////
+
+type ChangeHashtagsDocumentState struct {
+	postgres *postrgres.Repo
+}
+
+func (state ChangeHashtagsDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+	if messageText == "Назад" {
+		return workingDocument, nil, nil
+	}
+
+	fileID, err := state.postgres.ObjectAdmin.Get(ctx, msg.PeerID)
+	if err != nil {
+		return "", nil, fmt.Errorf("[object_admin.Get]: %w", err)
+	}
+
+	newHashtags := strings.Split(messageText, " ")
+
+	err = state.postgres.Documents.EditHashtags(ctx, newHashtags, fileID)
+	if err != nil {
+		return "", nil, fmt.Errorf("[documents.EditHashtags]: %w", err)
+	}
+
+	resp := fmt.Sprintf("Хештеги для документа №%d изменены на - %s", fileID, messageText)
+
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message(resp)
+
+	return workingDocument, []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state ChangeHashtagsDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Введите новые хештеги для документа через пробел")
+	k := object.NewMessagesKeyboard(false)
+	addBackButton(k)
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state ChangeHashtagsDocumentState) Name() stateName {
+	return changeHashtagsDocument
 }

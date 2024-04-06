@@ -72,3 +72,20 @@ func (r *Repo) Delete(ctx context.Context, documentID int) error {
 
 	return nil
 }
+
+func (r *Repo) UpdateCategoryByCategoryName(ctx context.Context, documentID int, categoryName string) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE documents SET category = $1 WHERE id = $2", categoryName, documentID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+func (r *Repo) NewCategory(ctx context.Context, category string) error {
+	_, err := r.db.ExecContext(ctx, "INSERT INTO categories VALUES ($1)", category)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+	return nil
+}

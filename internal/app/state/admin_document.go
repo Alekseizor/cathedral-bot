@@ -26,9 +26,9 @@ func (state DocumentCabinetState) Handler(ctx context.Context, msg object.Messag
 	case "Заблокировать пользователя":
 		return blockUser, nil, nil
 	case "Добавить администратора":
-		return documentCabinet, nil, nil
+		return addDocumentAdministrator, nil, nil
 	case "Удалить администратора":
-		return documentCabinet, nil, nil
+		return removeDocumentAdministrator, nil, nil
 	case "Выйти из кабинета администратора":
 		return selectArchive, nil, nil
 	default:
@@ -87,7 +87,7 @@ func (state WorkingRequestDocumentState) Show(ctx context.Context, vkID int) ([]
 	k.AddRow()
 	k.AddTextButton("Заявки из очереди", "", "secondary")
 	k.AddTextButton("Конкретная заявка", "", "secondary")
-	addWBackButton(k)
+	addBackButton(k)
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -138,7 +138,7 @@ func (state WorkingDocumentState) Handler(ctx context.Context, msg object.Messag
 	k.AddRow()
 	k.AddTextButton("Изменить", documentID, "secondary")
 	k.AddTextButton("Удалить", documentID, "secondary")
-	addWBackButton(k)
+	addBackButton(k)
 	b.Keyboard(k)
 
 	return actionOnDocument, []*params.MessagesSendBuilder{b}, nil
@@ -149,7 +149,7 @@ func (state WorkingDocumentState) Show(ctx context.Context, vkID int) ([]*params
 	b.RandomID(0)
 	b.Message("Введите ID файла, над которым хотите поработать. Например: 12")
 	k := object.NewMessagesKeyboard(true)
-	addWBackButton(k)
+	addBackButton(k)
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -201,7 +201,7 @@ func (state ActionOnDocumentState) Handler(ctx context.Context, msg object.Messa
 		k.AddRow()
 		k.AddTextButton("Категория", documentID, "secondary")
 		k.AddTextButton("Хештеги", documentID, "secondary")
-		addWBackButton(k)
+		addBackButton(k)
 		b.Keyboard(k)
 		return changeDocument, []*params.MessagesSendBuilder{b}, nil
 	default:
@@ -256,7 +256,7 @@ func (state ChangeDocumentState) Handler(ctx context.Context, msg object.Message
 	case "Категория":
 		return changeCategoryDocument, nil, nil
 	case "Хештеги":
-		return workingDocument, nil, nil
+		return changeHashtagsDocument, nil, nil
 	default:
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
