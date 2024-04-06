@@ -99,7 +99,7 @@ func (r *Repo) CheckExistence(ctx context.Context, vkID int) (bool, error) {
 //	return len(documents), nil
 //}
 
-func (r *Repo) SearchDocuments(ctx context.Context, params ds.SearchDocument) (int, error) {
+func (r *Repo) SearchDocuments(ctx context.Context, params ds.SearchDocument, vkID int) (int, error) {
 	var conditions []string
 	var values []interface{}
 
@@ -149,19 +149,24 @@ func (r *Repo) SearchDocuments(ctx context.Context, params ds.SearchDocument) (i
 	}
 	defer rows.Close()
 
-	var documents []ds.Documents
+	var documentsID []int
 	for rows.Next() {
-		var doc ds.Documents
-		err := rows.Scan(&doc.ID)
+		var docID int
+		err := rows.Scan(&docID)
 		if err != nil {
 			return 0, err
 		}
-		documents = append(documents, doc)
+		documentsID = append(documentsID, docID)
+	}
+
+	_, err = r.db.ExecContext(ctx, "UPDATE search_document SET documents = $1 WHERE user_id = $2", pq.Array(documentsID), vkID)
+	if err != nil {
+		return 0, fmt.Errorf("[db.ExecContext]: %w", err)
 	}
 
 	if err := rows.Err(); err != nil {
 		return 0, err
 	}
 
-	return len(documents), nil
+	return len(documentsID), nil
 }

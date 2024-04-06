@@ -10,6 +10,7 @@ CREATE TABLE search_document
     end_year   INT,
     categories TEXT[],
     hashtags   TEXT[],
+    documents  INT[],
     user_id    INT NOT NULL
 );
 -- +goose StatementEnd

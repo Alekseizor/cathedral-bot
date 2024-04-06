@@ -14,6 +14,7 @@ type SearchDocument struct {
 	EndYear    sql.NullInt64  `db:"end_year"`
 	Categories pq.StringArray `db:"categories"`
 	Hashtags   pq.StringArray `db:"hashtags"`
+	Documents  pq.Int64Array  `db:"documents"`
 	UserID     int            `db:"user_id"`
 }
 

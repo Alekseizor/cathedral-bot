@@ -18,9 +18,9 @@ func (state DoSearchDocumentState) Handler(ctx context.Context, msg object.Messa
 
 	switch messageText {
 	case "Показать документы":
-		return doSearchDocument, nil, nil
-	case "Редактировать заявку":
-		return doSearchDocument, nil, nil
+		return showSearchDocument, nil, nil
+	case "Редактировать параметры":
+		return editSearchDocument, nil, nil
 	default:
 		return doSearchDocument, nil, nil
 	}
@@ -31,7 +31,7 @@ func (state DoSearchDocumentState) Show(ctx context.Context, vkID int) ([]*param
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
 	}
-	docNumber, err := state.postgres.Documents.SearchDocuments(ctx, searchParams)
+	docNumber, err := state.postgres.Documents.SearchDocuments(ctx, searchParams, vkID)
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
 	}
@@ -49,4 +49,44 @@ func (state DoSearchDocumentState) Show(ctx context.Context, vkID int) ([]*param
 
 func (state DoSearchDocumentState) Name() stateName {
 	return doSearchDocument
+}
+
+// ShowSearchDocumentState вывод найденных документов
+type ShowSearchDocumentState struct {
+	postgres *postrgres.Repo
+}
+
+func (state ShowSearchDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+
+	switch messageText {
+	case "⬅️":
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Ваши документы:\n1.---\n2.---\n3.---\n4.---\n5.---")
+		return showSearchDocument, []*params.MessagesSendBuilder{b}, nil
+	case "➡️":
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Ваши документы:\n1.---\n2.---\n3.---\n4.---\n5.---")
+		return showSearchDocument, []*params.MessagesSendBuilder{b}, nil
+	default:
+		return showSearchDocument, nil, nil
+	}
+}
+
+func (state ShowSearchDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("________________________________")
+	k := object.NewMessagesKeyboardInline()
+	k.AddRow()
+	k.AddTextButton("⬅️", "", "secondary")
+	k.AddTextButton("➡️", "", "secondary")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state ShowSearchDocumentState) Name() stateName {
+	return showSearchDocument
 }

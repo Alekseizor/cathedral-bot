@@ -250,7 +250,7 @@ func (state CategoriesSearchDocumentState) Show(ctx context.Context, vkID int) (
 	}
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Введите номера категорий документов из списка ниже через пробел:\n" + categories)
+	b.Message("Укажите номера категорий документов из списка ниже через пробел:\n" + categories)
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
@@ -290,7 +290,7 @@ func (state HashtagSearchDocumentState) Handler(ctx context.Context, msg object.
 func (state HashtagSearchDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Введите названия хештегов через пробел (например, фамилия преподавателя)")
+	b.Message("Укажите названия хештегов через пробел (например, фамилия преподавателя)")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
