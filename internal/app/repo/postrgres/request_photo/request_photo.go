@@ -188,15 +188,30 @@ func (r *Repo) UploadPhoto(ctx context.Context, VK *api.VK, photo object.PhotosP
 	return nil
 }
 
-// UpdateYear добавляет год события для фотографии
-func (r *Repo) UpdateYear(ctx context.Context, vkID int, year int) error {
-	var photo ds.RequestPhoto
-	err := r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
+// DeletePhotoRequest удаляет заявку на добавление фотографии в альбом
+func (r *Repo) DeletePhotoRequest(ctx context.Context, vkID int) error {
+	_, err := r.db.ExecContext(ctx, "DELETE FROM request_photo WHERE id = (SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1)", vkID)
 	if err != nil {
 		return fmt.Errorf("[db.GetContext]: %w", err)
 	}
 
-	_, err = r.db.ExecContext(ctx, "UPDATE request_photo SET year = $1 WHERE id = $2", year, photo.ID)
+	return nil
+}
+
+// GetPhotoLastID возвращает ID последней заявки на добавление фото в альбом
+func (r *Repo) GetPhotoLastID(ctx context.Context, vkID int) (int, error) {
+	var photo ds.RequestPhoto
+	err := r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
+	if err != nil {
+		return 0, fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	return photo.ID, nil
+}
+
+// UpdateYear добавляет год события для фотографии
+func (r *Repo) UpdateYear(ctx context.Context, photoID int, year int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE request_photo SET year = $1 WHERE id = $2", year, photoID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -205,14 +220,8 @@ func (r *Repo) UpdateYear(ctx context.Context, vkID int, year int) error {
 }
 
 // UpdateStudyProgram добавляет программу обучения для фотографии
-func (r *Repo) UpdateStudyProgram(ctx context.Context, vkID int, studyProgram string) error {
-	var photo ds.RequestPhoto
-	err := r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
-	if err != nil {
-		return fmt.Errorf("[db.GetContext]: %w", err)
-	}
-
-	_, err = r.db.ExecContext(ctx, "UPDATE request_photo SET study_program = $1 WHERE id = $2", studyProgram, photo.ID)
+func (r *Repo) UpdateStudyProgram(ctx context.Context, photoID int, studyProgram string) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE request_photo SET study_program = $1 WHERE id = $2", studyProgram, photoID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -254,20 +263,14 @@ func (r *Repo) GetEventMaxID() (int, error) {
 }
 
 // UpdateEvent добавляет событие для фотографии
-func (r *Repo) UpdateEvent(ctx context.Context, vkID, eventNumber int) error {
-	var photo ds.RequestPhoto
+func (r *Repo) UpdateEvent(ctx context.Context, photoID, eventNumber int) error {
 	var name string
 	err := r.db.Get(&name, "SELECT name FROM events WHERE id = $1", eventNumber)
 	if err != nil {
 		return fmt.Errorf("[db.Get]: %w", err)
 	}
 
-	err = r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
-	if err != nil {
-		return fmt.Errorf("[db.GetContext]: %w", err)
-	}
-
-	_, err = r.db.ExecContext(ctx, "UPDATE request_photo SET (event, is_event_new) = ($1, $2) WHERE id = $3", name, false, photo.ID)
+	_, err = r.db.ExecContext(ctx, "UPDATE request_photo SET (event, is_event_new) = ($1, $2) WHERE id = $3", name, false, photoID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -276,15 +279,8 @@ func (r *Repo) UpdateEvent(ctx context.Context, vkID, eventNumber int) error {
 }
 
 // UpdateUserEvent добавляет пользовательское название события
-func (r *Repo) UpdateUserEvent(ctx context.Context, vkID int, category string) error {
-	var photo ds.RequestPhoto
-
-	err := r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
-	if err != nil {
-		return fmt.Errorf("[db.GetContext]: %w", err)
-	}
-
-	_, err = r.db.ExecContext(ctx, "UPDATE request_photo SET (event, is_event_new) = ($1, $2) WHERE id = $3", category, true, photo.ID)
+func (r *Repo) UpdateUserEvent(ctx context.Context, photoID int, category string) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE request_photo SET (event, is_event_new) = ($1, $2) WHERE id = $3", category, true, photoID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -293,14 +289,8 @@ func (r *Repo) UpdateUserEvent(ctx context.Context, vkID int, category string) e
 }
 
 // UpdateDescription добавляет описание фотографии
-func (r *Repo) UpdateDescription(ctx context.Context, vkID int, description string) error {
-	var photo ds.RequestPhoto
-	err := r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
-	if err != nil {
-		return fmt.Errorf("[db.GetContext]: %w", err)
-	}
-
-	_, err = r.db.ExecContext(ctx, "UPDATE request_photo SET description = $1 WHERE id = $2", description, photo.ID)
+func (r *Repo) UpdateDescription(ctx context.Context, photoID int, description string) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE request_photo SET description = $1 WHERE id = $2", description, photoID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -309,13 +299,7 @@ func (r *Repo) UpdateDescription(ctx context.Context, vkID int, description stri
 }
 
 // CheckParams возвращает все параметры фотографии на загрузку в альбом
-func (r *Repo) CheckParams(ctx context.Context, vkID int) (string, string, error) {
-	var photo ds.RequestPhoto
-	err := r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
-	if err != nil {
-		return "", "", fmt.Errorf("[db.GetContext]: %w", err)
-	}
-
+func (r *Repo) CheckParams(ctx context.Context, photoID int) (string, string, error) {
 	sqlQuery := `
 	SELECT 
     	'1) Год события: ' || COALESCE(CAST(year AS VARCHAR), 'Не указано') AS year,
@@ -336,7 +320,7 @@ func (r *Repo) CheckParams(ctx context.Context, vkID int) (string, string, error
 		attachment   string
 	)
 
-	err = r.db.QueryRow(sqlQuery, photo.ID).Scan(&year, &studyProgram, &event, &description, &markedPeople, &attachment)
+	err := r.db.QueryRow(sqlQuery, photoID).Scan(&year, &studyProgram, &event, &description, &markedPeople, &attachment)
 	if err != nil {
 		return "", "", fmt.Errorf("[db.GetContext]: %w", err)
 	}

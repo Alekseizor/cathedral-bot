@@ -29,15 +29,21 @@ const (
 	start                       = stateName("start")
 	selectArchive               = stateName("selectArchive")
 
-	photoStart           = stateName("photoStart")
-	loadPhoto            = stateName("loadPhoto")
-	isPeoplePresentPhoto = stateName("isPeoplePresentPhoto")
-	eventYearPhoto       = stateName("eventYearPhoto")
-	studyProgramPhoto    = stateName("studyProgramPhoto")
-	eventNamePhoto       = stateName("eventNamePhoto")
-	userEventNamePhoto   = stateName("userEventNamePhoto")
-	descriptionPhoto     = stateName("descriptionPhoto")
-	checkPhoto           = stateName("checkPhoto")
+	photoStart             = stateName("photoStart")
+	loadPhoto              = stateName("loadPhoto")
+	isPeoplePresentPhoto   = stateName("isPeoplePresentPhoto")
+	eventYearPhoto         = stateName("eventYearPhoto")
+	studyProgramPhoto      = stateName("studyProgramPhoto")
+	eventNamePhoto         = stateName("eventNamePhoto")
+	userEventNamePhoto     = stateName("userEventNamePhoto")
+	descriptionPhoto       = stateName("descriptionPhoto")
+	checkPhoto             = stateName("checkPhoto")
+	editPhoto              = stateName("editPhoto")
+	editEventYearPhoto     = stateName("editEventYearPhoto")
+	editStudyProgramPhoto  = stateName("editStudyProgramPhoto")
+	editEventNamePhoto     = stateName("editEventNamePhoto")
+	editUserEventNamePhoto = stateName("editUserEventNamePhoto")
+	editDescriptionPhoto   = stateName("editDescriptionPhoto")
 
 	documentStart            = stateName("documentStart")
 	loadDocument             = stateName("loadDocument")
@@ -115,6 +121,12 @@ func (s *States) Init(vk *api.VK) error {
 	userEventNamePhotoState := &UserEventNamePhotoState{postgres: postgresRepo}
 	descriptionPhotoState := &DescriptionPhotoState{postgres: postgresRepo}
 	checkPhotoState := &CheckPhotoState{postgres: postgresRepo}
+	editPhotoState := &EditPhotoState{postgres: postgresRepo}
+	editEventYearPhotoState := &EditEventYearPhotoState{postgres: postgresRepo}
+	editStudyProgramPhotoState := &EditStudyProgramPhotoState{postgres: postgresRepo}
+	editEventNamePhotoState := &EditEventNamePhotoState{postgres: postgresRepo}
+	editUserEventNamePhotoState := &EditUserEventNamePhotoState{postgres: postgresRepo}
+	editDescriptionPhotoState := &EditDescriptionPhotoState{postgres: postgresRepo}
 
 	documentStartState := &DocumentStartState{postgres: postgresRepo}
 	loadDocumentState := &LoadDocumentState{postgres: postgresRepo, vk: vk}
@@ -165,15 +177,21 @@ func (s *States) Init(vk *api.VK) error {
 		startState.Name():         startState,
 		selectArchiveState.Name(): selectArchiveState,
 
-		photoStartState.Name():           photoStartState,
-		loadPhotoState.Name():            loadPhotoState,
-		isPeoplePresentPhotoState.Name(): isPeoplePresentPhotoState,
-		eventYearPhotoState.Name():       eventYearPhotoState,
-		studyProgramPhotoState.Name():    studyProgramPhotoState,
-		eventNamePhotoState.Name():       eventNamePhotoState,
-		userEventNamePhotoState.Name():   userEventNamePhotoState,
-		descriptionPhotoState.Name():     descriptionPhotoState,
-		checkPhotoState.Name():           checkPhotoState,
+		photoStartState.Name():             photoStartState,
+		loadPhotoState.Name():              loadPhotoState,
+		isPeoplePresentPhotoState.Name():   isPeoplePresentPhotoState,
+		eventYearPhotoState.Name():         eventYearPhotoState,
+		studyProgramPhotoState.Name():      studyProgramPhotoState,
+		eventNamePhotoState.Name():         eventNamePhotoState,
+		userEventNamePhotoState.Name():     userEventNamePhotoState,
+		descriptionPhotoState.Name():       descriptionPhotoState,
+		checkPhotoState.Name():             checkPhotoState,
+		editPhotoState.Name():              editPhotoState,
+		editEventYearPhotoState.Name():     editEventYearPhotoState,
+		editStudyProgramPhotoState.Name():  editStudyProgramPhotoState,
+		editEventNamePhotoState.Name():     editEventNamePhotoState,
+		editUserEventNamePhotoState.Name(): editUserEventNamePhotoState,
+		editDescriptionPhotoState.Name():   editDescriptionPhotoState,
 
 		documentStartState.Name():               documentStartState,
 		loadDocumentState.Name():                loadDocumentState,

@@ -97,12 +97,18 @@ func (state IsPeoplePresentPhotoState) Handler(ctx context.Context, msg object.M
 	messageText := msg.Text
 
 	switch messageText {
-	case "Назад":
-		return loadPhoto, nil, nil
 	case "Да":
 		return isPeoplePresentPhoto, nil, nil
 	case "Нет":
 		return eventYearPhoto, nil, nil
+	case "Пропустить":
+		return eventYearPhoto, nil, nil
+	case "Назад":
+		err := state.postgres.RequestPhoto.DeletePhotoRequest(ctx, msg.PeerID)
+		if err != nil {
+			return isPeoplePresentPhoto, []*params.MessagesSendBuilder{}, err
+		}
+		return loadPhoto, nil, nil
 	default:
 		return isPeoplePresentPhoto, nil, nil
 	}
@@ -115,9 +121,9 @@ func (state IsPeoplePresentPhotoState) Show(ctx context.Context, vkID int) ([]*p
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Да", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Нет", "", "secondary")
 	k.AddRow()
+	k.AddTextButton("Пропустить", "", "secondary")
 	k.AddTextButton("Назад", "", "secondary")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
@@ -134,6 +140,10 @@ type EventYearPhotoState struct {
 
 func (state EventYearPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
+	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
+	if err != nil {
+		return editEventYearPhoto, []*params.MessagesSendBuilder{}, err
+	}
 
 	switch messageText {
 	case "Назад":
@@ -156,7 +166,7 @@ func (state EventYearPhotoState) Handler(ctx context.Context, msg object.Message
 			b.Message("Введён несуществующий год")
 			return eventYearPhoto, []*params.MessagesSendBuilder{b}, nil
 		}
-		err = state.postgres.RequestPhoto.UpdateYear(ctx, msg.PeerID, year)
+		err = state.postgres.RequestPhoto.UpdateYear(ctx, photoID, year)
 		if err != nil {
 			return eventYearPhoto, []*params.MessagesSendBuilder{}, err
 		}
@@ -188,17 +198,22 @@ type StudyProgramPhotoState struct {
 
 func (state StudyProgramPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	var studyProg string
+	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
+	if err != nil {
+		return editEventYearPhoto, []*params.MessagesSendBuilder{}, err
+	}
+
+	var educationProgram string
 
 	switch messageText {
 	case "Бакалавриат":
-		studyProg = "Бакалавриат"
+		educationProgram = "Бакалавриат"
 	case "Магистратура":
-		studyProg = "Магистратура"
+		educationProgram = "Магистратура"
 	case "Специалитет":
-		studyProg = "Специалитет"
+		educationProgram = "Специалитет"
 	case "Аспирантура":
-		studyProg = "Аспирантура"
+		educationProgram = "Аспирантура"
 	case "Пропустить":
 		return eventNamePhoto, nil, nil
 	case "Назад":
@@ -210,7 +225,7 @@ func (state StudyProgramPhotoState) Handler(ctx context.Context, msg object.Mess
 		return eventYearPhoto, []*params.MessagesSendBuilder{b}, nil
 	}
 
-	err := state.postgres.RequestPhoto.UpdateStudyProgram(ctx, msg.PeerID, studyProg)
+	err = state.postgres.RequestPhoto.UpdateStudyProgram(ctx, photoID, educationProgram)
 	if err != nil {
 		return studyProgramPhoto, []*params.MessagesSendBuilder{}, err
 	}
@@ -220,19 +235,16 @@ func (state StudyProgramPhotoState) Handler(ctx context.Context, msg object.Mess
 func (state StudyProgramPhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Напишите год события в формате YYYY")
+	b.Message("Выберите программу обучения")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Бакалавриат", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Магистратура", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Специалитет", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Аспирантура", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
@@ -249,6 +261,10 @@ type EventNamePhotoState struct {
 
 func (state EventNamePhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
+	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
+	if err != nil {
+		return editEventYearPhoto, []*params.MessagesSendBuilder{}, err
+	}
 
 	switch messageText {
 	case "Своё событие":
@@ -278,7 +294,7 @@ func (state EventNamePhotoState) Handler(ctx context.Context, msg object.Message
 			return eventNamePhoto, []*params.MessagesSendBuilder{b}, nil
 		}
 
-		err = state.postgres.RequestPhoto.UpdateEvent(ctx, msg.PeerID, eventNumber)
+		err = state.postgres.RequestPhoto.UpdateEvent(ctx, photoID, eventNumber)
 		if err != nil {
 			return eventNamePhoto, []*params.MessagesSendBuilder{}, err
 		}
@@ -316,6 +332,10 @@ type UserEventNamePhotoState struct {
 
 func (state UserEventNamePhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
+	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
+	if err != nil {
+		return editEventYearPhoto, []*params.MessagesSendBuilder{}, err
+	}
 
 	switch messageText {
 	case "Пропустить":
@@ -323,7 +343,7 @@ func (state UserEventNamePhotoState) Handler(ctx context.Context, msg object.Mes
 	case "Назад":
 		return eventNamePhoto, nil, nil
 	default:
-		err := state.postgres.RequestPhoto.UpdateUserEvent(ctx, msg.PeerID, messageText)
+		err := state.postgres.RequestPhoto.UpdateUserEvent(ctx, photoID, messageText)
 		if err != nil {
 			return userEventNamePhoto, []*params.MessagesSendBuilder{}, err
 		}
@@ -355,6 +375,10 @@ type DescriptionPhotoState struct {
 
 func (state DescriptionPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
+	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
+	if err != nil {
+		return editEventYearPhoto, []*params.MessagesSendBuilder{}, err
+	}
 
 	switch messageText {
 	case "Пропустить":
@@ -362,7 +386,7 @@ func (state DescriptionPhotoState) Handler(ctx context.Context, msg object.Messa
 	case "Назад":
 		return eventNamePhoto, nil, nil
 	default:
-		err := state.postgres.RequestPhoto.UpdateDescription(ctx, msg.PeerID, messageText)
+		err := state.postgres.RequestPhoto.UpdateDescription(ctx, photoID, messageText)
 		if err != nil {
 			return descriptionPhoto, []*params.MessagesSendBuilder{}, err
 		}
@@ -402,7 +426,7 @@ func (state CheckPhotoState) Handler(ctx context.Context, msg object.MessagesMes
 		b.Message("Фотография отправлена администратору на рассмотрение. Вы можете отслеживать статус своей заявки в личном кабинете")
 		return photoStart, []*params.MessagesSendBuilder{b}, nil
 	case "Редактировать заявку":
-		return checkPhoto, nil, nil
+		return editPhoto, nil, nil
 	case "Назад":
 		return descriptionPhoto, nil, nil
 	default:
@@ -411,10 +435,16 @@ func (state CheckPhotoState) Handler(ctx context.Context, msg object.MessagesMes
 }
 
 func (state CheckPhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
-	output, attachment, err := state.postgres.RequestPhoto.CheckParams(ctx, vkID)
+	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, vkID)
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
 	}
+
+	output, attachment, err := state.postgres.RequestPhoto.CheckParams(ctx, photoID)
+	if err != nil {
+		return []*params.MessagesSendBuilder{}, err
+	}
+
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Проверьте правильность введённых параметров:\n" + output)
