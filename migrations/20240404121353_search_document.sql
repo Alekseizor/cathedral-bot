@@ -12,6 +12,7 @@ CREATE TABLE search_document
     hashtags    TEXT[],
     documents   INT[],
     pointer_doc INT DEFAULT 0,
+    chosen_doc  INT,
     user_id     INT NOT NULL
 );
 -- +goose StatementEnd

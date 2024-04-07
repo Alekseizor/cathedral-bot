@@ -16,6 +16,7 @@ type SearchDocument struct {
 	Hashtags   pq.StringArray `db:"hashtags"`
 	Documents  pq.Int64Array  `db:"documents"`
 	PointerDoc int            `db:"pointer_doc"`
+	ChosenDoc  *int           `db:"chosen_doc"`
 	UserID     int            `db:"user_id"`
 }
 

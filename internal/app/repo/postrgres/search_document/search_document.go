@@ -157,13 +157,23 @@ func (r *Repo) UpdatePointer(ctx context.Context, value, vkID int) error {
 	return nil
 }
 
-// ParseSearchButtons парсит параметры, необходимые для оторбражения кнопок листинга
+// ParseSearchButtons парсит дополнительные параметры поиска
 func (r *Repo) ParseSearchButtons(ctx context.Context, vkID int) (ds.SearchDocument, error) {
 	var doc ds.SearchDocument
-	err := r.db.QueryRowContext(ctx, "SELECT documents, pointer_doc FROM search_document WHERE user_id = $1", vkID).Scan(&doc.Documents, &doc.PointerDoc)
+	err := r.db.QueryRowContext(ctx, "SELECT documents, pointer_doc, chosen_doc FROM search_document WHERE user_id = $1", vkID).Scan(&doc.Documents, &doc.PointerDoc, &doc.ChosenDoc)
 	if err != nil {
 		return ds.SearchDocument{}, fmt.Errorf("[db.QueryRowContext]: %w", err)
 	}
 
 	return doc, nil
+}
+
+// UpdateChosenDocSearch добавляет id выбранного для показа документа
+func (r *Repo) UpdateChosenDocSearch(ctx context.Context, docID, vkID int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE search_document SET chosen_doc = $1 WHERE user_id = $2", docID, vkID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
 }

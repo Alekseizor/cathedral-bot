@@ -61,6 +61,7 @@ const (
 	editSearchDocument           = stateName("editSearchDocument")
 	doSearchDocument             = stateName("doSearchDocument")
 	showSearchDocument           = stateName("showSearchDocument")
+	showChosenDocument           = stateName("showChosenDocument")
 	editNameSearchDocument       = stateName("editNameSearchDocument")
 	editAuthorSearchDocument     = stateName("editAuthorSearchDocument")
 	editYearSearchDocument       = stateName("editYearSearchDocument")
@@ -156,6 +157,7 @@ func (s *States) Init(vk *api.VK) error {
 	editCategoriesSearchDocumentState := &EditCategoriesSearchDocumentState{postgres: postgresRepo}
 	editHashtagSearchDocumentState := &EditHashtagSearchDocumentState{postgres: postgresRepo}
 	showSearchDocumentState := &ShowSearchDocumentState{postgres: postgresRepo}
+	showChosenDocumentState := &ShowChosenDocumentState{postgres: postgresRepo}
 	workingDocumentState := &WorkingDocumentState{postgres: postgresRepo}
 	actionOnDocumentState := &ActionOnDocumentState{postgres: postgresRepo}
 	changeDocumentState := &ChangeDocumentState{postgres: postgresRepo}
@@ -219,6 +221,7 @@ func (s *States) Init(vk *api.VK) error {
 		editCategoriesSearchDocumentState.Name(): editCategoriesSearchDocumentState,
 		editHashtagSearchDocumentState.Name():    editHashtagSearchDocumentState,
 		showSearchDocumentState.Name():           showSearchDocumentState,
+		showChosenDocumentState.Name():           showChosenDocumentState,
 		workingDocumentState.Name():              workingDocumentState,
 		actionOnDocumentState.Name():             actionOnDocumentState,
 		changeDocumentState.Name():               changeDocumentState,

@@ -193,12 +193,12 @@ func (r *Repo) GetSearchDocuments(ctx context.Context, vkID int) (string, error)
 
 	var output string
 	for rows.Next() {
-		var doc ds.Documents
+		var doc ds.Document
 		if err := rows.Scan(&doc.ID, &doc.Title, &doc.Category); err != nil {
 			return "", err
 		}
 		index := params.PointerDoc + 1
-		output += fmt.Sprintf("[%d]. Название: %s. Категория: %s\n", index, doc.Title, doc.Category)
+		output += fmt.Sprintf("[%d]. Название: %s. Категория: %s\n", index, *doc.Title, *doc.Category)
 		params.PointerDoc++
 	}
 	if err := rows.Err(); err != nil {
