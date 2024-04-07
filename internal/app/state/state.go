@@ -32,6 +32,10 @@ const (
 	photoStart             = stateName("photoStart")
 	loadPhoto              = stateName("loadPhoto")
 	isPeoplePresentPhoto   = stateName("isPeoplePresentPhoto")
+	countPeoplePhoto       = stateName("countPeoplePhoto")
+	markedPeoplePhoto      = stateName("markedPeoplePhoto")
+	isTeacherPhoto         = stateName("isTeacherPhoto")
+	teacherPhoto           = stateName("teacherPhoto")
 	eventYearPhoto         = stateName("eventYearPhoto")
 	studyProgramPhoto      = stateName("studyProgramPhoto")
 	eventNamePhoto         = stateName("eventNamePhoto")
@@ -115,6 +119,10 @@ func (s *States) Init(vk *api.VK) error {
 	photoStartState := &PhotoStartState{postgres: postgresRepo}
 	loadPhotoState := &LoadPhotoState{postgres: postgresRepo, vk: vk}
 	isPeoplePresentPhotoState := &IsPeoplePresentPhotoState{postgres: postgresRepo}
+	countPeoplePhotoState := &CountPeoplePhotoState{postgres: postgresRepo}
+	markedPeoplePhotoState := &MarkedPeoplePhotoState{postgres: postgresRepo}
+	isTeacherPhotoState := &IsTeacherPhotoState{postgres: postgresRepo}
+	teacherPhotoState := &TeacherPhotoState{postgres: postgresRepo}
 	eventYearPhotoState := &EventYearPhotoState{postgres: postgresRepo}
 	studyProgramPhotoState := &StudyProgramPhotoState{postgres: postgresRepo}
 	eventNamePhotoState := &EventNamePhotoState{postgres: postgresRepo}
@@ -180,6 +188,10 @@ func (s *States) Init(vk *api.VK) error {
 		photoStartState.Name():             photoStartState,
 		loadPhotoState.Name():              loadPhotoState,
 		isPeoplePresentPhotoState.Name():   isPeoplePresentPhotoState,
+		countPeoplePhotoState.Name():       countPeoplePhotoState,
+		markedPeoplePhotoState.Name():      markedPeoplePhotoState,
+		isTeacherPhotoState.Name():         isTeacherPhotoState,
+		teacherPhotoState.Name():           teacherPhotoState,
 		eventYearPhotoState.Name():         eventYearPhotoState,
 		studyProgramPhotoState.Name():      studyProgramPhotoState,
 		eventNamePhotoState.Name():         eventNamePhotoState,

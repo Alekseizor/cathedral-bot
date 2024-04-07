@@ -2,6 +2,7 @@ package state
 
 import (
 	"context"
+	"fmt"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
 	"github.com/SevereCloud/vksdk/v2/api"
 	"github.com/SevereCloud/vksdk/v2/api/params"
@@ -98,7 +99,7 @@ func (state IsPeoplePresentPhotoState) Handler(ctx context.Context, msg object.M
 
 	switch messageText {
 	case "Да":
-		return isPeoplePresentPhoto, nil, nil
+		return countPeoplePhoto, nil, nil
 	case "Нет":
 		return eventYearPhoto, nil, nil
 	case "Пропустить":
@@ -131,6 +132,247 @@ func (state IsPeoplePresentPhotoState) Show(ctx context.Context, vkID int) ([]*p
 
 func (state IsPeoplePresentPhotoState) Name() stateName {
 	return isPeoplePresentPhoto
+}
+
+// CountPeoplePhotoState пользователь вводит количество людей на фото
+type CountPeoplePhotoState struct {
+	postgres *postrgres.Repo
+}
+
+func (state CountPeoplePhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
+	if err != nil {
+		return editEventYearPhoto, []*params.MessagesSendBuilder{}, err
+	}
+
+	switch messageText {
+	case "Назад":
+		return isPeoplePresentPhoto, nil, nil
+	default:
+		count, err := strconv.Atoi(messageText)
+		if err != nil {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("Количество людей должно быть целым числом")
+			return countPeoplePhoto, []*params.MessagesSendBuilder{b}, nil
+		}
+
+		if count < 1 {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("Количество людей должно быть больше нуля")
+			return countPeoplePhoto, []*params.MessagesSendBuilder{b}, nil
+		}
+		err = state.postgres.RequestPhoto.UpdateCountPeople(ctx, photoID, count)
+		if err != nil {
+			return countPeoplePhoto, []*params.MessagesSendBuilder{}, err
+		}
+		return markedPeoplePhoto, nil, nil
+	}
+}
+
+func (state CountPeoplePhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Напишите количество людей на фото")
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Назад", "", "secondary")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state CountPeoplePhotoState) Name() stateName {
+	return countPeoplePhoto
+}
+
+// MarkedPeoplePhotoState пользователь отмечает людей на фото
+type MarkedPeoplePhotoState struct {
+	postgres *postrgres.Repo
+}
+
+func (state MarkedPeoplePhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
+	if err != nil {
+		return editEventYearPhoto, []*params.MessagesSendBuilder{}, err
+	}
+
+	switch messageText {
+	case "Знаю ФИО человека":
+		return isTeacherPhoto, nil, nil
+	case "Не знаю ФИО человека":
+		allMarked, err := state.postgres.RequestPhoto.UpdateMarkedPeople(ctx, photoID, "???")
+		if err != nil {
+			return markedPeoplePhoto, []*params.MessagesSendBuilder{}, err
+		}
+		if allMarked {
+			return eventYearPhoto, nil, nil
+		}
+		return markedPeoplePhoto, nil, nil
+	case "Закончить отмечать людей":
+		return eventYearPhoto, nil, nil
+	case "Назад":
+		return countPeoplePhoto, nil, nil
+	default:
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Выберите из предложенных вариантов")
+		return markedPeoplePhoto, []*params.MessagesSendBuilder{b}, nil
+	}
+}
+
+func (state MarkedPeoplePhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, vkID)
+	if err != nil {
+		return []*params.MessagesSendBuilder{}, err
+	}
+
+	markedPerson, err := state.postgres.RequestPhoto.GetMarkedPerson(ctx, photoID)
+	if err != nil {
+		return []*params.MessagesSendBuilder{}, err
+	}
+
+	msg := fmt.Sprintf("Отметьте %v-го человека слева", markedPerson+1)
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message(msg)
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Знаю ФИО человека", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Не знаю ФИО человека", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Закончить отмечать людей", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Назад", "", "secondary")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state MarkedPeoplePhotoState) Name() stateName {
+	return markedPeoplePhoto
+}
+
+// IsTeacherPhotoState пользователь отмечает человека, отвечая на вопрос учитель ли это
+type IsTeacherPhotoState struct {
+	postgres *postrgres.Repo
+}
+
+func (state IsTeacherPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+
+	switch messageText {
+	case "Да":
+		return markedPeoplePhoto, nil, nil
+	case "Нет":
+		return markedPeoplePhoto, nil, nil
+	case "Назад":
+		return markedPeoplePhoto, nil, nil
+	default:
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Выберите из предложенных вариантов")
+		return isTeacherPhoto, []*params.MessagesSendBuilder{b}, nil
+	}
+}
+
+func (state IsTeacherPhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Это преподаватель?")
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Да", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Нет", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Назад", "", "secondary")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state IsTeacherPhotoState) Name() stateName {
+	return isTeacherPhoto
+}
+
+// TeacherPhotoState пользователь выбирает преподавателя из списка
+type TeacherPhotoState struct {
+	postgres *postrgres.Repo
+}
+
+func (state TeacherPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
+	if err != nil {
+		return teacherPhoto, []*params.MessagesSendBuilder{}, err
+	}
+
+	switch messageText {
+	case "Ввести ФИО вручную":
+		return teacherPhoto, nil, nil
+	case "Назад":
+		return isTeacherPhoto, nil, nil
+	default:
+		teacherID, err := strconv.Atoi(messageText)
+		if err != nil {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("Введите номер преподавателя числом")
+			return teacherPhoto, []*params.MessagesSendBuilder{b}, nil
+		}
+
+		maxID, err := state.postgres.RequestPhoto.GetTeacherMaxID()
+		if err != nil {
+			return teacherPhoto, []*params.MessagesSendBuilder{}, err
+		}
+
+		if !(teacherID >= 1 && teacherID <= maxID) {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("Такого преподавателя нет в списке")
+			return teacherPhoto, []*params.MessagesSendBuilder{b}, nil
+		}
+
+		teacherName, err := state.postgres.RequestPhoto.GetTeacherName(ctx, teacherID)
+		if err != nil {
+			return teacherPhoto, []*params.MessagesSendBuilder{}, err
+		}
+
+		allMarked, err := state.postgres.RequestPhoto.UpdateMarkedPeople(ctx, photoID, teacherName)
+		if err != nil {
+			return teacherPhoto, []*params.MessagesSendBuilder{}, err
+		}
+
+		if allMarked {
+			return eventYearPhoto, nil, nil
+		}
+
+		return markedPeoplePhoto, nil, nil
+	}
+}
+
+func (state TeacherPhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	teacherNames, err := state.postgres.RequestPhoto.GetTeacherNames()
+	if err != nil {
+		return []*params.MessagesSendBuilder{}, err
+	}
+
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Напишите номер преподавателя из списка ниже:\n" + teacherNames)
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Ввести ФИО вручную", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Назад", "", "secondary")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state TeacherPhotoState) Name() stateName {
+	return teacherPhoto
 }
 
 // EventYearPhotoState пользователь указывает год создания документа
@@ -303,7 +545,7 @@ func (state EventNamePhotoState) Handler(ctx context.Context, msg object.Message
 }
 
 func (state EventNamePhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
-	categories, err := state.postgres.RequestPhoto.GetEventNames()
+	categories, err := state.postgres.RequestPhoto.GetTeacherNames()
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
 	}

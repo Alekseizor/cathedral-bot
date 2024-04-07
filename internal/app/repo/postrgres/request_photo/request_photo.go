@@ -9,6 +9,7 @@ import (
 	"github.com/SevereCloud/vksdk/v2/api"
 	"github.com/SevereCloud/vksdk/v2/object"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"io"
 	"log"
 	"mime/multipart"
@@ -192,7 +193,7 @@ func (r *Repo) UploadPhoto(ctx context.Context, VK *api.VK, photo object.PhotosP
 func (r *Repo) DeletePhotoRequest(ctx context.Context, vkID int) error {
 	_, err := r.db.ExecContext(ctx, "DELETE FROM request_photo WHERE id = (SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1)", vkID)
 	if err != nil {
-		return fmt.Errorf("[db.GetContext]: %w", err)
+		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
 
 	return nil
@@ -207,6 +208,95 @@ func (r *Repo) GetPhotoLastID(ctx context.Context, vkID int) (int, error) {
 	}
 
 	return photo.ID, nil
+}
+
+// UpdateCountPeople добавляет количество людей на фотографии
+func (r *Repo) UpdateCountPeople(ctx context.Context, photoID int, count int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE request_photo SET count_people = $1, marked_person = $2, marked_people = $3 WHERE id = $4", count, 0, pq.Array(nil), photoID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateMarkedPeople отмечает человека на фото
+func (r *Repo) UpdateMarkedPeople(ctx context.Context, photoID int, name string) (bool, error) {
+	var photo ds.RequestPhoto
+
+	err := r.db.GetContext(ctx, &photo, "SELECT count_people, marked_person, marked_people FROM request_photo WHERE id = $1", photoID)
+	if err != nil {
+		return false, fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	photo.MarkedPeople = append(photo.MarkedPeople, name)
+	photo.MarkedPerson++
+
+	_, err = r.db.ExecContext(ctx, "UPDATE request_photo SET marked_person = $1, marked_people = $2 WHERE id = $3", photo.MarkedPerson, pq.Array(photo.MarkedPeople), photoID)
+	if err != nil {
+		return false, fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	if photo.MarkedPerson >= photo.CountPeople {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+// GetMarkedPerson возвращает номер отмечаемого человека, если считать слева направо
+func (r *Repo) GetMarkedPerson(ctx context.Context, photoID int) (int, error) {
+	var photo ds.RequestPhoto
+	err := r.db.GetContext(ctx, &photo, "SELECT marked_person FROM request_photo WHERE id = $1", photoID)
+	if err != nil {
+		return 0, fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	return photo.MarkedPerson, nil
+}
+
+// GetTeacherNames возвращает ФИО преподавателей
+func (r *Repo) GetTeacherNames() (string, error) {
+	var teacherNames string
+
+	rows, err := r.db.Query("SELECT CONCAT(id, ') ', name) AS formatted_string FROM teachers")
+	if err != nil {
+		return "", fmt.Errorf("[db.Query]: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var formattedString string
+		err := rows.Scan(&formattedString)
+		if err != nil {
+			return "", fmt.Errorf("[db.Scan]: %w", err)
+		}
+		teacherNames += formattedString + "\n"
+	}
+
+	return teacherNames, nil
+}
+
+// GetTeacherMaxID возвращает максимальное ID из преподавателей
+func (r *Repo) GetTeacherMaxID() (int, error) {
+	var maxID int
+	err := r.db.Get(&maxID, "SELECT MAX(id) FROM teachers")
+	if err != nil {
+		return 0, fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	return maxID, nil
+}
+
+// GetTeacherName возвращает ФИО преподавателя
+func (r *Repo) GetTeacherName(ctx context.Context, teacherID int) (string, error) {
+	var name string
+	err := r.db.Get(&name, "SELECT name FROM teachers WHERE id = $1", teacherID)
+	if err != nil {
+		return "", fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	return name, nil
 }
 
 // UpdateYear добавляет год события для фотографии

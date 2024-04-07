@@ -8,7 +8,10 @@ CREATE TABLE request_photo
     event         VARCHAR(100),
     is_event_new  boolean DEFAULT FALSE,
     description   VARCHAR(255),
+    count_people  INT,
+    marked_person INT,
     marked_people TEXT[],
+    teachers      TEXT[],
     attachment    VARCHAR(255),
     user_id       INT NOT NULL
 );
