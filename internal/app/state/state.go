@@ -16,10 +16,17 @@ import (
 type stateName string
 
 const (
-	start                    = stateName("start")
-	selectArchive            = stateName("selectArchive")
-	photoStub                = stateName("photoStub")
-	loadPhoto                = stateName("loadPhoto")
+	start         = stateName("start")
+	selectArchive = stateName("selectArchive")
+
+	photoStart           = stateName("photoStart")
+	loadPhoto            = stateName("loadPhoto")
+	isPeoplePresentPhoto = stateName("isPeoplePresentPhoto")
+	eventYearPhoto       = stateName("eventYearPhoto")
+	studyProgramPhoto    = stateName("studyProgramPhoto")
+	eventNamePhoto       = stateName("eventNamePhoto")
+	userEventNamePhoto   = stateName("userEventNamePhoto")
+
 	documentStart            = stateName("documentStart")
 	loadDocument             = stateName("loadDocument")
 	nameDocument             = stateName("nameDocument")
@@ -86,9 +93,16 @@ func (s *States) Init(vk *api.VK) error {
 	//здесь инициализируются все стейты
 	startState := &StartState{postgres: postgresRepo}
 	selectArchiveState := &SelectArchiveState{postgres: postgresRepo}
-	photoStubState := &PhotoStubState{postgres: postgresRepo}
-	documentStartState := &DocumentStartState{postgres: postgresRepo}
+
+	photoStartState := &PhotoStartState{postgres: postgresRepo}
 	loadPhotoState := &LoadPhotoState{postgres: postgresRepo, vk: vk}
+	isPeoplePresentPhotoState := &IsPeoplePresentPhotoState{postgres: postgresRepo}
+	eventYearPhotoState := &EventYearPhotoState{postgres: postgresRepo}
+	studyProgramPhotoState := &StudyProgramPhotoState{postgres: postgresRepo}
+	eventNamePhotoState := &EventNamePhotoState{postgres: postgresRepo}
+	userEventNamePhotoState := &UserEventNamePhotoState{postgres: postgresRepo}
+
+	documentStartState := &DocumentStartState{postgres: postgresRepo}
 	loadDocumentState := &LoadDocumentState{postgres: postgresRepo, vk: vk}
 	nameDocumentState := &NameDocumentState{postgres: postgresRepo}
 	authorDocumentState := &AuthorDocumentState{postgres: postgresRepo}
@@ -123,14 +137,18 @@ func (s *States) Init(vk *api.VK) error {
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
-		startState.Name():                    startState,
-		selectArchiveState.Name():            selectArchiveState,
-		photoStubState.Name():                photoStubState,
-		loadPhotoState.Name():                loadPhotoState,
-		startState.Name():                    startState,
-		selectArchiveState.Name():            selectArchiveState,
+		startState.Name():         startState,
+		selectArchiveState.Name(): selectArchiveState,
+
+		photoStartState.Name():           photoStartState,
+		loadPhotoState.Name():            loadPhotoState,
+		isPeoplePresentPhotoState.Name(): isPeoplePresentPhotoState,
+		eventYearPhotoState.Name():       eventYearPhotoState,
+		studyProgramPhotoState.Name():    studyProgramPhotoState,
+		eventNamePhotoState.Name():       eventNamePhotoState,
+		userEventNamePhotoState.Name():   userEventNamePhotoState,
+
 		documentStartState.Name():            documentStartState,
-		photoStubState.Name():                photoStubState,
 		loadDocumentState.Name():             loadDocumentState,
 		nameDocumentState.Name():             nameDocumentState,
 		authorDocumentState.Name():           authorDocumentState,

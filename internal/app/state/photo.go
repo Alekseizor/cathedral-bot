@@ -10,11 +10,11 @@ import (
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
 )
 
-type PhotoStubState struct {
+type PhotoStartState struct {
 	postgres *postrgres.Repo
 }
 
-func (state PhotoStubState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+func (state PhotoStartState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
 	switch messageText {
@@ -25,11 +25,11 @@ func (state PhotoStubState) Handler(ctx context.Context, msg object.MessagesMess
 	case "Назад":
 		return selectArchive, nil, nil
 	default:
-		return photoStub, nil, nil
+		return photoStart, nil, nil
 	}
 }
 
-func (state PhotoStubState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state PhotoStartState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Добро пожаловать в архив фотографий. Выберите нужное действие")
@@ -57,6 +57,6 @@ func (state PhotoStubState) Show(ctx context.Context, vkID int) ([]*params.Messa
 	return []*params.MessagesSendBuilder{b}, nil
 }
 
-func (state PhotoStubState) Name() stateName {
-	return photoStub
+func (state PhotoStartState) Name() stateName {
+	return photoStart
 }

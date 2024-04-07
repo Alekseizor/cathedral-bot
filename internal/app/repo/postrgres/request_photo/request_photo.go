@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
 	"github.com/SevereCloud/vksdk/v2/api"
 	"github.com/SevereCloud/vksdk/v2/object"
 	"github.com/jmoiron/sqlx"
@@ -180,6 +181,110 @@ func (r *Repo) UploadPhoto(ctx context.Context, VK *api.VK, photo object.PhotosP
 	attachment := "photo" + strconv.Itoa(savedPhoto[0].OwnerID) + "_" + strconv.Itoa(savedPhoto[0].ID)
 
 	_, err = r.db.ExecContext(ctx, "INSERT INTO request_photo(attachment, user_id) VALUES ($1, $2)", attachment, vkID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateYear добавляет год события для фотографии
+func (r *Repo) UpdateYear(ctx context.Context, vkID int, year int) error {
+	var photo ds.RequestPhoto
+	err := r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	_, err = r.db.ExecContext(ctx, "UPDATE request_photo SET year = $1 WHERE id = $2", year, photo.ID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateStudyProgram добавляет программу обучения для фотографии
+func (r *Repo) UpdateStudyProgram(ctx context.Context, vkID int, studyProgram string) error {
+	var photo ds.RequestPhoto
+	err := r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	_, err = r.db.ExecContext(ctx, "UPDATE request_photo SET study_program = $1 WHERE id = $2", studyProgram, photo.ID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// GetEventNames возвращает список названий событий для фотографии
+func (r *Repo) GetEventNames() (string, error) {
+	var output string
+
+	rows, err := r.db.Query("SELECT CONCAT(id, ') ', name) AS formatted_string FROM events")
+	if err != nil {
+		return "", fmt.Errorf("[db.Query]: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var formattedString string
+		err := rows.Scan(&formattedString)
+		if err != nil {
+			return "", fmt.Errorf("[db.Scan]: %w", err)
+		}
+		output += formattedString + "\n"
+	}
+
+	return output, nil
+}
+
+// GetEventMaxID возвращает максимальное ID из событий для фотографий
+func (r *Repo) GetEventMaxID() (int, error) {
+	var maxID int
+	err := r.db.Get(&maxID, "SELECT MAX(id) FROM events")
+	if err != nil {
+		return 0, fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	return maxID, nil
+}
+
+// UpdateEvent добавляет событие для фотографии
+func (r *Repo) UpdateEvent(ctx context.Context, vkID, eventNumber int) error {
+	var photo ds.RequestPhoto
+	var name string
+	err := r.db.Get(&name, "SELECT name FROM events WHERE id = $1", eventNumber)
+	if err != nil {
+		return fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	err = r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	_, err = r.db.ExecContext(ctx, "UPDATE request_photo SET (event, is_event_new) = ($1, $2) WHERE id = $3", name, false, photo.ID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateUserEvent добавляет пользовательское название события
+func (r *Repo) UpdateUserEvent(ctx context.Context, vkID int, category string) error {
+	var photo ds.RequestPhoto
+
+	err := r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	_, err = r.db.ExecContext(ctx, "UPDATE request_photo SET (event, is_event_new) = ($1, $2) WHERE id = $3", category, true, photo.ID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
