@@ -16,8 +16,18 @@ import (
 type stateName string
 
 const (
-	start         = stateName("start")
-	selectArchive = stateName("selectArchive")
+	actionOnDocument            = stateName("actionOnDocument")
+	changeDocument              = stateName("changeDocument")
+	changeTitleDocument         = stateName("changeTitleDocument")
+	changeDescriptionDocument   = stateName("changeDescriptionDocument")
+	changeAuthorDocument        = stateName("changeAuthorDocument")
+	changeYearDocument          = stateName("changeYearDocument")
+	changeCategoryDocument      = stateName("changeCategoryDocument")
+	changeHashtagsDocument      = stateName("changeHashtagsDocument")
+	addDocumentAdministrator    = stateName("addDocumentAdministrator")
+	removeDocumentAdministrator = stateName("removeDocumentAdministrator")
+	start                       = stateName("start")
+	selectArchive               = stateName("selectArchive")
 
 	photoStart           = stateName("photoStart")
 	loadPhoto            = stateName("loadPhoto")
@@ -134,6 +144,17 @@ func (s *States) Init(vk *api.VK) error {
 	blockUserState := &BlockUserState{postgres: postgresRepo}
 	blockingState := &BlockingState{}
 	workingRequestDocumentState := &WorkingRequestDocumentState{}
+	workingDocumentState := &WorkingDocumentState{postgres: postgresRepo}
+	actionOnDocumentState := &ActionOnDocumentState{postgres: postgresRepo}
+	changeDocumentState := &ChangeDocumentState{postgres: postgresRepo}
+	changeTitleDocumentState := &ChangeTitleDocumentState{postgres: postgresRepo}
+	changeDescriptionDocumentState := &ChangeDescriptionDocumentState{postgres: postgresRepo}
+	changeAuthorDocumentState := &ChangeAuthorDocumentState{postgres: postgresRepo}
+	changeYearDocumentState := &ChangeYearDocumentState{postgres: postgresRepo}
+	changeCategoryDocumentState := &ChangeCategoryDocumentState{postgres: postgresRepo}
+	changeHashtagsDocumentState := &ChangeHashtagsDocumentState{postgres: postgresRepo}
+	addDocumentAdministratorState := &AddDocumentAdministratorState{postgres: postgresRepo}
+	removeDocumentAdministratorState := &RemoveDocumentAdministratorState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -148,38 +169,83 @@ func (s *States) Init(vk *api.VK) error {
 		eventNamePhotoState.Name():       eventNamePhotoState,
 		userEventNamePhotoState.Name():   userEventNamePhotoState,
 
-		documentStartState.Name():            documentStartState,
-		loadDocumentState.Name():             loadDocumentState,
-		nameDocumentState.Name():             nameDocumentState,
-		authorDocumentState.Name():           authorDocumentState,
-		yearDocumentState.Name():             yearDocumentState,
-		categoryDocumentState.Name():         categoryDocumentState,
-		userCategoryDocumentState.Name():     userCategoryDocumentState,
-		descriptionDocumentState.Name():      descriptionDocumentState,
-		hashtagDocumentState.Name():          hashtagDocumentState,
-		checkDocumentState.Name():            checkDocumentState,
-		editDocumentState.Name():             editDocumentState,
-		editNameDocumentState.Name():         editNameDocumentState,
-		editAuthorDocumentState.Name():       editAuthorDocumentState,
-		editYearDocumentState.Name():         editYearDocumentState,
-		editCategoryDocumentState.Name():     editCategoryDocumentState,
-		editUserCategoryDocumentState.Name(): editUserCategoryDocumentState,
-		editDescriptionDocumentState.Name():  editDescriptionDocumentState,
-		editHashtagDocumentState.Name():      editHashtagDocumentState,
-		loadArchiveState.Name():              loadArchiveState,
-		nameArchiveState.Name():              nameArchiveState,
-		authorArchiveState.Name():            authorArchiveState,
-		yearArchiveState.Name():              yearArchiveState,
-		categoryArchiveState.Name():          categoryArchiveState,
-		userCategoryArchiveState.Name():      userCategoryArchiveState,
-		descriptionArchiveState.Name():       descriptionArchiveState,
-		hashtagArchiveState.Name():           hashtagArchiveState,
-		checkArchiveState.Name():             checkArchiveState,
-		albumsCabinetState.Name():            albumsCabinetState,
-		documentCabinetState.Name():          documentCabinetState,
-		blockUserState.Name():                blockUserState,
-		blockingState.Name():                 blockingState,
-		workingRequestDocumentState.Name():   workingRequestDocumentState,
+		documentStartState.Name():               documentStartState,
+		loadDocumentState.Name():                loadDocumentState,
+		nameDocumentState.Name():                nameDocumentState,
+		authorDocumentState.Name():              authorDocumentState,
+		yearDocumentState.Name():                yearDocumentState,
+		categoryDocumentState.Name():            categoryDocumentState,
+		userCategoryDocumentState.Name():        userCategoryDocumentState,
+		descriptionDocumentState.Name():         descriptionDocumentState,
+		hashtagDocumentState.Name():             hashtagDocumentState,
+		checkDocumentState.Name():               checkDocumentState,
+		editDocumentState.Name():                editDocumentState,
+		editNameDocumentState.Name():            editNameDocumentState,
+		editAuthorDocumentState.Name():          editAuthorDocumentState,
+		editYearDocumentState.Name():            editYearDocumentState,
+		editCategoryDocumentState.Name():        editCategoryDocumentState,
+		editUserCategoryDocumentState.Name():    editUserCategoryDocumentState,
+		editDescriptionDocumentState.Name():     editDescriptionDocumentState,
+		editHashtagDocumentState.Name():         editHashtagDocumentState,
+		loadArchiveState.Name():                 loadArchiveState,
+		nameArchiveState.Name():                 nameArchiveState,
+		authorArchiveState.Name():               authorArchiveState,
+		yearArchiveState.Name():                 yearArchiveState,
+		categoryArchiveState.Name():             categoryArchiveState,
+		userCategoryArchiveState.Name():         userCategoryArchiveState,
+		descriptionArchiveState.Name():          descriptionArchiveState,
+		hashtagArchiveState.Name():              hashtagArchiveState,
+		checkArchiveState.Name():                checkArchiveState,
+		albumsCabinetState.Name():               albumsCabinetState,
+		documentCabinetState.Name():             documentCabinetState,
+		blockUserState.Name():                   blockUserState,
+		blockingState.Name():                    blockingState,
+		workingRequestDocumentState.Name():      workingRequestDocumentState,
+		startState.Name():                       startState,
+		selectArchiveState.Name():               selectArchiveState,
+		documentStartState.Name():               documentStartState,
+		loadDocumentState.Name():                loadDocumentState,
+		nameDocumentState.Name():                nameDocumentState,
+		authorDocumentState.Name():              authorDocumentState,
+		yearDocumentState.Name():                yearDocumentState,
+		categoryDocumentState.Name():            categoryDocumentState,
+		userCategoryDocumentState.Name():        userCategoryDocumentState,
+		descriptionDocumentState.Name():         descriptionDocumentState,
+		hashtagDocumentState.Name():             hashtagDocumentState,
+		checkDocumentState.Name():               checkDocumentState,
+		editDocumentState.Name():                editDocumentState,
+		editNameDocumentState.Name():            editNameDocumentState,
+		editAuthorDocumentState.Name():          editAuthorDocumentState,
+		editYearDocumentState.Name():            editYearDocumentState,
+		editCategoryDocumentState.Name():        editCategoryDocumentState,
+		editUserCategoryDocumentState.Name():    editUserCategoryDocumentState,
+		editDescriptionDocumentState.Name():     editDescriptionDocumentState,
+		editHashtagDocumentState.Name():         editHashtagDocumentState,
+		loadArchiveState.Name():                 loadArchiveState,
+		nameArchiveState.Name():                 nameArchiveState,
+		authorArchiveState.Name():               authorArchiveState,
+		yearArchiveState.Name():                 yearArchiveState,
+		categoryArchiveState.Name():             categoryArchiveState,
+		userCategoryArchiveState.Name():         userCategoryArchiveState,
+		descriptionArchiveState.Name():          descriptionArchiveState,
+		hashtagArchiveState.Name():              hashtagArchiveState,
+		checkArchiveState.Name():                checkArchiveState,
+		albumsCabinetState.Name():               albumsCabinetState,
+		documentCabinetState.Name():             documentCabinetState,
+		blockUserState.Name():                   blockUserState,
+		blockingState.Name():                    blockingState,
+		workingRequestDocumentState.Name():      workingRequestDocumentState,
+		workingDocumentState.Name():             workingDocumentState,
+		actionOnDocumentState.Name():            actionOnDocumentState,
+		changeDocumentState.Name():              changeDocumentState,
+		changeTitleDocumentState.Name():         changeTitleDocumentState,
+		changeDescriptionDocumentState.Name():   changeDescriptionDocumentState,
+		changeAuthorDocumentState.Name():        changeAuthorDocumentState,
+		changeYearDocumentState.Name():          changeYearDocumentState,
+		changeCategoryDocumentState.Name():      changeCategoryDocumentState,
+		changeHashtagsDocumentState.Name():      changeHashtagsDocumentState,
+		addDocumentAdministratorState.Name():    addDocumentAdministratorState,
+		removeDocumentAdministratorState.Name(): removeDocumentAdministratorState,
 	}
 
 	return nil
