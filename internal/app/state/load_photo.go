@@ -97,7 +97,7 @@ func (state EventYearPhotoState) Handler(ctx context.Context, msg object.Message
 	messageText := msg.Text
 	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
 	if err != nil {
-		return editEventYearPhoto, []*params.MessagesSendBuilder{}, err
+		return eventYearPhoto, []*params.MessagesSendBuilder{}, err
 	}
 
 	switch messageText {
@@ -155,7 +155,7 @@ func (state StudyProgramPhotoState) Handler(ctx context.Context, msg object.Mess
 	messageText := msg.Text
 	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
 	if err != nil {
-		return editEventYearPhoto, []*params.MessagesSendBuilder{}, err
+		return studyProgramPhoto, []*params.MessagesSendBuilder{}, err
 	}
 
 	var educationProgram string
@@ -177,7 +177,7 @@ func (state StudyProgramPhotoState) Handler(ctx context.Context, msg object.Mess
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
 		b.Message("Такой программы обучения нет в предложенных вариантах")
-		return eventYearPhoto, []*params.MessagesSendBuilder{b}, nil
+		return studyProgramPhoto, []*params.MessagesSendBuilder{b}, nil
 	}
 
 	err = state.postgres.RequestPhoto.UpdateStudyProgram(ctx, photoID, educationProgram)
@@ -218,7 +218,7 @@ func (state EventNamePhotoState) Handler(ctx context.Context, msg object.Message
 	messageText := msg.Text
 	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
 	if err != nil {
-		return editEventYearPhoto, []*params.MessagesSendBuilder{}, err
+		return eventNamePhoto, []*params.MessagesSendBuilder{}, err
 	}
 
 	switch messageText {
@@ -238,7 +238,7 @@ func (state EventNamePhotoState) Handler(ctx context.Context, msg object.Message
 		if err != nil {
 			b := params.NewMessagesSendBuilder()
 			b.RandomID(0)
-			b.Message("Введите номер события числом")
+			b.Message("Введена не цифра")
 			return eventNamePhoto, []*params.MessagesSendBuilder{b}, nil
 		}
 
@@ -289,7 +289,7 @@ func (state UserEventNamePhotoState) Handler(ctx context.Context, msg object.Mes
 	messageText := msg.Text
 	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
 	if err != nil {
-		return editEventYearPhoto, []*params.MessagesSendBuilder{}, err
+		return userEventNamePhoto, []*params.MessagesSendBuilder{}, err
 	}
 
 	switch messageText {
@@ -332,7 +332,7 @@ func (state DescriptionPhotoState) Handler(ctx context.Context, msg object.Messa
 	messageText := msg.Text
 	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
 	if err != nil {
-		return editEventYearPhoto, []*params.MessagesSendBuilder{}, err
+		return descriptionPhoto, []*params.MessagesSendBuilder{}, err
 	}
 
 	switch messageText {

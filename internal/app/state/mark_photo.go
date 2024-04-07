@@ -18,7 +18,7 @@ func (state IsPeoplePresentPhotoState) Handler(ctx context.Context, msg object.M
 	messageText := msg.Text
 	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
 	if err != nil {
-		return editEventYearPhoto, []*params.MessagesSendBuilder{}, err
+		return isPeoplePresentPhoto, []*params.MessagesSendBuilder{}, err
 	}
 
 	switch messageText {
@@ -357,7 +357,7 @@ func (state UserTeacherNamePhotoState) Name() stateName {
 	return userTeacherNamePhoto
 }
 
-// UserTeacherNamePhotoState пользователь вводит ФИО студента
+// StudentNamePhotoState пользователь вводит ФИО студента
 type StudentNamePhotoState struct {
 	postgres *postrgres.Repo
 }
