@@ -33,72 +33,6 @@ func (r *Repo) CheckExistence(ctx context.Context, vkID int) (bool, error) {
 	return exists, nil
 }
 
-//func (r *Repo) SearchDocuments(ctx context.Context, params ds.SearchDocument) (int, error) {
-//	var conditions []string
-//	var values []interface{}
-//
-//	if params.Year.Valid {
-//		conditions = append(conditions, "year = ?")
-//		year, _ := params.Year.Value()
-//		values = append(values, year)
-//	} else if params.StartYear.Valid && params.EndYear.Valid {
-//		startYear, _ := params.StartYear.Value()
-//		endYear, _ := params.EndYear.Value()
-//		conditions = append(conditions, "year BETWEEN ? AND ?")
-//		values = append(values, startYear, endYear)
-//	}
-//
-//	if params.Title.Valid {
-//		title, _ := params.Title.Value()
-//		conditions = append(conditions, "title = ?")
-//		values = append(values, title)
-//	}
-//
-//	if params.Author.Valid {
-//		author, _ := params.Author.Value()
-//		conditions = append(conditions, "author = ?")
-//		values = append(values, author)
-//	}
-//
-//	if len(params.Categories) > 0 {
-//		conditions = append(conditions, "category = ANY(?)")
-//		values = append(values, pq.Array(params.Categories))
-//	}
-//
-//	if len(params.Hashtags) > 0 {
-//		conditions = append(conditions, "hashtags = ANY(?)")
-//		values = append(values, pq.Array(params.Hashtags))
-//	}
-//
-//	query := "SELECT * FROM documents"
-//	if len(conditions) > 0 {
-//		query += " WHERE " + strings.Join(conditions, " AND ")
-//	}
-//
-//	query = "SELECT * FROM documents WHERE year BETWEEN $1 AND $2 AND category = ANY($3)"
-//	rows, err := r.db.QueryContext(ctx, query, values...)
-//	if err != nil {
-//		return 0, err
-//	}
-//	defer rows.Close()
-//
-//	var documents []ds.Documents
-//	for rows.Next() {
-//		var doc ds.Documents
-//		err := rows.Scan(&doc.ID, &doc.Title, &doc.Author, &doc.Year, pq.Array(&doc.Category), pq.Array(&doc.Hashtags))
-//		if err != nil {
-//			return 0, err
-//		}
-//		documents = append(documents, doc)
-//	}
-//
-//	if err := rows.Err(); err != nil {
-//		return 0, err
-//	}
-//
-//	return len(documents), nil
-//}
-
 func (r *Repo) SearchDocuments(ctx context.Context, params ds.SearchDocument, vkID int) (int, error) {
 	var conditions []string
 	var values []interface{}
@@ -169,4 +103,47 @@ func (r *Repo) SearchDocuments(ctx context.Context, params ds.SearchDocument, vk
 	}
 
 	return len(documentsID), nil
+}
+
+// GetSearchDocuments выводит найденные документы
+func (r *Repo) GetSearchDocuments(ctx context.Context, vkID int) (string, error) {
+	var params ds.SearchDocument
+	err := r.db.QueryRowContext(ctx, "SELECT documents, pointer_doc FROM search_document WHERE user_id = $1", vkID).Scan(&params.Documents, &params.PointerDoc)
+
+	query := `SELECT id, title, category
+		FROM documents
+		WHERE id = ANY ($1)`
+
+	var documentIDs pq.Int64Array
+	if len(params.Documents) >= params.PointerDoc+5 {
+		documentIDs = params.Documents[params.PointerDoc : params.PointerDoc+5]
+	} else {
+		documentIDs = params.Documents[params.PointerDoc:]
+	}
+
+	rows, err := r.db.QueryContext(ctx, query, pq.Array(documentIDs))
+	if err != nil {
+		return "", fmt.Errorf("[db.QueryContext]: %w", err)
+	}
+	//rows, err := r.db.QueryContext(ctx, query, pq.Array([]int{1, 11, 21, 31, 41}))
+	//if err != nil {
+	//	return "", fmt.Errorf("[db.QueryContext]: %w", err)
+	//}
+	defer rows.Close()
+
+	var output string
+	for rows.Next() {
+		var doc ds.Documents
+		if err := rows.Scan(&doc.ID, &doc.Title, &doc.Category); err != nil {
+			return "", err
+		}
+		index := params.PointerDoc + 1
+		output += fmt.Sprintf("[%d]. Название: %s. Категория: %s\n", index, doc.Title, doc.Category)
+		params.PointerDoc++
+	}
+	if err := rows.Err(); err != nil {
+		return "", fmt.Errorf("[db.Scan]: %w", err)
+	}
+
+	return output, nil
 }

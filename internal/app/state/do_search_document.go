@@ -6,6 +6,8 @@ import (
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
+	"strconv"
+	"strings"
 )
 
 // DoSearchDocumentState производится поиск документа
@@ -61,29 +63,56 @@ func (state ShowSearchDocumentState) Handler(ctx context.Context, msg object.Mes
 
 	switch messageText {
 	case "⬅️":
-		b := params.NewMessagesSendBuilder()
-		b.RandomID(0)
-		b.Message("Ваши документы:\n1.---\n2.---\n3.---\n4.---\n5.---")
-		return showSearchDocument, []*params.MessagesSendBuilder{b}, nil
+		cleanedOffset := strings.Replace(msg.Payload, "\"", "", -1)
+		offset, err := strconv.Atoi(cleanedOffset)
+		if err != nil {
+			return showSearchDocument, []*params.MessagesSendBuilder{}, err
+		}
+		err = state.postgres.SearchDocument.UpdatePointer(ctx, offset, msg.PeerID)
+		if err != nil {
+			return showSearchDocument, []*params.MessagesSendBuilder{}, err
+		}
+		return showSearchDocument, []*params.MessagesSendBuilder{}, nil
 	case "➡️":
-		b := params.NewMessagesSendBuilder()
-		b.RandomID(0)
-		b.Message("Ваши документы:\n1.---\n2.---\n3.---\n4.---\n5.---")
-		return showSearchDocument, []*params.MessagesSendBuilder{b}, nil
+		cleanedOffset := strings.Replace(msg.Payload, "\"", "", -1)
+		offset, err := strconv.Atoi(cleanedOffset)
+		if err != nil {
+			return showSearchDocument, []*params.MessagesSendBuilder{}, err
+		}
+		err = state.postgres.SearchDocument.UpdatePointer(ctx, offset, msg.PeerID)
+		if err != nil {
+			return showSearchDocument, []*params.MessagesSendBuilder{}, err
+		}
+		return showSearchDocument, []*params.MessagesSendBuilder{}, nil
 	default:
 		return showSearchDocument, nil, nil
 	}
 }
 
 func (state ShowSearchDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	output, err := state.postgres.Documents.GetSearchDocuments(ctx, vkID)
+	if err != nil {
+		return []*params.MessagesSendBuilder{}, err
+	}
+	searchParams, err := state.postgres.SearchDocument.ParseSearchButtons(ctx, vkID)
+	if err != nil {
+		return []*params.MessagesSendBuilder{}, err
+	}
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("________________________________")
-	k := object.NewMessagesKeyboardInline()
-	k.AddRow()
-	k.AddTextButton("⬅️", "", "secondary")
-	k.AddTextButton("➡️", "", "secondary")
-	b.Keyboard(k)
+	b.Message("Введите номер нужного документа из списка:\n" + output)
+	if len(searchParams.Documents) >= 6 {
+		k := object.NewMessagesKeyboardInline()
+		k.AddRow()
+		if !(searchParams.PointerDoc == 0) {
+			k.AddTextButton("⬅️", -5, "secondary")
+		}
+		if !(len(searchParams.Documents)-searchParams.PointerDoc < 6) {
+			k.AddTextButton("➡️", 5, "secondary")
+		}
+		b.Keyboard(k)
+	}
+
 	return []*params.MessagesSendBuilder{b}, nil
 }
 

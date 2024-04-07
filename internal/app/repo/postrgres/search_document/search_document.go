@@ -146,3 +146,24 @@ func (r *Repo) ParseSearch(ctx context.Context, vkID int) (ds.SearchDocument, er
 
 	return doc, nil
 }
+
+// UpdatePointer обновляет указатель на докумет
+func (r *Repo) UpdatePointer(ctx context.Context, value, vkID int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE search_document SET pointer_doc =  pointer_doc + $1 WHERE user_id = $2", value, vkID)
+	if err != nil {
+		return fmt.Errorf("[db.QueryRowContext]: %w", err)
+	}
+
+	return nil
+}
+
+// ParseSearchButtons парсит параметры, необходимые для оторбражения кнопок листинга
+func (r *Repo) ParseSearchButtons(ctx context.Context, vkID int) (ds.SearchDocument, error) {
+	var doc ds.SearchDocument
+	err := r.db.QueryRowContext(ctx, "SELECT documents, pointer_doc FROM search_document WHERE user_id = $1", vkID).Scan(&doc.Documents, &doc.PointerDoc)
+	if err != nil {
+		return ds.SearchDocument{}, fmt.Errorf("[db.QueryRowContext]: %w", err)
+	}
+
+	return doc, nil
+}

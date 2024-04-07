@@ -15,6 +15,7 @@ type SearchDocument struct {
 	Categories pq.StringArray `db:"categories"`
 	Hashtags   pq.StringArray `db:"hashtags"`
 	Documents  pq.Int64Array  `db:"documents"`
+	PointerDoc int            `db:"pointer_doc"`
 	UserID     int            `db:"user_id"`
 }
 
