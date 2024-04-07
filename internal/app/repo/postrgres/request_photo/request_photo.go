@@ -291,3 +291,19 @@ func (r *Repo) UpdateUserEvent(ctx context.Context, vkID int, category string) e
 
 	return nil
 }
+
+// UpdateDescription добавляет описание фотографии
+func (r *Repo) UpdateDescription(ctx context.Context, vkID int, description string) error {
+	var photo ds.RequestPhoto
+	err := r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	_, err = r.db.ExecContext(ctx, "UPDATE request_photo SET description = $1 WHERE id = $2", description, photo.ID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}

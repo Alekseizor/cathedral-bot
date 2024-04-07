@@ -254,7 +254,7 @@ func (state EventNamePhotoState) Handler(ctx context.Context, msg object.Message
 	case "Своё событие":
 		return userEventNamePhoto, nil, nil
 	case "Пропустить":
-		return eventNamePhoto, nil, nil
+		return descriptionPhoto, nil, nil
 	case "Назад":
 		return studyProgramPhoto, nil, nil
 	default:
@@ -282,7 +282,7 @@ func (state EventNamePhotoState) Handler(ctx context.Context, msg object.Message
 		if err != nil {
 			return eventNamePhoto, []*params.MessagesSendBuilder{}, err
 		}
-		return eventNamePhoto, nil, nil
+		return descriptionPhoto, nil, nil
 	}
 }
 
@@ -319,7 +319,7 @@ func (state UserEventNamePhotoState) Handler(ctx context.Context, msg object.Mes
 
 	switch messageText {
 	case "Пропустить":
-		return userEventNamePhoto, nil, nil
+		return descriptionPhoto, nil, nil
 	case "Назад":
 		return eventNamePhoto, nil, nil
 	default:
@@ -327,7 +327,7 @@ func (state UserEventNamePhotoState) Handler(ctx context.Context, msg object.Mes
 		if err != nil {
 			return userEventNamePhoto, []*params.MessagesSendBuilder{}, err
 		}
-		return userEventNamePhoto, nil, nil
+		return descriptionPhoto, nil, nil
 	}
 }
 
@@ -346,4 +346,43 @@ func (state UserEventNamePhotoState) Show(ctx context.Context, vkID int) ([]*par
 
 func (state UserEventNamePhotoState) Name() stateName {
 	return userEventNamePhoto
+}
+
+// DescriptionPhotoState пользователь вводит описание фотографии
+type DescriptionPhotoState struct {
+	postgres *postrgres.Repo
+}
+
+func (state DescriptionPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+
+	switch messageText {
+	case "Пропустить":
+		return descriptionPhoto, nil, nil
+	case "Назад":
+		return eventNamePhoto, nil, nil
+	default:
+		err := state.postgres.RequestPhoto.UpdateDescription(ctx, msg.PeerID, messageText)
+		if err != nil {
+			return descriptionPhoto, []*params.MessagesSendBuilder{}, err
+		}
+		return descriptionPhoto, nil, nil
+	}
+}
+
+func (state DescriptionPhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Напишите описание фотографии")
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Пропустить", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Назад", "", "secondary")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state DescriptionPhotoState) Name() stateName {
+	return descriptionPhoto
 }

@@ -36,6 +36,7 @@ const (
 	studyProgramPhoto    = stateName("studyProgramPhoto")
 	eventNamePhoto       = stateName("eventNamePhoto")
 	userEventNamePhoto   = stateName("userEventNamePhoto")
+	descriptionPhoto     = stateName("descriptionPhoto")
 
 	documentStart            = stateName("documentStart")
 	loadDocument             = stateName("loadDocument")
@@ -111,6 +112,7 @@ func (s *States) Init(vk *api.VK) error {
 	studyProgramPhotoState := &StudyProgramPhotoState{postgres: postgresRepo}
 	eventNamePhotoState := &EventNamePhotoState{postgres: postgresRepo}
 	userEventNamePhotoState := &UserEventNamePhotoState{postgres: postgresRepo}
+	descriptionPhotoState := &DescriptionPhotoState{postgres: postgresRepo}
 
 	documentStartState := &DocumentStartState{postgres: postgresRepo}
 	loadDocumentState := &LoadDocumentState{postgres: postgresRepo, vk: vk}
@@ -168,6 +170,7 @@ func (s *States) Init(vk *api.VK) error {
 		studyProgramPhotoState.Name():    studyProgramPhotoState,
 		eventNamePhotoState.Name():       eventNamePhotoState,
 		userEventNamePhotoState.Name():   userEventNamePhotoState,
+		descriptionPhotoState.Name():     descriptionPhotoState,
 
 		documentStartState.Name():               documentStartState,
 		loadDocumentState.Name():                loadDocumentState,
