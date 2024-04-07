@@ -307,3 +307,41 @@ func (r *Repo) UpdateDescription(ctx context.Context, vkID int, description stri
 
 	return nil
 }
+
+// CheckParams возвращает все параметры фотографии на загрузку в альбом
+func (r *Repo) CheckParams(ctx context.Context, vkID int) (string, string, error) {
+	var photo ds.RequestPhoto
+	err := r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
+	if err != nil {
+		return "", "", fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	sqlQuery := `
+	SELECT 
+    	'1) Год события: ' || COALESCE(CAST(year AS VARCHAR), 'Не указано') AS year,
+    	'2) Программа обучения: ' || COALESCE(study_program, 'Не указано') AS studyProgram,
+    	'3) Название события: ' || COALESCE(event, 'Не указано') AS event,
+    	'4) Описание: ' || COALESCE(description, 'Не указано') AS description,
+    	'5) Отмеченные люди: ' || COALESCE(array_to_string(marked_people, ', '), 'Не указано') AS markedPeople,
+    	attachment
+	FROM request_photo
+	WHERE id = $1;`
+
+	var (
+		year         string
+		studyProgram string
+		event        string
+		description  string
+		markedPeople string
+		attachment   string
+	)
+
+	err = r.db.QueryRow(sqlQuery, photo.ID).Scan(&year, &studyProgram, &event, &description, &markedPeople, &attachment)
+	if err != nil {
+		return "", "", fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	output := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n", year, studyProgram, event, description, markedPeople)
+
+	return output, attachment, nil
+}

@@ -358,7 +358,7 @@ func (state DescriptionPhotoState) Handler(ctx context.Context, msg object.Messa
 
 	switch messageText {
 	case "Пропустить":
-		return descriptionPhoto, nil, nil
+		return checkPhoto, nil, nil
 	case "Назад":
 		return eventNamePhoto, nil, nil
 	default:
@@ -366,7 +366,7 @@ func (state DescriptionPhotoState) Handler(ctx context.Context, msg object.Messa
 		if err != nil {
 			return descriptionPhoto, []*params.MessagesSendBuilder{}, err
 		}
-		return descriptionPhoto, nil, nil
+		return checkPhoto, nil, nil
 	}
 }
 
@@ -385,4 +385,51 @@ func (state DescriptionPhotoState) Show(ctx context.Context, vkID int) ([]*param
 
 func (state DescriptionPhotoState) Name() stateName {
 	return descriptionPhoto
+}
+
+// CheckPhotoState пользователь проверяет заявку на загрузку фотографии
+type CheckPhotoState struct {
+	postgres *postrgres.Repo
+}
+
+func (state CheckPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+
+	switch messageText {
+	case "Отправить":
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Фотография отправлена администратору на рассмотрение. Вы можете отслеживать статус своей заявки в личном кабинете")
+		return photoStart, []*params.MessagesSendBuilder{b}, nil
+	case "Редактировать заявку":
+		return checkPhoto, nil, nil
+	case "Назад":
+		return descriptionPhoto, nil, nil
+	default:
+		return checkPhoto, nil, nil
+	}
+}
+
+func (state CheckPhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	output, attachment, err := state.postgres.RequestPhoto.CheckParams(ctx, vkID)
+	if err != nil {
+		return []*params.MessagesSendBuilder{}, err
+	}
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Проверьте правильность введённых параметров:\n" + output)
+	b.Attachment(attachment)
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Отправить", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Редактировать заявку", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Назад", "", "secondary")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state CheckPhotoState) Name() stateName {
+	return checkPhoto
 }
