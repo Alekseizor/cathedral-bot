@@ -11,7 +11,7 @@ func contains(slice []int64, value int64) bool {
 	return false
 }
 
-func addWBackButton(k *object.MessagesKeyboard) {
+func addBackButton(k *object.MessagesKeyboard) {
 	k.AddRow()
 	k.AddTextButton("Назад", "", "negative")
 }

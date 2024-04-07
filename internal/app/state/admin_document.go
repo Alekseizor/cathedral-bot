@@ -2,6 +2,8 @@ package state
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
@@ -24,9 +26,9 @@ func (state DocumentCabinetState) Handler(ctx context.Context, msg object.Messag
 	case "Заблокировать пользователя":
 		return blockUser, nil, nil
 	case "Добавить администратора":
-		return documentCabinet, nil, nil
+		return addDocumentAdministrator, nil, nil
 	case "Удалить администратора":
-		return documentCabinet, nil, nil
+		return removeDocumentAdministrator, nil, nil
 	case "Выйти из кабинета администратора":
 		return selectArchive, nil, nil
 	default:
@@ -85,7 +87,7 @@ func (state WorkingRequestDocumentState) Show(ctx context.Context, vkID int) ([]
 	k.AddRow()
 	k.AddTextButton("Заявки из очереди", "", "secondary")
 	k.AddTextButton("Конкретная заявка", "", "secondary")
-	addWBackButton(k)
+	addBackButton(k)
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -107,8 +109,7 @@ func (state WorkingDocumentState) Handler(ctx context.Context, msg object.Messag
 		return documentCabinet, nil, nil
 	}
 
-	return documentCabinet, nil, nil
-	/*documentID, err := strconv.Atoi(messageText)
+	documentID, err := strconv.Atoi(messageText)
 	if err != nil {
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
@@ -116,7 +117,31 @@ func (state WorkingDocumentState) Handler(ctx context.Context, msg object.Messag
 		return workingDocument, []*params.MessagesSendBuilder{b}, nil
 	}
 
-	state.postgres.*/
+	exists, err := state.postgres.Documents.CheckExistence(ctx, documentID)
+	if err != nil {
+		return workingDocument, nil, err
+	}
+	if !exists {
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("ID c таким документом не найдено")
+		return workingDocument, []*params.MessagesSendBuilder{b}, nil
+	}
+
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	output, _, err := state.postgres.Documents.GetOutput(ctx, documentID)
+	//TODO: добавить attachment
+	//b.Attachment(attachment)
+	b.Message(output)
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Изменить", documentID, "secondary")
+	k.AddTextButton("Удалить", documentID, "secondary")
+	addBackButton(k)
+	b.Keyboard(k)
+
+	return actionOnDocument, []*params.MessagesSendBuilder{b}, nil
 }
 
 func (state WorkingDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
@@ -124,11 +149,126 @@ func (state WorkingDocumentState) Show(ctx context.Context, vkID int) ([]*params
 	b.RandomID(0)
 	b.Message("Введите ID файла, над которым хотите поработать. Например: 12")
 	k := object.NewMessagesKeyboard(true)
-	addWBackButton(k)
+	addBackButton(k)
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
 
 func (state WorkingDocumentState) Name() stateName {
 	return workingDocument
+}
+
+///////////
+
+type ActionOnDocumentState struct {
+	postgres *postrgres.Repo
+}
+
+func (state ActionOnDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+	if messageText == "Назад" {
+		return workingDocument, nil, nil
+	}
+
+	payload := msg.Payload
+
+	documentID, err := strconv.Atoi(payload)
+	if err != nil {
+		return "", nil, err
+	}
+
+	switch messageText {
+	case "Удалить":
+		err = state.postgres.Documents.Delete(ctx, documentID)
+		if err != nil {
+			return "", nil, err
+		}
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Документ успешно удален")
+		return workingDocument, []*params.MessagesSendBuilder{b}, nil
+	case "Изменить":
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Что Вы хотите изменить в документе?")
+		k := object.NewMessagesKeyboard(true)
+		k.AddRow()
+		k.AddTextButton("Название", documentID, "secondary")
+		k.AddTextButton("Описание", documentID, "secondary")
+		k.AddRow()
+		k.AddTextButton("Автор", documentID, "secondary")
+		k.AddTextButton("Год", documentID, "secondary")
+		k.AddRow()
+		k.AddTextButton("Категория", documentID, "secondary")
+		k.AddTextButton("Хештеги", documentID, "secondary")
+		addBackButton(k)
+		b.Keyboard(k)
+		return changeDocument, []*params.MessagesSendBuilder{b}, nil
+	default:
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Выберете действие")
+		return workingDocument, []*params.MessagesSendBuilder{b}, nil
+	}
+}
+
+func (state ActionOnDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	return nil, nil
+}
+
+func (state ActionOnDocumentState) Name() stateName {
+	return actionOnDocument
+}
+
+///////////
+
+type ChangeDocumentState struct {
+	postgres *postrgres.Repo
+}
+
+func (state ChangeDocumentState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+	if messageText == "Назад" {
+		return workingDocument, nil, nil
+	}
+
+	payload := msg.Payload
+
+	documentID, err := strconv.Atoi(payload)
+	if err != nil {
+		return "", nil, err
+	}
+
+	err = state.postgres.ObjectAdmin.Update(ctx, documentID, msg.PeerID)
+	if err != nil {
+		return "", nil, fmt.Errorf("[object_admin.Update]: %w", err)
+	}
+
+	switch messageText {
+	case "Название":
+		return changeTitleDocument, nil, nil
+	case "Описание":
+		return changeDescriptionDocument, nil, nil
+	case "Автор":
+		return changeAuthorDocument, nil, nil
+	case "Год":
+		return changeYearDocument, nil, nil
+	case "Категория":
+		return changeCategoryDocument, nil, nil
+	case "Хештеги":
+		return changeHashtagsDocument, nil, nil
+	default:
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Выберете действие")
+		return workingDocument, []*params.MessagesSendBuilder{b}, nil
+	}
+}
+
+func (state ChangeDocumentState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	return nil, nil
+}
+
+func (state ChangeDocumentState) Name() stateName {
+	return changeDocument
 }

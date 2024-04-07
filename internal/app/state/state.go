@@ -66,6 +66,16 @@ const (
 	editYearSearchDocument       = stateName("editYearSearchDocument")
 	editCategoriesSearchDocument = stateName("editCategoriesSearchDocument")
 	editHashtagSearchDocument    = stateName("editHashtagSearchDocument")
+	actionOnDocument             = stateName("actionOnDocument")
+	changeDocument               = stateName("changeDocument")
+	changeTitleDocument          = stateName("changeTitleDocument")
+	changeDescriptionDocument    = stateName("changeDescriptionDocument")
+	changeAuthorDocument         = stateName("changeAuthorDocument")
+	changeYearDocument           = stateName("changeYearDocument")
+	changeCategoryDocument       = stateName("changeCategoryDocument")
+	changeHashtagsDocument       = stateName("changeHashtagsDocument")
+	addDocumentAdministrator     = stateName("addDocumentAdministrator")
+	removeDocumentAdministrator  = stateName("removeDocumentAdministrator")
 )
 
 type State interface {
@@ -146,6 +156,17 @@ func (s *States) Init(vk *api.VK) error {
 	editCategoriesSearchDocumentState := &EditCategoriesSearchDocumentState{postgres: postgresRepo}
 	editHashtagSearchDocumentState := &EditHashtagSearchDocumentState{postgres: postgresRepo}
 	showSearchDocumentState := &ShowSearchDocumentState{postgres: postgresRepo}
+	workingDocumentState := &WorkingDocumentState{postgres: postgresRepo}
+	actionOnDocumentState := &ActionOnDocumentState{postgres: postgresRepo}
+	changeDocumentState := &ChangeDocumentState{postgres: postgresRepo}
+	changeTitleDocumentState := &ChangeTitleDocumentState{postgres: postgresRepo}
+	changeDescriptionDocumentState := &ChangeDescriptionDocumentState{postgres: postgresRepo}
+	changeAuthorDocumentState := &ChangeAuthorDocumentState{postgres: postgresRepo}
+	changeYearDocumentState := &ChangeYearDocumentState{postgres: postgresRepo}
+	changeCategoryDocumentState := &ChangeCategoryDocumentState{postgres: postgresRepo}
+	changeHashtagsDocumentState := &ChangeHashtagsDocumentState{postgres: postgresRepo}
+	addDocumentAdministratorState := &AddDocumentAdministratorState{postgres: postgresRepo}
+	removeDocumentAdministratorState := &RemoveDocumentAdministratorState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -198,6 +219,17 @@ func (s *States) Init(vk *api.VK) error {
 		editCategoriesSearchDocumentState.Name(): editCategoriesSearchDocumentState,
 		editHashtagSearchDocumentState.Name():    editHashtagSearchDocumentState,
 		showSearchDocumentState.Name():           showSearchDocumentState,
+		workingDocumentState.Name():              workingDocumentState,
+		actionOnDocumentState.Name():             actionOnDocumentState,
+		changeDocumentState.Name():               changeDocumentState,
+		changeTitleDocumentState.Name():          changeTitleDocumentState,
+		changeDescriptionDocumentState.Name():    changeDescriptionDocumentState,
+		changeAuthorDocumentState.Name():         changeAuthorDocumentState,
+		changeYearDocumentState.Name():           changeYearDocumentState,
+		changeCategoryDocumentState.Name():       changeCategoryDocumentState,
+		changeHashtagsDocumentState.Name():       changeHashtagsDocumentState,
+		addDocumentAdministratorState.Name():     addDocumentAdministratorState,
+		removeDocumentAdministratorState.Name():  removeDocumentAdministratorState,
 	}
 
 	return nil

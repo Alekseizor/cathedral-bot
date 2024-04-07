@@ -3,6 +3,7 @@ package requests_documents
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -197,15 +198,33 @@ func (r *Repo) GetCategoryMaxID() (int, error) {
 }
 
 // GetCategoryNameByID возвращает название категории по ее ID
-//func (r *Repo) GetCategoryNameByID(id int) (string, error) {
-//	var name string
-//	err := r.db.Get(&name, "SELECT name FROM categories WHERE id = $1", id)
-//	if err != nil {
-//		return "", fmt.Errorf("[db.Get]: %w", err)
-//	}
-//
-//	return name, nil
-//}
+func (r *Repo) GetCategoryNameByID(ctx context.Context, id int) (string, error) {
+	var name string
+	err := r.db.GetContext(ctx, &name, "SELECT name FROM categories WHERE id = $1", id)
+	if err != nil {
+		return "", fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	return name, nil
+}
+
+func (r *Repo) CheckCategoryExistence(ctx context.Context, category string) (bool, error) {
+	var exists bool
+	err := r.db.GetContext(ctx, &exists, "SELECT EXISTS (SELECT 1 FROM categories WHERE name = $1)", category)
+	if err != nil && err != sql.ErrNoRows {
+		return false, fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	return exists, nil
+}
+
+func (r *Repo) InsertCategory(ctx context.Context, category string) error {
+	_, err := r.db.ExecContext(ctx, "INSERT INTO categories(name) VALUES ($1)", category)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+	return nil
+}
 
 // UpdateCategory добавляет категорию документа
 func (r *Repo) UpdateCategory(ctx context.Context, vkID, categoryNumber int) error {
