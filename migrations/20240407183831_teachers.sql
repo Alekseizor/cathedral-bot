@@ -1,9 +1,21 @@
 -- +goose Up
 -- +goose StatementBegin
-SELECT 'up SQL query';
+CREATE TABLE teachers
+(
+    id   SERIAL PRIMARY KEY,
+    name VARCHAR(255) unique
+);
+INSERT INTO teachers(name)
+VALUES ('Филлипович Анна Юрьевна'),
+       ('Канев Антон Игоревич'),
+       ('Гапанюк Юрий Евгеньевич'),
+       ('Терехов Валерий Игоревич'),
+       ('Черненький Михаил Валерьевич'),
+       ('Лосева Светлана Сергеевна'),
+       ('Спиридонов Сергей Борисович');
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-SELECT 'down SQL query';
+DROP TABLE IF EXISTS teachers;
 -- +goose StatementEnd

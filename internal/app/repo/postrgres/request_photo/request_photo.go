@@ -189,9 +189,19 @@ func (r *Repo) UploadPhoto(ctx context.Context, VK *api.VK, photo object.PhotosP
 	return nil
 }
 
-// DeletePhotoRequest удаляет заявку на добавление фотографии в альбом
-func (r *Repo) DeletePhotoRequest(ctx context.Context, vkID int) error {
-	_, err := r.db.ExecContext(ctx, "DELETE FROM request_photo WHERE id = (SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1)", vkID)
+// DeletePhoto удаляет заявку на добавление фотографии в альбом
+func (r *Repo) DeletePhoto(ctx context.Context, photoID int) error {
+	_, err := r.db.ExecContext(ctx, "DELETE FROM request_photo WHERE id = $1", photoID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteMarksOnPhoto удаляет все отметки на фото
+func (r *Repo) DeleteMarksOnPhoto(ctx context.Context, photoID int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE request_photo SET count_people = $1, marked_person = $2, marked_people = $3, teachers = $4 WHERE id = $5", 0, 0, pq.Array(nil), pq.Array(nil), photoID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -212,7 +222,7 @@ func (r *Repo) GetPhotoLastID(ctx context.Context, vkID int) (int, error) {
 
 // UpdateCountPeople добавляет количество людей на фотографии
 func (r *Repo) UpdateCountPeople(ctx context.Context, photoID int, count int) error {
-	_, err := r.db.ExecContext(ctx, "UPDATE request_photo SET count_people = $1, marked_person = $2, marked_people = $3 WHERE id = $4", count, 0, pq.Array(nil), photoID)
+	_, err := r.db.ExecContext(ctx, "UPDATE request_photo SET count_people = $1, marked_person = $2, marked_people = $3, teachers=$4 WHERE id = $5", count, 0, pq.Array(nil), pq.Array(nil), photoID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -297,6 +307,25 @@ func (r *Repo) GetTeacherName(ctx context.Context, teacherID int) (string, error
 	}
 
 	return name, nil
+}
+
+// UpdateTeachers добавляет учителя в список, данная фотография отправится также в альбом к нему
+func (r *Repo) UpdateTeachers(ctx context.Context, photoID int, teacherName string) error {
+	var photo ds.RequestPhoto
+
+	err := r.db.GetContext(ctx, &photo, "SELECT teachers FROM request_photo WHERE id = $1", photoID)
+	if err != nil {
+		return fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	photo.Teachers = append(photo.Teachers, teacherName)
+
+	_, err = r.db.ExecContext(ctx, "UPDATE request_photo SET teachers = $1 WHERE id = $2", pq.Array(photo.Teachers), photoID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
 }
 
 // UpdateYear добавляет год события для фотографии
@@ -397,6 +426,7 @@ func (r *Repo) CheckParams(ctx context.Context, photoID int) (string, string, er
     	'3) Название события: ' || COALESCE(event, 'Не указано') AS event,
     	'4) Описание: ' || COALESCE(description, 'Не указано') AS description,
     	'5) Отмеченные люди: ' || COALESCE(array_to_string(marked_people, ', '), 'Не указано') AS markedPeople,
+    	'6) Преподаватели: ' || COALESCE(array_to_string(teachers, ', '), 'Не указано') AS teachers,
     	attachment
 	FROM request_photo
 	WHERE id = $1;`
@@ -407,15 +437,16 @@ func (r *Repo) CheckParams(ctx context.Context, photoID int) (string, string, er
 		event        string
 		description  string
 		markedPeople string
+		teachers     string
 		attachment   string
 	)
 
-	err := r.db.QueryRow(sqlQuery, photoID).Scan(&year, &studyProgram, &event, &description, &markedPeople, &attachment)
+	err := r.db.QueryRow(sqlQuery, photoID).Scan(&year, &studyProgram, &event, &description, &markedPeople, &teachers, &attachment)
 	if err != nil {
 		return "", "", fmt.Errorf("[db.GetContext]: %w", err)
 	}
 
-	output := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n", year, studyProgram, event, description, markedPeople)
+	output := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s\n", year, studyProgram, event, description, markedPeople, teachers)
 
 	return output, attachment, nil
 }

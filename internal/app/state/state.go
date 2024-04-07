@@ -35,7 +35,9 @@ const (
 	countPeoplePhoto       = stateName("countPeoplePhoto")
 	markedPeoplePhoto      = stateName("markedPeoplePhoto")
 	isTeacherPhoto         = stateName("isTeacherPhoto")
-	teacherPhoto           = stateName("teacherPhoto")
+	teacherNamePhoto       = stateName("teacherNamePhoto")
+	userTeacherNamePhoto   = stateName("userTeacherNamePhoto")
+	studentNamePhoto       = stateName("studentNamePhoto")
 	eventYearPhoto         = stateName("eventYearPhoto")
 	studyProgramPhoto      = stateName("studyProgramPhoto")
 	eventNamePhoto         = stateName("eventNamePhoto")
@@ -122,7 +124,9 @@ func (s *States) Init(vk *api.VK) error {
 	countPeoplePhotoState := &CountPeoplePhotoState{postgres: postgresRepo}
 	markedPeoplePhotoState := &MarkedPeoplePhotoState{postgres: postgresRepo}
 	isTeacherPhotoState := &IsTeacherPhotoState{postgres: postgresRepo}
-	teacherPhotoState := &TeacherPhotoState{postgres: postgresRepo}
+	teacherNamePhotoState := &TeacherNamePhotoState{postgres: postgresRepo}
+	userTeacherNamePhotoState := &UserTeacherNamePhotoState{postgres: postgresRepo}
+	studentNamePhotoState := &StudentNamePhotoState{postgres: postgresRepo}
 	eventYearPhotoState := &EventYearPhotoState{postgres: postgresRepo}
 	studyProgramPhotoState := &StudyProgramPhotoState{postgres: postgresRepo}
 	eventNamePhotoState := &EventNamePhotoState{postgres: postgresRepo}
@@ -191,7 +195,9 @@ func (s *States) Init(vk *api.VK) error {
 		countPeoplePhotoState.Name():       countPeoplePhotoState,
 		markedPeoplePhotoState.Name():      markedPeoplePhotoState,
 		isTeacherPhotoState.Name():         isTeacherPhotoState,
-		teacherPhotoState.Name():           teacherPhotoState,
+		teacherNamePhotoState.Name():       teacherNamePhotoState,
+		userTeacherNamePhotoState.Name():   userTeacherNamePhotoState,
+		studentNamePhotoState.Name():       studentNamePhotoState,
 		eventYearPhotoState.Name():         eventYearPhotoState,
 		studyProgramPhotoState.Name():      studyProgramPhotoState,
 		eventNamePhotoState.Name():         eventNamePhotoState,
