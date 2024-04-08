@@ -19,7 +19,6 @@ const (
 	start                       = stateName("start")
 	selectArchive               = stateName("selectArchive")
 	documentStart               = stateName("documentStart")
-	photoStub                   = stateName("photoStub")
 	loadDocument                = stateName("loadDocument")
 	nameDocument                = stateName("nameDocument")
 	authorDocument              = stateName("authorDocument")
@@ -62,6 +61,35 @@ const (
 	changeHashtagsDocument      = stateName("changeHashtagsDocument")
 	addDocumentAdministrator    = stateName("addDocumentAdministrator")
 	removeDocumentAdministrator = stateName("removeDocumentAdministrator")
+
+	photoStart               = stateName("photoStart")
+	loadPhoto                = stateName("loadPhoto")
+	isPeoplePresentPhoto     = stateName("isPeoplePresentPhoto")
+	countPeoplePhoto         = stateName("countPeoplePhoto")
+	markedPeoplePhoto        = stateName("markedPeoplePhoto")
+	isTeacherPhoto           = stateName("isTeacherPhoto")
+	teacherNamePhoto         = stateName("teacherNamePhoto")
+	userTeacherNamePhoto     = stateName("userTeacherNamePhoto")
+	studentNamePhoto         = stateName("studentNamePhoto")
+	eventYearPhoto           = stateName("eventYearPhoto")
+	studyProgramPhoto        = stateName("studyProgramPhoto")
+	eventNamePhoto           = stateName("eventNamePhoto")
+	userEventNamePhoto       = stateName("userEventNamePhoto")
+	descriptionPhoto         = stateName("descriptionPhoto")
+	checkPhoto               = stateName("checkPhoto")
+	editPhoto                = stateName("editPhoto")
+	editEventYearPhoto       = stateName("editEventYearPhoto")
+	editStudyProgramPhoto    = stateName("editStudyProgramPhoto")
+	editEventNamePhoto       = stateName("editEventNamePhoto")
+	editUserEventNamePhoto   = stateName("editUserEventNamePhoto")
+	editDescriptionPhoto     = stateName("editDescriptionPhoto")
+	editIsPeoplePresentPhoto = stateName("editIsPeoplePresentPhoto")
+	editCountPeoplePhoto     = stateName("editCountPeoplePhoto")
+	editMarkedPeoplePhoto    = stateName("editMarkedPeoplePhoto")
+	editIsTeacherPhoto       = stateName("editIsTeacherPhoto")
+	editTeacherNamePhoto     = stateName("editTeacherNamePhoto")
+	editUserTeacherNamePhoto = stateName("editUserTeacherNamePhoto")
+	editStudentNamePhoto     = stateName("editStudentNamePhoto")
 )
 
 type State interface {
@@ -95,8 +123,37 @@ func (s *States) Init(vk *api.VK) error {
 	//здесь инициализируются все стейты
 	startState := &StartState{postgres: postgresRepo}
 	selectArchiveState := &SelectArchiveState{postgres: postgresRepo}
+
+	photoStartState := &PhotoStartState{postgres: postgresRepo}
+	loadPhotoState := &LoadPhotoState{postgres: postgresRepo, vk: vk}
+	isPeoplePresentPhotoState := &IsPeoplePresentPhotoState{postgres: postgresRepo}
+	countPeoplePhotoState := &CountPeoplePhotoState{postgres: postgresRepo}
+	markedPeoplePhotoState := &MarkedPeoplePhotoState{postgres: postgresRepo}
+	isTeacherPhotoState := &IsTeacherPhotoState{postgres: postgresRepo}
+	teacherNamePhotoState := &TeacherNamePhotoState{postgres: postgresRepo}
+	userTeacherNamePhotoState := &UserTeacherNamePhotoState{postgres: postgresRepo}
+	studentNamePhotoState := &StudentNamePhotoState{postgres: postgresRepo}
+	eventYearPhotoState := &EventYearPhotoState{postgres: postgresRepo}
+	studyProgramPhotoState := &StudyProgramPhotoState{postgres: postgresRepo}
+	eventNamePhotoState := &EventNamePhotoState{postgres: postgresRepo}
+	userEventNamePhotoState := &UserEventNamePhotoState{postgres: postgresRepo}
+	descriptionPhotoState := &DescriptionPhotoState{postgres: postgresRepo}
+	checkPhotoState := &CheckPhotoState{postgres: postgresRepo}
+	editPhotoState := &EditPhotoState{postgres: postgresRepo}
+	editEventYearPhotoState := &EditEventYearPhotoState{postgres: postgresRepo}
+	editStudyProgramPhotoState := &EditStudyProgramPhotoState{postgres: postgresRepo}
+	editEventNamePhotoState := &EditEventNamePhotoState{postgres: postgresRepo}
+	editUserEventNamePhotoState := &EditUserEventNamePhotoState{postgres: postgresRepo}
+	editDescriptionPhotoState := &EditDescriptionPhotoState{postgres: postgresRepo}
+	editIsPeoplePresentPhotoState := &EditIsPeoplePresentPhotoState{postgres: postgresRepo}
+	editCountPeoplePhotoState := &EditCountPeoplePhotoState{postgres: postgresRepo}
+	editMarkedPeoplePhotoState := &EditMarkedPeoplePhotoState{postgres: postgresRepo}
+	editIsTeacherPhotoState := &EditIsTeacherPhotoState{postgres: postgresRepo}
+	editTeacherNamePhotoState := &EditTeacherNamePhotoState{postgres: postgresRepo}
+	editUserTeacherNamePhotoState := &EditUserTeacherNamePhotoState{postgres: postgresRepo}
+	editStudentNamePhotoState := &EditStudentNamePhotoState{postgres: postgresRepo}
+
 	documentStartState := &DocumentStartState{postgres: postgresRepo}
-	photoStubState := &PhotoStubState{postgres: postgresRepo}
 	loadDocumentState := &LoadDocumentState{postgres: postgresRepo, vk: vk}
 	nameDocumentState := &NameDocumentState{postgres: postgresRepo}
 	authorDocumentState := &AuthorDocumentState{postgres: postgresRepo}
@@ -145,7 +202,6 @@ func (s *States) Init(vk *api.VK) error {
 		startState.Name():                       startState,
 		selectArchiveState.Name():               selectArchiveState,
 		documentStartState.Name():               documentStartState,
-		photoStubState.Name():                   photoStubState,
 		loadDocumentState.Name():                loadDocumentState,
 		nameDocumentState.Name():                nameDocumentState,
 		authorDocumentState.Name():              authorDocumentState,
@@ -188,6 +244,35 @@ func (s *States) Init(vk *api.VK) error {
 		changeHashtagsDocumentState.Name():      changeHashtagsDocumentState,
 		addDocumentAdministratorState.Name():    addDocumentAdministratorState,
 		removeDocumentAdministratorState.Name(): removeDocumentAdministratorState,
+
+		photoStartState.Name():               photoStartState,
+		loadPhotoState.Name():                loadPhotoState,
+		isPeoplePresentPhotoState.Name():     isPeoplePresentPhotoState,
+		countPeoplePhotoState.Name():         countPeoplePhotoState,
+		markedPeoplePhotoState.Name():        markedPeoplePhotoState,
+		isTeacherPhotoState.Name():           isTeacherPhotoState,
+		teacherNamePhotoState.Name():         teacherNamePhotoState,
+		userTeacherNamePhotoState.Name():     userTeacherNamePhotoState,
+		studentNamePhotoState.Name():         studentNamePhotoState,
+		eventYearPhotoState.Name():           eventYearPhotoState,
+		studyProgramPhotoState.Name():        studyProgramPhotoState,
+		eventNamePhotoState.Name():           eventNamePhotoState,
+		userEventNamePhotoState.Name():       userEventNamePhotoState,
+		descriptionPhotoState.Name():         descriptionPhotoState,
+		checkPhotoState.Name():               checkPhotoState,
+		editPhotoState.Name():                editPhotoState,
+		editEventYearPhotoState.Name():       editEventYearPhotoState,
+		editStudyProgramPhotoState.Name():    editStudyProgramPhotoState,
+		editEventNamePhotoState.Name():       editEventNamePhotoState,
+		editUserEventNamePhotoState.Name():   editUserEventNamePhotoState,
+		editDescriptionPhotoState.Name():     editDescriptionPhotoState,
+		editIsPeoplePresentPhotoState.Name(): editIsPeoplePresentPhotoState,
+		editCountPeoplePhotoState.Name():     editCountPeoplePhotoState,
+		editMarkedPeoplePhotoState.Name():    editMarkedPeoplePhotoState,
+		editIsTeacherPhotoState.Name():       editIsTeacherPhotoState,
+		editTeacherNamePhotoState.Name():     editTeacherNamePhotoState,
+		editUserTeacherNamePhotoState.Name(): editUserTeacherNamePhotoState,
+		editStudentNamePhotoState.Name():     editStudentNamePhotoState,
 	}
 
 	return nil

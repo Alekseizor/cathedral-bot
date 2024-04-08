@@ -20,7 +20,7 @@ func (state AlbumsCabinetState) Handler(ctx context.Context, msg object.Messages
 	case "Назад":
 		return selectArchive, nil, nil
 	default:
-		return photoStub, nil, nil
+		return photoStart, nil, nil
 	}
 }
 
