@@ -16,6 +16,41 @@ import (
 type stateName string
 
 const (
+	start                       = stateName("start")
+	selectArchive               = stateName("selectArchive")
+	documentStart               = stateName("documentStart")
+	loadDocument                = stateName("loadDocument")
+	nameDocument                = stateName("nameDocument")
+	authorDocument              = stateName("authorDocument")
+	yearDocument                = stateName("yearDocument")
+	categoryDocument            = stateName("categoryDocument")
+	userCategoryDocument        = stateName("userCategoryDocument")
+	descriptionDocument         = stateName("descriptionDocument")
+	hashtagDocument             = stateName("hashtagDocument")
+	checkDocument               = stateName("checkDocument")
+	editDocument                = stateName("editDocument")
+	editNameDocument            = stateName("editNameDocument")
+	editAuthorDocument          = stateName("editAuthorDocument")
+	editYearDocument            = stateName("editYearDocument")
+	editCategoryDocument        = stateName("editCategoryDocument")
+	editUserCategoryDocument    = stateName("editUserCategoryDocument")
+	editDescriptionDocument     = stateName("editDescriptionDocument")
+	editHashtagDocument         = stateName("editHashtagDocument")
+	loadArchive                 = stateName("loadArchive")
+	nameArchive                 = stateName("nameArchive")
+	authorArchive               = stateName("authorArchive")
+	yearArchive                 = stateName("yearArchive")
+	categoryArchive             = stateName("categoryArchive")
+	userCategoryArchive         = stateName("userCategoryArchive")
+	descriptionArchive          = stateName("descriptionArchive")
+	hashtagArchive              = stateName("hashtagArchive")
+	checkArchive                = stateName("checkArchive")
+	documentCabinet             = stateName("documentCabinet")
+	albumsCabinet               = stateName("albumsCabinet")
+	blocking                    = stateName("blocking")
+	blockUser                   = stateName("blockUser")
+	workingRequestDocument      = stateName("workingRequestDocument")
+	workingDocument             = stateName("workingDocument")
 	actionOnDocument            = stateName("actionOnDocument")
 	changeDocument              = stateName("changeDocument")
 	changeTitleDocument         = stateName("changeTitleDocument")
@@ -26,8 +61,6 @@ const (
 	changeHashtagsDocument      = stateName("changeHashtagsDocument")
 	addDocumentAdministrator    = stateName("addDocumentAdministrator")
 	removeDocumentAdministrator = stateName("removeDocumentAdministrator")
-	start                       = stateName("start")
-	selectArchive               = stateName("selectArchive")
 
 	photoStart               = stateName("photoStart")
 	loadPhoto                = stateName("loadPhoto")
@@ -57,40 +90,6 @@ const (
 	editTeacherNamePhoto     = stateName("editTeacherNamePhoto")
 	editUserTeacherNamePhoto = stateName("editUserTeacherNamePhoto")
 	editStudentNamePhoto     = stateName("editStudentNamePhoto")
-
-	documentStart            = stateName("documentStart")
-	loadDocument             = stateName("loadDocument")
-	nameDocument             = stateName("nameDocument")
-	authorDocument           = stateName("authorDocument")
-	yearDocument             = stateName("yearDocument")
-	categoryDocument         = stateName("categoryDocument")
-	userCategoryDocument     = stateName("userCategoryDocument")
-	descriptionDocument      = stateName("descriptionDocument")
-	hashtagDocument          = stateName("hashtagDocument")
-	checkDocument            = stateName("checkDocument")
-	editDocument             = stateName("editDocument")
-	editNameDocument         = stateName("editNameDocument")
-	editAuthorDocument       = stateName("editAuthorDocument")
-	editYearDocument         = stateName("editYearDocument")
-	editCategoryDocument     = stateName("editCategoryDocument")
-	editUserCategoryDocument = stateName("editUserCategoryDocument")
-	editDescriptionDocument  = stateName("editDescriptionDocument")
-	editHashtagDocument      = stateName("editHashtagDocument")
-	loadArchive              = stateName("loadArchive")
-	nameArchive              = stateName("nameArchive")
-	authorArchive            = stateName("authorArchive")
-	yearArchive              = stateName("yearArchive")
-	categoryArchive          = stateName("categoryArchive")
-	userCategoryArchive      = stateName("userCategoryArchive")
-	descriptionArchive       = stateName("descriptionArchive")
-	hashtagArchive           = stateName("hashtagArchive")
-	checkArchive             = stateName("checkArchive")
-	documentCabinet          = stateName("documentCabinet")
-	albumsCabinet            = stateName("albumsCabinet")
-	blocking                 = stateName("blocking")
-	blockUser                = stateName("blockUser")
-	workingRequestDocument   = stateName("workingRequestDocument")
-	workingDocument          = stateName("workingDocument")
 )
 
 type State interface {
@@ -200,70 +199,6 @@ func (s *States) Init(vk *api.VK) error {
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
-		startState.Name():         startState,
-		selectArchiveState.Name(): selectArchiveState,
-
-		photoStartState.Name():               photoStartState,
-		loadPhotoState.Name():                loadPhotoState,
-		isPeoplePresentPhotoState.Name():     isPeoplePresentPhotoState,
-		countPeoplePhotoState.Name():         countPeoplePhotoState,
-		markedPeoplePhotoState.Name():        markedPeoplePhotoState,
-		isTeacherPhotoState.Name():           isTeacherPhotoState,
-		teacherNamePhotoState.Name():         teacherNamePhotoState,
-		userTeacherNamePhotoState.Name():     userTeacherNamePhotoState,
-		studentNamePhotoState.Name():         studentNamePhotoState,
-		eventYearPhotoState.Name():           eventYearPhotoState,
-		studyProgramPhotoState.Name():        studyProgramPhotoState,
-		eventNamePhotoState.Name():           eventNamePhotoState,
-		userEventNamePhotoState.Name():       userEventNamePhotoState,
-		descriptionPhotoState.Name():         descriptionPhotoState,
-		checkPhotoState.Name():               checkPhotoState,
-		editPhotoState.Name():                editPhotoState,
-		editEventYearPhotoState.Name():       editEventYearPhotoState,
-		editStudyProgramPhotoState.Name():    editStudyProgramPhotoState,
-		editEventNamePhotoState.Name():       editEventNamePhotoState,
-		editUserEventNamePhotoState.Name():   editUserEventNamePhotoState,
-		editDescriptionPhotoState.Name():     editDescriptionPhotoState,
-		editIsPeoplePresentPhotoState.Name(): editIsPeoplePresentPhotoState,
-		editCountPeoplePhotoState.Name():     editCountPeoplePhotoState,
-		editMarkedPeoplePhotoState.Name():    editMarkedPeoplePhotoState,
-		editIsTeacherPhotoState.Name():       editIsTeacherPhotoState,
-		editTeacherNamePhotoState.Name():     editTeacherNamePhotoState,
-		editUserTeacherNamePhotoState.Name(): editUserTeacherNamePhotoState,
-		editStudentNamePhotoState.Name():     editStudentNamePhotoState,
-
-		documentStartState.Name():               documentStartState,
-		loadDocumentState.Name():                loadDocumentState,
-		nameDocumentState.Name():                nameDocumentState,
-		authorDocumentState.Name():              authorDocumentState,
-		yearDocumentState.Name():                yearDocumentState,
-		categoryDocumentState.Name():            categoryDocumentState,
-		userCategoryDocumentState.Name():        userCategoryDocumentState,
-		descriptionDocumentState.Name():         descriptionDocumentState,
-		hashtagDocumentState.Name():             hashtagDocumentState,
-		checkDocumentState.Name():               checkDocumentState,
-		editDocumentState.Name():                editDocumentState,
-		editNameDocumentState.Name():            editNameDocumentState,
-		editAuthorDocumentState.Name():          editAuthorDocumentState,
-		editYearDocumentState.Name():            editYearDocumentState,
-		editCategoryDocumentState.Name():        editCategoryDocumentState,
-		editUserCategoryDocumentState.Name():    editUserCategoryDocumentState,
-		editDescriptionDocumentState.Name():     editDescriptionDocumentState,
-		editHashtagDocumentState.Name():         editHashtagDocumentState,
-		loadArchiveState.Name():                 loadArchiveState,
-		nameArchiveState.Name():                 nameArchiveState,
-		authorArchiveState.Name():               authorArchiveState,
-		yearArchiveState.Name():                 yearArchiveState,
-		categoryArchiveState.Name():             categoryArchiveState,
-		userCategoryArchiveState.Name():         userCategoryArchiveState,
-		descriptionArchiveState.Name():          descriptionArchiveState,
-		hashtagArchiveState.Name():              hashtagArchiveState,
-		checkArchiveState.Name():                checkArchiveState,
-		albumsCabinetState.Name():               albumsCabinetState,
-		documentCabinetState.Name():             documentCabinetState,
-		blockUserState.Name():                   blockUserState,
-		blockingState.Name():                    blockingState,
-		workingRequestDocumentState.Name():      workingRequestDocumentState,
 		startState.Name():                       startState,
 		selectArchiveState.Name():               selectArchiveState,
 		documentStartState.Name():               documentStartState,
@@ -309,6 +244,35 @@ func (s *States) Init(vk *api.VK) error {
 		changeHashtagsDocumentState.Name():      changeHashtagsDocumentState,
 		addDocumentAdministratorState.Name():    addDocumentAdministratorState,
 		removeDocumentAdministratorState.Name(): removeDocumentAdministratorState,
+
+		photoStartState.Name():               photoStartState,
+		loadPhotoState.Name():                loadPhotoState,
+		isPeoplePresentPhotoState.Name():     isPeoplePresentPhotoState,
+		countPeoplePhotoState.Name():         countPeoplePhotoState,
+		markedPeoplePhotoState.Name():        markedPeoplePhotoState,
+		isTeacherPhotoState.Name():           isTeacherPhotoState,
+		teacherNamePhotoState.Name():         teacherNamePhotoState,
+		userTeacherNamePhotoState.Name():     userTeacherNamePhotoState,
+		studentNamePhotoState.Name():         studentNamePhotoState,
+		eventYearPhotoState.Name():           eventYearPhotoState,
+		studyProgramPhotoState.Name():        studyProgramPhotoState,
+		eventNamePhotoState.Name():           eventNamePhotoState,
+		userEventNamePhotoState.Name():       userEventNamePhotoState,
+		descriptionPhotoState.Name():         descriptionPhotoState,
+		checkPhotoState.Name():               checkPhotoState,
+		editPhotoState.Name():                editPhotoState,
+		editEventYearPhotoState.Name():       editEventYearPhotoState,
+		editStudyProgramPhotoState.Name():    editStudyProgramPhotoState,
+		editEventNamePhotoState.Name():       editEventNamePhotoState,
+		editUserEventNamePhotoState.Name():   editUserEventNamePhotoState,
+		editDescriptionPhotoState.Name():     editDescriptionPhotoState,
+		editIsPeoplePresentPhotoState.Name(): editIsPeoplePresentPhotoState,
+		editCountPeoplePhotoState.Name():     editCountPeoplePhotoState,
+		editMarkedPeoplePhotoState.Name():    editMarkedPeoplePhotoState,
+		editIsTeacherPhotoState.Name():       editIsTeacherPhotoState,
+		editTeacherNamePhotoState.Name():     editTeacherNamePhotoState,
+		editUserTeacherNamePhotoState.Name(): editUserTeacherNamePhotoState,
+		editStudentNamePhotoState.Name():     editStudentNamePhotoState,
 	}
 
 	return nil
