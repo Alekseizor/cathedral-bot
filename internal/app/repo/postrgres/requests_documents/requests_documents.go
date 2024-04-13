@@ -356,7 +356,7 @@ func (r *Repo) GetRequestFromQueue(ctx context.Context) (string, string, int, er
 	// достали заявку
 	err := r.db.QueryRowContext(ctx, sqlQuery).Scan(&id, &name, &author, &year, &category, &description, &hashtag, &attachment)
 	if err != nil {
-		return "", "", 0, fmt.Errorf("[db.GetContext]: %w", err)
+		return "", "", 0, fmt.Errorf("[db.QueryRowContext]: %w", err)
 	}
 
 	output := fmt.Sprintf("Заявка на публикацию документа:\n %s\n%s\n%s\n%s\n%s\n%s\n%s\n", id, name, author, year, category, description, hashtag)
