@@ -69,7 +69,7 @@ func (state WorkingRequestDocumentState) Handler(ctx context.Context, msg object
 
 	switch messageText {
 	case "Заявки из очереди":
-		return workingRequestDocument, nil, nil
+		return requestDocumentFromQueue, nil, nil
 	case "Конкретная заявка":
 		return workingRequestDocument, nil, nil
 	case "Назад":

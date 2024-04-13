@@ -5,7 +5,7 @@ import "github.com/lib/pq"
 const (
 	StatusInProgress = iota
 	StatusUserConfirmed
-	StatusAdminConfirmed
+	StatusAdminWorking
 	StatusAdminDeclined
 )
 

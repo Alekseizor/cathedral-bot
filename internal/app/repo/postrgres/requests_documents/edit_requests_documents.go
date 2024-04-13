@@ -82,3 +82,12 @@ func (r *Repo) EditHashtags(ctx context.Context, hashtags []string, reqDocID int
 
 	return nil
 }
+
+func (r *Repo) EditStatus(ctx context.Context, reqDocID int, status int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE requests_documents SET status = $1 WHERE id = $2", status, reqDocID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}

@@ -326,3 +326,51 @@ func (r *Repo) CheckParams(ctx context.Context, vkID int) (string, string, error
 
 	return output, attachment, nil
 }
+
+func (r *Repo) GetRequestFromQueue(ctx context.Context) (string, string, int, error) {
+	sqlQuery := `
+	SELECT 
+    	'2. ID: ' || id AS id,
+    	'2. Название: ' || COALESCE(title, 'Не указано') AS name,
+    	'3. Автор: ' || COALESCE(author, 'Не указано') AS author,
+    	'4. Год создания документа: ' || COALESCE(CAST(year AS VARCHAR), 'Не указано') AS year,
+    	'5. Категория: ' || COALESCE(category, 'Не указано') AS category,
+    	'6. Описание: ' || COALESCE(description, 'Не указано') AS description,
+    	'7. Хэштеги: ' || COALESCE(array_to_string(hashtags, ', '), 'Не указано') AS hashtag,
+    	attachment
+	FROM requests_documents
+	WHERE status = 1
+	LIMIT 1;`
+
+	var (
+		id          string
+		name        string
+		author      string
+		year        string
+		category    string
+		description string
+		hashtag     string
+		attachment  string
+	)
+
+	// достали заявку
+	err := r.db.QueryRowContext(ctx, sqlQuery).Scan(&id, &name, &author, &year, &category, &description, &hashtag, &attachment)
+	if err != nil {
+		return "", "", 0, fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	output := fmt.Sprintf("Заявка на публикацию документа:\n %s\n%s\n%s\n%s\n%s\n%s\n%s\n", id, name, author, year, category, description, hashtag)
+
+	// надо поменять статус заявки на StatusAdminWorking(число 2)
+	requestID, err := strconv.Atoi(id[7:])
+	if err != nil {
+		return "", "", 0, fmt.Errorf("[strconv.Atoi]: %w", err)
+	}
+
+	err = r.EditStatus(ctx, requestID, ds.StatusAdminWorking)
+	if err != nil {
+		return "", "", 0, fmt.Errorf("[requests_documents.EditStatus]: %w", err)
+	}
+
+	return output, attachment, requestID, nil
+}

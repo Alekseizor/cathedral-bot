@@ -61,6 +61,7 @@ const (
 	changeHashtagsDocument      = stateName("changeHashtagsDocument")
 	addDocumentAdministrator    = stateName("addDocumentAdministrator")
 	removeDocumentAdministrator = stateName("removeDocumentAdministrator")
+	requestDocumentFromQueue    = stateName("requestDocumentFromQueue")
 
 	photoStart               = stateName("photoStart")
 	loadPhoto                = stateName("loadPhoto")
@@ -196,6 +197,7 @@ func (s *States) Init(vk *api.VK) error {
 	changeHashtagsDocumentState := &ChangeHashtagsDocumentState{postgres: postgresRepo}
 	addDocumentAdministratorState := &AddDocumentAdministratorState{postgres: postgresRepo}
 	removeDocumentAdministratorState := &RemoveDocumentAdministratorState{postgres: postgresRepo}
+	requestDocumentFromQueueState := &RequestDocumentFromQueueState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -244,6 +246,7 @@ func (s *States) Init(vk *api.VK) error {
 		changeHashtagsDocumentState.Name():      changeHashtagsDocumentState,
 		addDocumentAdministratorState.Name():    addDocumentAdministratorState,
 		removeDocumentAdministratorState.Name(): removeDocumentAdministratorState,
+		requestDocumentFromQueueState.Name():    requestDocumentFromQueueState,
 
 		photoStartState.Name():               photoStartState,
 		loadPhotoState.Name():                loadPhotoState,
