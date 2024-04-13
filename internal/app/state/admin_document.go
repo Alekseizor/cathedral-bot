@@ -130,9 +130,8 @@ func (state WorkingDocumentState) Handler(ctx context.Context, msg object.Messag
 
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	output, _, err := state.postgres.Documents.GetOutput(ctx, documentID)
-	//TODO: добавить attachment
-	//b.Attachment(attachment)
+	output, attachment, err := state.postgres.Documents.GetOutput(ctx, documentID)
+	b.Attachment(attachment)
 	b.Message(output)
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()

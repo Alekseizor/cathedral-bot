@@ -1,6 +1,10 @@
 package ds
 
-import "github.com/lib/pq"
+import (
+	"database/sql"
+
+	"github.com/lib/pq"
+)
 
 const (
 	StatusInProgress = iota
@@ -12,11 +16,11 @@ const (
 type RequestDocument struct {
 	ID            int            `db:"id"`
 	Title         string         `db:"title"`
-	Author        string         `db:"author"`
-	Year          int            `db:"year"`
-	Category      string         `db:"category"`
+	Author        sql.NullString `db:"author"`
+	Year          sql.NullInt64  `db:"year"`
+	Category      sql.NullString `db:"category"`
 	IsCategoryNew bool           `db:"is_category_new"`
-	Description   string         `db:"description"`
+	Description   sql.NullString `db:"description"`
 	Hashtags      pq.StringArray `db:"hashtags"`
 	Attachment    string         `db:"attachment"`
 	UserID        int            `db:"user_id"`

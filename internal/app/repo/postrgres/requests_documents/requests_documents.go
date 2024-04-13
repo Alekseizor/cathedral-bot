@@ -88,7 +88,17 @@ func (r *Repo) UploadDocument(ctx context.Context, VK *api.VK, doc object.DocsDo
 func (r *Repo) DeleteDocumentRequest(ctx context.Context, vkID int) error {
 	_, err := r.db.ExecContext(ctx, "DELETE FROM requests_documents WHERE id = (SELECT id FROM requests_documents WHERE user_id = $1 ORDER BY id DESC LIMIT 1)", vkID)
 	if err != nil {
-		return fmt.Errorf("[db.GetContext]: %w", err)
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteDocumentRequestByID удаляет заявку после опубликования
+func (r *Repo) DeleteDocumentRequestByID(ctx context.Context, requestID int) error {
+	_, err := r.db.ExecContext(ctx, "DELETE FROM requests_documents WHERE id = $1", requestID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
 
 	return nil
@@ -340,7 +350,7 @@ func (r *Repo) CheckParams(ctx context.Context, vkID int) (string, string, error
 func (r *Repo) GetRequestFromQueue(ctx context.Context) (string, string, int, error) {
 	sqlQuery := `
 	SELECT 
-    	'2. ID: ' || id AS id,
+    	'1. ID: ' || id AS id,
     	'2. Название: ' || COALESCE(title, 'Не указано') AS name,
     	'3. Автор: ' || COALESCE(author, 'Не указано') AS author,
     	'4. Год создания документа: ' || COALESCE(CAST(year AS VARCHAR), 'Не указано') AS year,
@@ -377,10 +387,67 @@ func (r *Repo) GetRequestFromQueue(ctx context.Context) (string, string, int, er
 		return "", "", 0, fmt.Errorf("[strconv.Atoi]: %w", err)
 	}
 
-	err = r.EditStatus(ctx, requestID, ds.StatusAdminWorking)
+	return output, attachment, requestID, nil
+}
+
+func (r *Repo) GetRequestByID(ctx context.Context, reqID int) (string, string, error) {
+	sqlQuery := `
+	SELECT 
+    	'1. ID: ' || id AS id,
+    	'2. Название: ' || COALESCE(title, 'Не указано') AS name,
+    	'3. Автор: ' || COALESCE(author, 'Не указано') AS author,
+    	'4. Год создания документа: ' || COALESCE(CAST(year AS VARCHAR), 'Не указано') AS year,
+    	'5. Категория: ' || COALESCE(category, 'Не указано') AS category,
+    	'6. Описание: ' || COALESCE(description, 'Не указано') AS description,
+    	'7. Хэштеги: ' || COALESCE(array_to_string(hashtags, ', '), 'Не указано') AS hashtag,
+    	attachment
+	FROM requests_documents
+	WHERE id = $1
+	LIMIT 1;`
+
+	var (
+		id          string
+		name        string
+		author      string
+		year        string
+		category    string
+		description string
+		hashtag     string
+		attachment  string
+	)
+
+	// достали заявку
+	err := r.db.QueryRowContext(ctx, sqlQuery, reqID).Scan(&id, &name, &author, &year, &category, &description, &hashtag, &attachment)
 	if err != nil {
-		return "", "", 0, fmt.Errorf("[requests_documents.EditStatus]: %w", err)
+		return "", "", fmt.Errorf("[db.QueryRowContext]: %w", err)
 	}
 
-	return output, attachment, requestID, nil
+	output := fmt.Sprintf("Заявка на публикацию документа:\n %s\n%s\n%s\n%s\n%s\n%s\n%s\n", id, name, author, year, category, description, hashtag)
+
+	return output, attachment, nil
+}
+
+func (r *Repo) GetByID(ctx context.Context, id int) (*ds.RequestDocument, error) {
+	sqlQuery := `SELECT*FROM requests_documents WHERE id = $1 LIMIT 1;`
+
+	requestDocument := &ds.RequestDocument{}
+
+	err := r.db.QueryRowContext(ctx, sqlQuery, id).Scan(
+		&requestDocument.ID,
+		&requestDocument.Title,
+		&requestDocument.Author,
+		&requestDocument.Year,
+		&requestDocument.Category,
+		&requestDocument.IsCategoryNew,
+		&requestDocument.Description,
+		&requestDocument.Hashtags,
+		&requestDocument.Attachment,
+		&requestDocument.UserID,
+		&requestDocument.Status,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("[db.QueryRowContext]: %w", err)
+	}
+
+	return requestDocument, nil
 }
