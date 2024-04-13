@@ -16,52 +16,67 @@ import (
 type stateName string
 
 const (
-	start                       = stateName("start")
-	selectArchive               = stateName("selectArchive")
-	documentStart               = stateName("documentStart")
-	loadDocument                = stateName("loadDocument")
-	nameDocument                = stateName("nameDocument")
-	authorDocument              = stateName("authorDocument")
-	yearDocument                = stateName("yearDocument")
-	categoryDocument            = stateName("categoryDocument")
-	userCategoryDocument        = stateName("userCategoryDocument")
-	descriptionDocument         = stateName("descriptionDocument")
-	hashtagDocument             = stateName("hashtagDocument")
-	checkDocument               = stateName("checkDocument")
-	editDocument                = stateName("editDocument")
-	editNameDocument            = stateName("editNameDocument")
-	editAuthorDocument          = stateName("editAuthorDocument")
-	editYearDocument            = stateName("editYearDocument")
-	editCategoryDocument        = stateName("editCategoryDocument")
-	editUserCategoryDocument    = stateName("editUserCategoryDocument")
-	editDescriptionDocument     = stateName("editDescriptionDocument")
-	editHashtagDocument         = stateName("editHashtagDocument")
-	loadArchive                 = stateName("loadArchive")
-	nameArchive                 = stateName("nameArchive")
-	authorArchive               = stateName("authorArchive")
-	yearArchive                 = stateName("yearArchive")
-	categoryArchive             = stateName("categoryArchive")
-	userCategoryArchive         = stateName("userCategoryArchive")
-	descriptionArchive          = stateName("descriptionArchive")
-	hashtagArchive              = stateName("hashtagArchive")
-	checkArchive                = stateName("checkArchive")
-	documentCabinet             = stateName("documentCabinet")
-	albumsCabinet               = stateName("albumsCabinet")
-	blocking                    = stateName("blocking")
-	blockUser                   = stateName("blockUser")
-	workingRequestDocument      = stateName("workingRequestDocument")
-	workingDocument             = stateName("workingDocument")
-	actionOnDocument            = stateName("actionOnDocument")
-	changeDocument              = stateName("changeDocument")
-	changeTitleDocument         = stateName("changeTitleDocument")
-	changeDescriptionDocument   = stateName("changeDescriptionDocument")
-	changeAuthorDocument        = stateName("changeAuthorDocument")
-	changeYearDocument          = stateName("changeYearDocument")
-	changeCategoryDocument      = stateName("changeCategoryDocument")
-	changeHashtagsDocument      = stateName("changeHashtagsDocument")
-	addDocumentAdministrator    = stateName("addDocumentAdministrator")
-	removeDocumentAdministrator = stateName("removeDocumentAdministrator")
-	requestDocumentFromQueue    = stateName("requestDocumentFromQueue")
+	start                        = stateName("start")
+	selectArchive                = stateName("selectArchive")
+	documentStart                = stateName("documentStart")
+	photoStub                    = stateName("photoStub")
+	loadDocument                 = stateName("loadDocument")
+	nameDocument                 = stateName("nameDocument")
+	authorDocument               = stateName("authorDocument")
+	yearDocument                 = stateName("yearDocument")
+	categoryDocument             = stateName("categoryDocument")
+	userCategoryDocument         = stateName("userCategoryDocument")
+	descriptionDocument          = stateName("descriptionDocument")
+	hashtagDocument              = stateName("hashtagDocument")
+	checkDocument                = stateName("checkDocument")
+	editDocument                 = stateName("editDocument")
+	editNameDocument             = stateName("editNameDocument")
+	editAuthorDocument           = stateName("editAuthorDocument")
+	editYearDocument             = stateName("editYearDocument")
+	editCategoryDocument         = stateName("editCategoryDocument")
+	editUserCategoryDocument     = stateName("editUserCategoryDocument")
+	editDescriptionDocument      = stateName("editDescriptionDocument")
+	editHashtagDocument          = stateName("editHashtagDocument")
+	loadArchive                  = stateName("loadArchive")
+	nameArchive                  = stateName("nameArchive")
+	authorArchive                = stateName("authorArchive")
+	yearArchive                  = stateName("yearArchive")
+	categoryArchive              = stateName("categoryArchive")
+	userCategoryArchive          = stateName("userCategoryArchive")
+	descriptionArchive           = stateName("descriptionArchive")
+	hashtagArchive               = stateName("hashtagArchive")
+	checkArchive                 = stateName("checkArchive")
+	documentCabinet              = stateName("documentCabinet")
+	albumsCabinet                = stateName("albumsCabinet")
+	blocking                     = stateName("blocking")
+	blockUser                    = stateName("blockUser")
+	workingRequestDocument       = stateName("workingRequestDocument")
+	workingDocument              = stateName("workingDocument")
+	nameSearchDocument           = stateName("nameSearchDocument")
+	authorSearchDocument         = stateName("authorSearchDocument")
+	yearSearchDocument           = stateName("yearSearchDocument")
+	categoriesSearchDocument     = stateName("categoriesSearchDocument")
+	hashtagSearchDocument        = stateName("hashtagSearchDocument")
+	checkSearchDocument          = stateName("checkSearchDocument")
+	editSearchDocument           = stateName("editSearchDocument")
+	doSearchDocument             = stateName("doSearchDocument")
+	showSearchDocument           = stateName("showSearchDocument")
+	showChosenDocument           = stateName("showChosenDocument")
+	editNameSearchDocument       = stateName("editNameSearchDocument")
+	editAuthorSearchDocument     = stateName("editAuthorSearchDocument")
+	editYearSearchDocument       = stateName("editYearSearchDocument")
+	editCategoriesSearchDocument = stateName("editCategoriesSearchDocument")
+	editHashtagSearchDocument    = stateName("editHashtagSearchDocument")
+	actionOnDocument             = stateName("actionOnDocument")
+	changeDocument               = stateName("changeDocument")
+	changeTitleDocument          = stateName("changeTitleDocument")
+	changeDescriptionDocument    = stateName("changeDescriptionDocument")
+	changeAuthorDocument         = stateName("changeAuthorDocument")
+	changeYearDocument           = stateName("changeYearDocument")
+	changeCategoryDocument       = stateName("changeCategoryDocument")
+	changeHashtagsDocument       = stateName("changeHashtagsDocument")
+	addDocumentAdministrator     = stateName("addDocumentAdministrator")
+	removeDocumentAdministrator  = stateName("removeDocumentAdministrator")
 
 	photoStart               = stateName("photoStart")
 	loadPhoto                = stateName("loadPhoto")
@@ -186,6 +201,21 @@ func (s *States) Init(vk *api.VK) error {
 	blockUserState := &BlockUserState{postgres: postgresRepo}
 	blockingState := &BlockingState{}
 	workingRequestDocumentState := &WorkingRequestDocumentState{}
+	nameSearchDocumentState := &NameSearchDocumentState{postgres: postgresRepo}
+	authorSearchDocumentState := &AuthorSearchDocumentState{postgres: postgresRepo}
+	yearSearchDocumentState := &YearSearchDocumentState{postgres: postgresRepo}
+	categoriesSearchDocumentState := &CategoriesSearchDocumentState{postgres: postgresRepo}
+	hashtagSearchDocumentState := &HashtagSearchDocumentState{postgres: postgresRepo}
+	checkSearchDocumentState := &CheckSearchDocumentState{postgres: postgresRepo}
+	doSearchDocumentState := &DoSearchDocumentState{postgres: postgresRepo}
+	editSearchDocumentState := &EditSearchDocumentState{postgres: postgresRepo}
+	editNameSearchDocumentState := &EditNameSearchDocumentState{postgres: postgresRepo}
+	editAuthorSearchDocumentState := &EditAuthorSearchDocumentState{postgres: postgresRepo}
+	editYearSearchDocumentState := &EditYearSearchDocumentState{postgres: postgresRepo}
+	editCategoriesSearchDocumentState := &EditCategoriesSearchDocumentState{postgres: postgresRepo}
+	editHashtagSearchDocumentState := &EditHashtagSearchDocumentState{postgres: postgresRepo}
+	showSearchDocumentState := &ShowSearchDocumentState{postgres: postgresRepo}
+	showChosenDocumentState := &ShowChosenDocumentState{postgres: postgresRepo}
 	workingDocumentState := &WorkingDocumentState{postgres: postgresRepo}
 	actionOnDocumentState := &ActionOnDocumentState{postgres: postgresRepo}
 	changeDocumentState := &ChangeDocumentState{postgres: postgresRepo}
@@ -201,51 +231,66 @@ func (s *States) Init(vk *api.VK) error {
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
-		startState.Name():                       startState,
-		selectArchiveState.Name():               selectArchiveState,
-		documentStartState.Name():               documentStartState,
-		loadDocumentState.Name():                loadDocumentState,
-		nameDocumentState.Name():                nameDocumentState,
-		authorDocumentState.Name():              authorDocumentState,
-		yearDocumentState.Name():                yearDocumentState,
-		categoryDocumentState.Name():            categoryDocumentState,
-		userCategoryDocumentState.Name():        userCategoryDocumentState,
-		descriptionDocumentState.Name():         descriptionDocumentState,
-		hashtagDocumentState.Name():             hashtagDocumentState,
-		checkDocumentState.Name():               checkDocumentState,
-		editDocumentState.Name():                editDocumentState,
-		editNameDocumentState.Name():            editNameDocumentState,
-		editAuthorDocumentState.Name():          editAuthorDocumentState,
-		editYearDocumentState.Name():            editYearDocumentState,
-		editCategoryDocumentState.Name():        editCategoryDocumentState,
-		editUserCategoryDocumentState.Name():    editUserCategoryDocumentState,
-		editDescriptionDocumentState.Name():     editDescriptionDocumentState,
-		editHashtagDocumentState.Name():         editHashtagDocumentState,
-		loadArchiveState.Name():                 loadArchiveState,
-		nameArchiveState.Name():                 nameArchiveState,
-		authorArchiveState.Name():               authorArchiveState,
-		yearArchiveState.Name():                 yearArchiveState,
-		categoryArchiveState.Name():             categoryArchiveState,
-		userCategoryArchiveState.Name():         userCategoryArchiveState,
-		descriptionArchiveState.Name():          descriptionArchiveState,
-		hashtagArchiveState.Name():              hashtagArchiveState,
-		checkArchiveState.Name():                checkArchiveState,
-		albumsCabinetState.Name():               albumsCabinetState,
-		documentCabinetState.Name():             documentCabinetState,
-		blockUserState.Name():                   blockUserState,
-		blockingState.Name():                    blockingState,
-		workingRequestDocumentState.Name():      workingRequestDocumentState,
-		workingDocumentState.Name():             workingDocumentState,
-		actionOnDocumentState.Name():            actionOnDocumentState,
-		changeDocumentState.Name():              changeDocumentState,
-		changeTitleDocumentState.Name():         changeTitleDocumentState,
-		changeDescriptionDocumentState.Name():   changeDescriptionDocumentState,
-		changeAuthorDocumentState.Name():        changeAuthorDocumentState,
-		changeYearDocumentState.Name():          changeYearDocumentState,
-		changeCategoryDocumentState.Name():      changeCategoryDocumentState,
-		changeHashtagsDocumentState.Name():      changeHashtagsDocumentState,
-		addDocumentAdministratorState.Name():    addDocumentAdministratorState,
-		removeDocumentAdministratorState.Name(): removeDocumentAdministratorState,
+		startState.Name():                        startState,
+		selectArchiveState.Name():                selectArchiveState,
+		documentStartState.Name():                documentStartState,
+		loadDocumentState.Name():                 loadDocumentState,
+		nameDocumentState.Name():                 nameDocumentState,
+		authorDocumentState.Name():               authorDocumentState,
+		yearDocumentState.Name():                 yearDocumentState,
+		categoryDocumentState.Name():             categoryDocumentState,
+		userCategoryDocumentState.Name():         userCategoryDocumentState,
+		descriptionDocumentState.Name():          descriptionDocumentState,
+		hashtagDocumentState.Name():              hashtagDocumentState,
+		checkDocumentState.Name():                checkDocumentState,
+		editDocumentState.Name():                 editDocumentState,
+		editNameDocumentState.Name():             editNameDocumentState,
+		editAuthorDocumentState.Name():           editAuthorDocumentState,
+		editYearDocumentState.Name():             editYearDocumentState,
+		editCategoryDocumentState.Name():         editCategoryDocumentState,
+		editUserCategoryDocumentState.Name():     editUserCategoryDocumentState,
+		editDescriptionDocumentState.Name():      editDescriptionDocumentState,
+		editHashtagDocumentState.Name():          editHashtagDocumentState,
+		loadArchiveState.Name():                  loadArchiveState,
+		nameArchiveState.Name():                  nameArchiveState,
+		authorArchiveState.Name():                authorArchiveState,
+		yearArchiveState.Name():                  yearArchiveState,
+		categoryArchiveState.Name():              categoryArchiveState,
+		userCategoryArchiveState.Name():          userCategoryArchiveState,
+		descriptionArchiveState.Name():           descriptionArchiveState,
+		hashtagArchiveState.Name():               hashtagArchiveState,
+		checkArchiveState.Name():                 checkArchiveState,
+		albumsCabinetState.Name():                albumsCabinetState,
+		documentCabinetState.Name():              documentCabinetState,
+		blockUserState.Name():                    blockUserState,
+		blockingState.Name():                     blockingState,
+		workingRequestDocumentState.Name():       workingRequestDocumentState,
+		nameSearchDocumentState.Name():           nameSearchDocumentState,
+		authorSearchDocumentState.Name():         authorSearchDocumentState,
+		yearSearchDocumentState.Name():           yearSearchDocumentState,
+		categoriesSearchDocumentState.Name():     categoriesSearchDocumentState,
+		hashtagSearchDocumentState.Name():        hashtagSearchDocumentState,
+		checkSearchDocumentState.Name():          checkSearchDocumentState,
+		doSearchDocumentState.Name():             doSearchDocumentState,
+		editSearchDocumentState.Name():           editSearchDocumentState,
+		editNameSearchDocumentState.Name():       editNameSearchDocumentState,
+		editAuthorSearchDocumentState.Name():     editAuthorSearchDocumentState,
+		editYearSearchDocumentState.Name():       editYearSearchDocumentState,
+		editCategoriesSearchDocumentState.Name(): editCategoriesSearchDocumentState,
+		editHashtagSearchDocumentState.Name():    editHashtagSearchDocumentState,
+		showSearchDocumentState.Name():           showSearchDocumentState,
+		showChosenDocumentState.Name():           showChosenDocumentState,
+		workingDocumentState.Name():              workingDocumentState,
+		actionOnDocumentState.Name():             actionOnDocumentState,
+		changeDocumentState.Name():               changeDocumentState,
+		changeTitleDocumentState.Name():          changeTitleDocumentState,
+		changeDescriptionDocumentState.Name():    changeDescriptionDocumentState,
+		changeAuthorDocumentState.Name():         changeAuthorDocumentState,
+		changeYearDocumentState.Name():           changeYearDocumentState,
+		changeCategoryDocumentState.Name():       changeCategoryDocumentState,
+		changeHashtagsDocumentState.Name():       changeHashtagsDocumentState,
+		addDocumentAdministratorState.Name():     addDocumentAdministratorState,
+		removeDocumentAdministratorState.Name():  removeDocumentAdministratorState,
 		requestDocumentFromQueueState.Name():    requestDocumentFromQueueState,
 
 		photoStartState.Name():               photoStartState,

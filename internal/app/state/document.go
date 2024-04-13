@@ -3,7 +3,6 @@ package state
 import (
 	"context"
 	"fmt"
-
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
 
@@ -22,6 +21,12 @@ func (state DocumentStartState) Handler(ctx context.Context, msg object.Messages
 		return loadDocument, nil, nil
 	case "Загрузка архива":
 		return loadArchive, nil, nil
+	case "Поиск документа":
+		err := state.postgres.SearchDocument.CreateSearch(ctx, msg.PeerID)
+		if err != nil {
+			return documentStart, []*params.MessagesSendBuilder{}, err
+		}
+		return nameSearchDocument, nil, nil
 	case "Кабинет администратора документоархива":
 		return documentCabinet, nil, nil
 	case "Назад":

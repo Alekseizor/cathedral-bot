@@ -35,6 +35,16 @@ type docsDoc struct {
 	File string `json:"file"`
 }
 
+// UpdateStatus изменяет статус заявки на загрузку документа по ID заявки
+func (r *Repo) UpdateStatus(ctx context.Context, status int, reqDocID int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE requests_documents SET status = $1 WHERE id = $2", status, reqDocID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
 // UploadDocument загружает документ
 func (r *Repo) UploadDocument(ctx context.Context, VK *api.VK, doc object.DocsDoc, vkID int) error {
 	resp, err := http.Get(doc.URL)

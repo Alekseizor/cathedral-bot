@@ -3,9 +3,9 @@ package postrgres
 import (
 	"fmt"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/request_photo"
-
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/documents"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/object_admin"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/search_document"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/Alekseizor/cathedral-bot/internal/app/config"
@@ -28,6 +28,7 @@ type Repo struct {
 	RequestPhoto      *request_photo.Repo
 	Admin             *admin.Repo
 	Documents         *documents.Repo
+	SearchDocument    *search_document.Repo
 	ObjectAdmin       *object_admin.Repo
 }
 
@@ -54,6 +55,7 @@ func (r *Repo) Init() error {
 	r.Admin = admin.New(db)
 	r.Documents = documents.New(db)
 	r.ObjectAdmin = object_admin.New(db)
+	r.SearchDocument = search_document.New(db)
 
 	return nil
 }
