@@ -50,7 +50,7 @@ func (state DocumentCabinetState) Show(ctx context.Context, vkID int) ([]*params
 	k.AddTextButton("Добавить администратора", "", "secondary")
 	k.AddTextButton("Удалить администратора", "", "secondary")
 	k.AddRow()
-	k.AddTextButton("Выйти из кабинета администратора", "", "secondary")
+	k.AddTextButton("Выйти из кабинета администратора", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
