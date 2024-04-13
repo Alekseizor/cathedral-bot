@@ -18,7 +18,7 @@ func (state SelectArchiveState) Handler(ctx context.Context, msg object.Messages
 
 	switch messageText {
 	case "Фото":
-		return photoStub, nil, nil
+		return photoStart, nil, nil
 	case "Документы":
 		return documentStart, nil, nil
 	default:

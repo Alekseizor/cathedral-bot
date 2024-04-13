@@ -57,8 +57,7 @@ func (state DocumentStartState) Show(ctx context.Context, vkID int) ([]*params.M
 	k.AddTextButton("Загрузка архива", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Поиск документа", "", "secondary")
-	k.AddRow()
-	k.AddTextButton("Назад", "", "secondary")
+	addBackButton(k)
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }

@@ -5,7 +5,7 @@ listener:
   address: :8090
 
 bot:
-  token: vk1.a.jhXlXT8OL04S3RQ3LobdKJgtivv5Z_zQF8tHs246jnNxwaco9Hnm1wDakAob010DIkNz1wd14T9RHFK7eYbbY4YAzkHi7PYmdfSLkuuRzGb_KVlX5VxUXg5ALqEo2Gsu62_vLci_58bCjLged-Q-wypHK3PlqAUSNDXFOlrstBUGDP3NjUGg8fDPVVpGhPisSQ_LNrGcfjevIKLxT8NXtA
+  token: vk1.a.xor1NCLq_CEWCtDdFOTsqYpSHtXWK9DCDqV2YbF8to4ZMw0bNgXyziEiOPz10AV6VmGNyIdKfP3b-PXcaJ-dfKTTwAhXlDLHl0mNffeXW3cFudt_eOHLfD9t6iKa3jV1io8018u4anxgd8SPFIld4qAyowXcoDO7jjOTML9elPGPosr7u092BdzE1wOTS-8w
 
 clients:
   postgres:
@@ -14,3 +14,4 @@ clients:
     user: dev_user
     pass: dev_pass
     host: localhost
+

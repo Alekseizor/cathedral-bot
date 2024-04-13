@@ -2,6 +2,7 @@ package postrgres
 
 import (
 	"fmt"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/request_photo"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/documents"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/object_admin"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/search_document"
@@ -22,9 +23,11 @@ const (
 type Repo struct {
 	repoCfg           config.PostgresConfig
 	State             *state.Repo
+	Document          *documents.Repo
 	RequestsDocuments *requests_documents.Repo
-	Documents         *documents.Repo
+	RequestPhoto      *request_photo.Repo
 	Admin             *admin.Repo
+	Documents         *documents.Repo
 	SearchDocument    *search_document.Repo
 	ObjectAdmin       *object_admin.Repo
 }
@@ -46,6 +49,8 @@ func (r *Repo) Init() error {
 	}
 
 	r.State = state.New(db)
+	r.RequestPhoto = request_photo.New(db)
+	r.Document = documents.New(db)
 	r.RequestsDocuments = requests_documents.New(db)
 	r.Admin = admin.New(db)
 	r.Documents = documents.New(db)
