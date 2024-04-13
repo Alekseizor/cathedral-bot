@@ -2,6 +2,7 @@ package state
 
 import (
 	"context"
+	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
 	"regexp"
 	"strconv"
 	"strings"
@@ -418,6 +419,14 @@ func (state CheckDocumentState) Handler(ctx context.Context, msg object.Messages
 	case "Назад":
 		return hashtagDocument, nil, nil
 	case "Отправить":
+		reqID, err := state.postgres.RequestsDocuments.GetDocumentLastID(ctx, msg.PeerID)
+		if err != nil {
+			return checkDocument, []*params.MessagesSendBuilder{}, err
+		}
+		err = state.postgres.RequestsDocuments.UpdateStatus(ctx, ds.StatusUserConfirmed, reqID)
+		if err != nil {
+			return checkDocument, []*params.MessagesSendBuilder{}, err
+		}
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
 		b.Message("Ваша заявка на загрузку документа отправлена на одобрение администратору. Вы можете отслеживать статус своей заявки в личном кабинете")
