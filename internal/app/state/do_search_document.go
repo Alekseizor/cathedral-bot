@@ -158,6 +158,10 @@ func (state ShowChosenDocumentState) Handler(ctx context.Context, msg object.Mes
 	case "Назад":
 		return showSearchDocument, nil, nil
 	case "Закончить поиск":
+		err := state.postgres.SearchDocument.DeleteSearch(ctx, msg.PeerID)
+		if err != nil {
+			return showSearchDocument, []*params.MessagesSendBuilder{}, err
+		}
 		return documentStart, nil, nil
 	default:
 		return showSearchDocument, nil, nil
