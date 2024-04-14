@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var validExtension = map[string]struct{}{
+var validExtensionPhoto = map[string]struct{}{
 	"jpg":  struct{}{},
 	"jpeg": struct{}{},
 	"png":  struct{}{},
@@ -55,7 +55,7 @@ func (state LoadPhotoState) Handler(ctx context.Context, msg object.MessagesMess
 	}
 
 	if attachment[0].Type == "doc" {
-		if _, ok := validExtension[attachment[0].Doc.Ext]; !ok {
+		if _, ok := validExtensionPhoto[attachment[0].Doc.Ext]; !ok {
 			b := params.NewMessagesSendBuilder()
 			b.RandomID(0)
 			b.Message("Данная фотография недопустимого формата")

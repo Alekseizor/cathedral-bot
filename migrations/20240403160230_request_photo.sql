@@ -13,6 +13,7 @@ CREATE TABLE request_photo
     marked_people TEXT[],
     teachers      TEXT[],
     attachment    VARCHAR(255),
+    attachments   TEXT[],
     user_id       INT NOT NULL
 );
 -- +goose StatementEnd

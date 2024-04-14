@@ -20,6 +20,8 @@ func (state PhotoStartState) Handler(ctx context.Context, msg object.MessagesMes
 	switch messageText {
 	case "Загрузка фото":
 		return loadPhoto, nil, nil
+	case "Загрузка архива":
+		return loadPhotoArchive, nil, nil
 	case "Кабинет администратора фотоархива":
 		return albumsCabinet, nil, nil
 	case "Назад":

@@ -162,6 +162,11 @@ func (r *Repo) UploadPhoto(ctx context.Context, VK *api.VK, photo object.PhotosP
 
 	client := &http.Client{}
 	response, err := client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer response.Body.Close()
 
 	uploadResult := &photosPhoto{}
 	err = json.NewDecoder(response.Body).Decode(uploadResult)
