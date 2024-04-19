@@ -6,16 +6,16 @@ import (
 	"github.com/SevereCloud/vksdk/v2/api"
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
+	"io"
+	"net/http"
 	"strconv"
 	"time"
 )
 
 var validExtensionPhoto = map[string]struct{}{
-	"jpg":  struct{}{},
-	"jpeg": struct{}{},
-	"png":  struct{}{},
-	"tif":  struct{}{},
-	"tiff": struct{}{},
+	"image/jpeg":               struct{}{},
+	"image/png":                struct{}{},
+	"application/octet-stream": struct{}{},
 }
 
 // LoadPhotoState пользователь загружает фотографию
@@ -45,38 +45,55 @@ func (state LoadPhotoState) Handler(ctx context.Context, msg object.MessagesMess
 		return loadPhoto, []*params.MessagesSendBuilder{b}, nil
 	}
 
-	if attachment[0].Type == "photo" {
-		err := state.postgres.RequestPhoto.UploadPhoto(ctx, state.vk, attachment[0].Photo, msg.PeerID)
-		if err != nil {
-			return loadPhoto, []*params.MessagesSendBuilder{}, err
-		}
+	var resp *http.Response
+	var err error
 
-		return isPeoplePresentPhoto, nil, nil
+	switch attachment[0].Type {
+	case "photo":
+		resp, err = http.Get(attachment[0].Photo.Sizes[4].URL)
+	case "doc":
+		resp, err = http.Get(attachment[0].Doc.URL)
+	default:
+		return loadPhoto, nil, err
 	}
 
-	if attachment[0].Type == "doc" {
-		if _, ok := validExtensionPhoto[attachment[0].Doc.Ext]; !ok {
-			b := params.NewMessagesSendBuilder()
-			b.RandomID(0)
-			b.Message("Данная фотография недопустимого формата")
-			return loadPhoto, []*params.MessagesSendBuilder{b}, nil
-		}
+	if err != nil {
+		return loadPhoto, nil, err
+	}
+	defer resp.Body.Close()
 
-		err := state.postgres.RequestPhoto.UploadPhotoAsFile(ctx, state.vk, attachment[0].Doc, msg.PeerID)
-		if err != nil {
-			return loadPhoto, []*params.MessagesSendBuilder{}, err
-		}
-
-		return isPeoplePresentPhoto, nil, nil
+	photo, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return loadPhoto, nil, err
 	}
 
-	return loadPhoto, nil, nil
+	contentType := http.DetectContentType(photo)
+	if _, ok := validExtensionPhoto[contentType]; !ok {
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Данная фотография недопустимого формата")
+		return loadPhoto, []*params.MessagesSendBuilder{b}, nil
+	}
+
+	if contentType == "application/octet-stream" {
+		photo, err = convertTiffToJpg(photo)
+		if err != nil {
+			return loadPhoto, nil, err
+		}
+	}
+
+	err = state.postgres.RequestPhoto.UploadPhoto(ctx, state.vk, photo, msg.PeerID)
+	if err != nil {
+		return loadPhoto, []*params.MessagesSendBuilder{}, err
+	}
+
+	return isPeoplePresentPhoto, nil, nil
 }
 
 func (state LoadPhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Загрузите фото. Допустимые  форматы фото: jpg, jpeg, png, tif, tiff")
+	b.Message("Загрузите фото или документ. Допустимые форматы: jpg, jpeg, png, tif, tiff")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "negative")
@@ -88,7 +105,7 @@ func (state LoadPhotoState) Name() stateName {
 	return loadPhoto
 }
 
-// EventYearPhotoState пользователь указывает год создания документа
+// EventYearPhotoState пользователь указывает год создания фотографии
 type EventYearPhotoState struct {
 	postgres *postrgres.Repo
 }
@@ -381,6 +398,9 @@ type CheckPhotoState struct {
 
 func (state CheckPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
+	if messageText == "" {
+		return checkPhoto, nil, nil
+	}
 
 	switch messageText {
 	case "Отправить":

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/documents"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/object_admin"
-	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/request_archive_photo"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/request_photo"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/request_photo_archive"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/search_document"
 	"github.com/jmoiron/sqlx"
 
@@ -27,7 +27,7 @@ type Repo struct {
 	Document            *documents.Repo
 	RequestsDocuments   *requests_documents.Repo
 	RequestPhoto        *request_photo.Repo
-	RequestArchivePhoto *request_archive_photo.Repo
+	RequestPhotoArchive *request_photo_archive.Repo
 	Admin               *admin.Repo
 	Documents           *documents.Repo
 	SearchDocument      *search_document.Repo
@@ -52,7 +52,7 @@ func (r *Repo) Init() error {
 
 	r.State = state.New(db)
 	r.RequestPhoto = request_photo.New(db)
-	r.RequestArchivePhoto = request_archive_photo.New(db)
+	r.RequestPhotoArchive = request_photo_archive.New(db)
 	r.Document = documents.New(db)
 	r.RequestsDocuments = requests_documents.New(db)
 	r.Admin = admin.New(db)

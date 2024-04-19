@@ -107,7 +107,13 @@ const (
 	editUserTeacherNamePhoto = stateName("editUserTeacherNamePhoto")
 	editStudentNamePhoto     = stateName("editStudentNamePhoto")
 
-	loadPhotoArchive = stateName("loadPhotoArchive")
+	loadPhotoArchive          = stateName("loadPhotoArchive")
+	eventYearPhotoArchive     = stateName("eventYearPhotoArchive")
+	studyProgramPhotoArchive  = stateName("studyProgramPhotoArchive")
+	eventNamePhotoArchive     = stateName("eventNamePhotoArchive")
+	userEventNamePhotoArchive = stateName("userEventNamePhotoArchive")
+	descriptionPhotoArchive   = stateName("descriptionPhotoArchive")
+	checkPhotoArchive         = stateName("checkPhotoArchive")
 )
 
 type State interface {
@@ -229,7 +235,14 @@ func (s *States) Init(vk *api.VK) error {
 	editTeacherNamePhotoState := &EditTeacherNamePhotoState{postgres: postgresRepo}
 	editUserTeacherNamePhotoState := &EditUserTeacherNamePhotoState{postgres: postgresRepo}
 	editStudentNamePhotoState := &EditStudentNamePhotoState{postgres: postgresRepo}
+
 	loadPhotoArchiveState := &LoadPhotoArchiveState{postgres: postgresRepo, vk: vk}
+	eventYearPhotoArchiveState := &EventYearPhotoArchiveState{postgres: postgresRepo}
+	studyProgramPhotoArchiveState := &StudyProgramPhotoArchiveState{postgres: postgresRepo}
+	eventNamePhotoArchiveState := &EventNamePhotoArchiveState{postgres: postgresRepo}
+	userEventNamePhotoArchiveState := &UserEventNamePhotoArchiveState{postgres: postgresRepo}
+	descriptionPhotoArchiveState := &DescriptionPhotoArchiveState{postgres: postgresRepo}
+	checkPhotoArchiveState := &CheckPhotoArchiveState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -322,7 +335,14 @@ func (s *States) Init(vk *api.VK) error {
 		editTeacherNamePhotoState.Name():     editTeacherNamePhotoState,
 		editUserTeacherNamePhotoState.Name(): editUserTeacherNamePhotoState,
 		editStudentNamePhotoState.Name():     editStudentNamePhotoState,
-		loadPhotoArchiveState.Name():         loadPhotoArchiveState,
+
+		loadPhotoArchiveState.Name():          loadPhotoArchiveState,
+		eventYearPhotoArchiveState.Name():     eventYearPhotoArchiveState,
+		studyProgramPhotoArchiveState.Name():  studyProgramPhotoArchiveState,
+		eventNamePhotoArchiveState.Name():     eventNamePhotoArchiveState,
+		userEventNamePhotoArchiveState.Name(): userEventNamePhotoArchiveState,
+		descriptionPhotoArchiveState.Name():   descriptionPhotoArchiveState,
+		checkPhotoArchiveState.Name():         checkPhotoArchiveState,
 	}
 
 	return nil
