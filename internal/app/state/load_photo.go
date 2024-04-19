@@ -287,7 +287,6 @@ func (state EventNamePhotoState) Show(ctx context.Context, vkID int) ([]*params.
 	k.AddTextButton("Своё событие", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
@@ -334,7 +333,6 @@ func (state UserEventNamePhotoState) Show(ctx context.Context, vkID int) ([]*par
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
@@ -381,7 +379,6 @@ func (state DescriptionPhotoState) Show(ctx context.Context, vkID int) ([]*param
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
@@ -434,10 +431,9 @@ func (state CheckPhotoState) Show(ctx context.Context, vkID int) ([]*params.Mess
 	b.Attachment(attachment)
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
-	k.AddTextButton("Отправить", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Редактировать заявку", "", "secondary")
 	k.AddRow()
+	k.AddTextButton("Отправить", "", "secondary")
 	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil

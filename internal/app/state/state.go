@@ -107,13 +107,19 @@ const (
 	editUserTeacherNamePhoto = stateName("editUserTeacherNamePhoto")
 	editStudentNamePhoto     = stateName("editStudentNamePhoto")
 
-	loadPhotoArchive          = stateName("loadPhotoArchive")
-	eventYearPhotoArchive     = stateName("eventYearPhotoArchive")
-	studyProgramPhotoArchive  = stateName("studyProgramPhotoArchive")
-	eventNamePhotoArchive     = stateName("eventNamePhotoArchive")
-	userEventNamePhotoArchive = stateName("userEventNamePhotoArchive")
-	descriptionPhotoArchive   = stateName("descriptionPhotoArchive")
-	checkPhotoArchive         = stateName("checkPhotoArchive")
+	loadPhotoArchive              = stateName("loadPhotoArchive")
+	eventYearPhotoArchive         = stateName("eventYearPhotoArchive")
+	studyProgramPhotoArchive      = stateName("studyProgramPhotoArchive")
+	eventNamePhotoArchive         = stateName("eventNamePhotoArchive")
+	userEventNamePhotoArchive     = stateName("userEventNamePhotoArchive")
+	descriptionPhotoArchive       = stateName("descriptionPhotoArchive")
+	checkPhotoArchive             = stateName("checkPhotoArchive")
+	editPhotoArchive              = stateName("editPhotoArchive")
+	editEventYearPhotoArchive     = stateName("editEventYearPhotoArchive")
+	editStudyProgramPhotoArchive  = stateName("editStudyProgramPhotoArchive")
+	editEventNamePhotoArchive     = stateName("editEventNamePhotoArchive")
+	editUserEventNamePhotoArchive = stateName("editUserEventNamePhotoArchive")
+	editDescriptionPhotoArchive   = stateName("editDescriptionPhotoArchive")
 )
 
 type State interface {
@@ -243,6 +249,12 @@ func (s *States) Init(vk *api.VK) error {
 	userEventNamePhotoArchiveState := &UserEventNamePhotoArchiveState{postgres: postgresRepo}
 	descriptionPhotoArchiveState := &DescriptionPhotoArchiveState{postgres: postgresRepo}
 	checkPhotoArchiveState := &CheckPhotoArchiveState{postgres: postgresRepo}
+	editPhotoArchiveState := &EditPhotoArchiveState{postgres: postgresRepo}
+	editEventYearPhotoArchiveState := &EditEventYearPhotoArchiveState{postgres: postgresRepo}
+	editStudyProgramPhotoArchiveState := &EditStudyProgramPhotoArchiveState{postgres: postgresRepo}
+	editEventNamePhotoArchiveState := &EditEventNamePhotoArchiveState{postgres: postgresRepo}
+	editUserEventNamePhotoArchiveState := &EditUserEventNamePhotoArchiveState{postgres: postgresRepo}
+	editDescriptionPhotoArchiveState := &EditDescriptionPhotoArchiveState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -336,13 +348,19 @@ func (s *States) Init(vk *api.VK) error {
 		editUserTeacherNamePhotoState.Name(): editUserTeacherNamePhotoState,
 		editStudentNamePhotoState.Name():     editStudentNamePhotoState,
 
-		loadPhotoArchiveState.Name():          loadPhotoArchiveState,
-		eventYearPhotoArchiveState.Name():     eventYearPhotoArchiveState,
-		studyProgramPhotoArchiveState.Name():  studyProgramPhotoArchiveState,
-		eventNamePhotoArchiveState.Name():     eventNamePhotoArchiveState,
-		userEventNamePhotoArchiveState.Name(): userEventNamePhotoArchiveState,
-		descriptionPhotoArchiveState.Name():   descriptionPhotoArchiveState,
-		checkPhotoArchiveState.Name():         checkPhotoArchiveState,
+		loadPhotoArchiveState.Name():              loadPhotoArchiveState,
+		eventYearPhotoArchiveState.Name():         eventYearPhotoArchiveState,
+		studyProgramPhotoArchiveState.Name():      studyProgramPhotoArchiveState,
+		eventNamePhotoArchiveState.Name():         eventNamePhotoArchiveState,
+		userEventNamePhotoArchiveState.Name():     userEventNamePhotoArchiveState,
+		descriptionPhotoArchiveState.Name():       descriptionPhotoArchiveState,
+		checkPhotoArchiveState.Name():             checkPhotoArchiveState,
+		editPhotoArchiveState.Name():              editPhotoArchiveState,
+		editEventYearPhotoArchiveState.Name():     editEventYearPhotoArchiveState,
+		editStudyProgramPhotoArchiveState.Name():  editStudyProgramPhotoArchiveState,
+		editEventNamePhotoArchiveState.Name():     editEventNamePhotoArchiveState,
+		editUserEventNamePhotoArchiveState.Name(): editUserEventNamePhotoArchiveState,
+		editDescriptionPhotoArchiveState.Name():   editDescriptionPhotoArchiveState,
 	}
 
 	return nil

@@ -186,7 +186,6 @@ func (state EventYearPhotoArchiveState) Show(ctx context.Context, vkID int) ([]*
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
@@ -320,7 +319,6 @@ func (state EventNamePhotoArchiveState) Show(ctx context.Context, vkID int) ([]*
 	k.AddTextButton("Своё событие", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
@@ -367,7 +365,6 @@ func (state UserEventNamePhotoArchiveState) Show(ctx context.Context, vkID int) 
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
@@ -410,11 +407,10 @@ func (state DescriptionPhotoArchiveState) Handler(ctx context.Context, msg objec
 func (state DescriptionPhotoArchiveState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Напишите описание фотографии")
+	b.Message("Напишите общее описание фотографий в архиве")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
@@ -452,7 +448,7 @@ func (state CheckPhotoArchiveState) Handler(ctx context.Context, msg object.Mess
 		b.Message("Фотография отправлена администратору на рассмотрение. Вы можете отслеживать статус своей заявки в личном кабинете")
 		return photoStart, []*params.MessagesSendBuilder{b}, nil
 	case "Редактировать заявку":
-		return checkPhotoArchive, nil, nil
+		return editPhotoArchive, nil, nil
 	case "Назад":
 		return descriptionPhotoArchive, nil, nil
 	default:
@@ -476,10 +472,9 @@ func (state CheckPhotoArchiveState) Show(ctx context.Context, vkID int) ([]*para
 	b.Message("Проверьте правильность введённых параметров:\n" + output)
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
-	k.AddTextButton("Отправить", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Редактировать заявку", "", "secondary")
 	k.AddRow()
+	k.AddTextButton("Отправить", "", "secondary")
 	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
