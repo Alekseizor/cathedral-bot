@@ -6,6 +6,7 @@ import (
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/object_admin"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/request_photo"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/request_photo_archive"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/search_album"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/search_document"
 	"github.com/jmoiron/sqlx"
 
@@ -28,6 +29,7 @@ type Repo struct {
 	RequestsDocuments   *requests_documents.Repo
 	RequestPhoto        *request_photo.Repo
 	RequestPhotoArchive *request_photo_archive.Repo
+	SearchAlbum         *search_album.Repo
 	Admin               *admin.Repo
 	Documents           *documents.Repo
 	SearchDocument      *search_document.Repo
@@ -53,6 +55,7 @@ func (r *Repo) Init() error {
 	r.State = state.New(db)
 	r.RequestPhoto = request_photo.New(db)
 	r.RequestPhotoArchive = request_photo_archive.New(db)
+	r.SearchAlbum = search_album.New(db)
 	r.Document = documents.New(db)
 	r.RequestsDocuments = requests_documents.New(db)
 	r.Admin = admin.New(db)
