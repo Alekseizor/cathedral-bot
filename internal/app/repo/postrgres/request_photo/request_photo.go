@@ -359,3 +359,13 @@ func (r *Repo) CheckParams(ctx context.Context, photoID int) (string, string, er
 
 	return output, attachment, nil
 }
+
+// UpdateStatus изменяет статус заявки на загрузку фотографии по ID заявки
+func (r *Repo) UpdateStatus(ctx context.Context, status int, photoID int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE request_photo SET status = $1 WHERE id = $2", status, photoID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}

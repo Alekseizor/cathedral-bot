@@ -231,35 +231,28 @@ func (r *Repo) CheckParams(ctx context.Context, photoID int) (string, error) {
 // ChangeArchiveToPhotos в бд меняет одну запись со всеми фото на много записей с одной фото в каждой
 func (r *Repo) ChangeArchiveToPhotos(ctx context.Context, photoID int) error {
 	sqlQuery := `
-	SELECT 
+	SELECT  
     	year,
     	study_program,
     	event,
     	is_event_new,
     	description,
     	attachments, 
-    	user_id
+    	user_id,
+    	status
 	FROM request_photo
 	WHERE id = $1;`
 
-	var (
-		year         *string
-		studyProgram *string
-		event        *string
-		isEventNew   bool
-		description  *string
-		attachments  pq.StringArray
-		userID       int
-	)
+	photo := new(ds.RequestPhoto)
 
-	err := r.db.QueryRow(sqlQuery, photoID).Scan(&year, &studyProgram, &event, &isEventNew, &description, &attachments, &userID)
+	err := r.db.QueryRow(sqlQuery, photoID).Scan(&photo.Year, &photo.StudyProgram, &photo.Event, &photo.IsEventNew, &photo.Description, &photo.Attachments, &photo.UserID, &photo.Status)
 	if err != nil {
 		return fmt.Errorf("[db.QueryRow]: %w", err)
 	}
 
-	for _, attachment := range attachments {
-		_, err := r.db.ExecContext(ctx, `INSERT INTO request_photo(year, study_program, event, is_event_new, description, attachment, user_id) 
-												VALUES ($1, $2, $3, $4, $5, $6, $7)`, year, studyProgram, event, isEventNew, description, attachment, userID)
+	for _, attachment := range photo.Attachments {
+		_, err := r.db.ExecContext(ctx, `INSERT INTO request_photo(year, study_program, event, is_event_new, description, attachment, user_id, status) 
+												VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, photo.Year, photo.StudyProgram, photo.Event, photo.IsEventNew, photo.Description, attachment, photo.UserID, photo.Status)
 		if err != nil {
 			return fmt.Errorf("[db.ExecContext]: %w", err)
 		}
@@ -276,6 +269,16 @@ func (r *Repo) ChangeArchiveToPhotos(ctx context.Context, photoID int) error {
 // DeletePhoto удаляет заявку на добавление фотографии в альбом
 func (r *Repo) DeletePhoto(ctx context.Context, photoID int) error {
 	_, err := r.db.ExecContext(ctx, "DELETE FROM request_photo WHERE id = $1", photoID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateStatus изменяет статус заявки на загрузку фотографии по ID заявки
+func (r *Repo) UpdateStatus(ctx context.Context, status int, photoID int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE request_photo SET status = $1 WHERE id = $2", status, photoID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}

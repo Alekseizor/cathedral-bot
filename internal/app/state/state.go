@@ -120,6 +120,10 @@ const (
 	editEventNamePhotoArchive     = stateName("editEventNamePhotoArchive")
 	editUserEventNamePhotoArchive = stateName("editUserEventNamePhotoArchive")
 	editDescriptionPhotoArchive   = stateName("editDescriptionPhotoArchive")
+
+	categorySearchAlbum = stateName("categorySearchAlbum")
+	yearSearchAlbum     = stateName("yearSearchAlbum")
+	findYearSearchAlbum = stateName("findYearSearchAlbum")
 )
 
 type State interface {
@@ -256,6 +260,10 @@ func (s *States) Init(vk *api.VK) error {
 	editUserEventNamePhotoArchiveState := &EditUserEventNamePhotoArchiveState{postgres: postgresRepo}
 	editDescriptionPhotoArchiveState := &EditDescriptionPhotoArchiveState{postgres: postgresRepo}
 
+	categorySearchAlbumState := &CategorySearchAlbumState{postgres: postgresRepo}
+	yearSearchAlbumState := &YearSearchAlbumState{postgres: postgresRepo}
+	findYearSearchAlbumState := &FindYearSearchAlbumState{postgres: postgresRepo}
+
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
 		startState.Name():                        startState,
@@ -361,6 +369,10 @@ func (s *States) Init(vk *api.VK) error {
 		editEventNamePhotoArchiveState.Name():     editEventNamePhotoArchiveState,
 		editUserEventNamePhotoArchiveState.Name(): editUserEventNamePhotoArchiveState,
 		editDescriptionPhotoArchiveState.Name():   editDescriptionPhotoArchiveState,
+
+		categorySearchAlbumState.Name(): categorySearchAlbumState,
+		yearSearchAlbumState.Name():     yearSearchAlbumState,
+		findYearSearchAlbumState.Name(): findYearSearchAlbumState,
 	}
 
 	return nil

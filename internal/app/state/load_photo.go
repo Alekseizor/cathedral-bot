@@ -2,6 +2,7 @@ package state
 
 import (
 	"context"
+	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
 	"github.com/SevereCloud/vksdk/v2/api"
 	"github.com/SevereCloud/vksdk/v2/api/params"
@@ -153,7 +154,6 @@ func (state EventYearPhotoState) Show(ctx context.Context, vkID int) ([]*params.
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
@@ -399,8 +399,18 @@ func (state CheckPhotoState) Handler(ctx context.Context, msg object.MessagesMes
 		return checkPhoto, nil, nil
 	}
 
+	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
+	if err != nil {
+		return checkPhoto, []*params.MessagesSendBuilder{}, err
+	}
+
 	switch messageText {
 	case "Отправить":
+		err = state.postgres.RequestPhoto.UpdateStatus(ctx, ds.StatusUserConfirmed, photoID)
+		if err != nil {
+			return checkPhoto, []*params.MessagesSendBuilder{}, err
+		}
+
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
 		b.Message("Фотография отправлена администратору на рассмотрение. Вы можете отслеживать статус своей заявки в личном кабинете")

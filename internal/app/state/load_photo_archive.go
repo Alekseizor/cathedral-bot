@@ -3,6 +3,7 @@ package state
 import (
 	"bytes"
 	"context"
+	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
 	"github.com/SevereCloud/vksdk/v2/api"
 	"github.com/SevereCloud/vksdk/v2/api/params"
@@ -438,6 +439,11 @@ func (state CheckPhotoArchiveState) Handler(ctx context.Context, msg object.Mess
 
 	switch messageText {
 	case "Отправить":
+		err = state.postgres.RequestPhotoArchive.UpdateStatus(ctx, ds.StatusUserConfirmed, photoID)
+		if err != nil {
+			return checkPhotoArchive, []*params.MessagesSendBuilder{}, err
+		}
+
 		err = state.postgres.RequestPhotoArchive.ChangeArchiveToPhotos(ctx, photoID)
 		if err != nil {
 			return checkPhotoArchive, []*params.MessagesSendBuilder{}, err

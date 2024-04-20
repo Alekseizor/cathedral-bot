@@ -6,7 +6,7 @@ CREATE TABLE request_photo
     year          INT,
     study_program VARCHAR(100),
     event         VARCHAR(100),
-    is_event_new  boolean DEFAULT FALSE,
+    is_event_new  boolean      DEFAULT FALSE,
     description   VARCHAR(255),
     count_people  INT,
     marked_person INT,
@@ -14,7 +14,8 @@ CREATE TABLE request_photo
     teachers      TEXT[],
     attachment    VARCHAR(255),
     attachments   TEXT[],
-    user_id       INT NOT NULL
+    user_id       INT NOT NULL,
+    status        INT NOT NULL DEFAULT 0
 );
 -- +goose StatementEnd
 
