@@ -124,6 +124,7 @@ const (
 	categorySearchAlbum = stateName("categorySearchAlbum")
 	yearSearchAlbum     = stateName("yearSearchAlbum")
 	findYearSearchAlbum = stateName("findYearSearchAlbum")
+	showListSearchAlbum = stateName("showListSearchAlbum")
 )
 
 type State interface {
@@ -263,6 +264,7 @@ func (s *States) Init(vk *api.VK) error {
 	categorySearchAlbumState := &CategorySearchAlbumState{postgres: postgresRepo}
 	yearSearchAlbumState := &YearSearchAlbumState{postgres: postgresRepo}
 	findYearSearchAlbumState := &FindYearSearchAlbumState{postgres: postgresRepo}
+	showListSearchAlbumState := &ShowListSearchAlbumState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -373,6 +375,7 @@ func (s *States) Init(vk *api.VK) error {
 		categorySearchAlbumState.Name(): categorySearchAlbumState,
 		yearSearchAlbumState.Name():     yearSearchAlbumState,
 		findYearSearchAlbumState.Name(): findYearSearchAlbumState,
+		showListSearchAlbumState.Name(): showListSearchAlbumState,
 	}
 
 	return nil

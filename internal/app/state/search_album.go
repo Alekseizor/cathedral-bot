@@ -21,13 +21,9 @@ func (state CategorySearchAlbumState) Handler(ctx context.Context, msg object.Me
 	}
 
 	switch messageText {
-	case "Год события":
+	case "Студентов":
 		return yearSearchAlbum, nil, nil
-	case "Программа обучения":
-		return categorySearchAlbum, nil, nil
-	case "Название события":
-		return categorySearchAlbum, nil, nil
-	case "Преподаватель":
+	case "Преподавателя":
 		return categorySearchAlbum, nil, nil
 	case "Назад":
 		err := state.postgres.SearchAlbum.DeleteSearchAlbum(ctx, msg.PeerID)
@@ -46,14 +42,11 @@ func (state CategorySearchAlbumState) Handler(ctx context.Context, msg object.Me
 func (state CategorySearchAlbumState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Выберите категорию для поиска альбома")
+	b.Message("Выберите чей альбом искать")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
-	k.AddTextButton("Год события", "", "secondary")
-	k.AddTextButton("Программа обучения", "", "secondary")
-	k.AddRow()
-	k.AddTextButton("Название события", "", "secondary")
-	k.AddTextButton("Преподаватель", "", "secondary")
+	k.AddTextButton("Студентов", "", "secondary")
+	k.AddTextButton("Преподавателя", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
@@ -73,11 +66,8 @@ func (state YearSearchAlbumState) Handler(ctx context.Context, msg object.Messag
 	messageText := msg.Text
 
 	switch messageText {
+	case "Пропустить":
 	case "Назад":
-		err := state.postgres.SearchAlbum.DeleteYear(ctx, msg.PeerID)
-		if err != nil {
-			return yearSearchAlbum, []*params.MessagesSendBuilder{}, err
-		}
 		return categorySearchAlbum, nil, nil
 	default:
 		year, err := strconv.Atoi(messageText)
@@ -98,8 +88,20 @@ func (state YearSearchAlbumState) Handler(ctx context.Context, msg object.Messag
 
 		err = state.postgres.SearchAlbum.UpdateYear(ctx, msg.PeerID, year)
 		if err != nil {
-			return yearSearchAlbum, []*params.MessagesSendBuilder{}, err
+			return yearSearchAlbum, nil, err
 		}
+	}
+
+	count, err := state.postgres.SearchAlbum.CountAlbums(ctx, msg.PeerID)
+	if err != nil {
+		return yearSearchAlbum, nil, err
+	}
+	switch count {
+	case 1:
+		return findYearSearchAlbum, nil, nil
+	case 0:
+		return findYearSearchAlbum, nil, nil
+	default:
 		return findYearSearchAlbum, nil, nil
 	}
 }
@@ -110,6 +112,7 @@ func (state YearSearchAlbumState) Show(ctx context.Context, vkID int) ([]*params
 	b.Message("Напишите год события в формате YYYY")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
+	k.AddTextButton("Пропустить", "", "secondary")
 	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
@@ -132,12 +135,14 @@ func (state FindYearSearchAlbumState) Handler(ctx context.Context, msg object.Me
 
 	switch messageText {
 	case "Показать найденные альбомы":
-		return findYearSearchAlbum, nil, nil
+		return showListSearchAlbum, nil, nil
 	case "Добавить фильтр по программе обучения":
 		return findYearSearchAlbum, nil, nil
-	case "Добавить фильтр по названию события":
-		return findYearSearchAlbum, nil, nil
 	case "Назад":
+		err := state.postgres.SearchAlbum.DeleteYear(ctx, msg.PeerID)
+		if err != nil {
+			return yearSearchAlbum, nil, err
+		}
 		return yearSearchAlbum, nil, nil
 	default:
 		b := params.NewMessagesSendBuilder()
@@ -148,7 +153,7 @@ func (state FindYearSearchAlbumState) Handler(ctx context.Context, msg object.Me
 }
 
 func (state FindYearSearchAlbumState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
-	count, err := state.postgres.SearchAlbum.YearCountAlbums(ctx, vkID)
+	count, err := state.postgres.SearchAlbum.CountAlbums(ctx, vkID)
 	if err != nil {
 		return nil, err
 	}
@@ -164,8 +169,6 @@ func (state FindYearSearchAlbumState) Show(ctx context.Context, vkID int) ([]*pa
 	k.AddRow()
 	k.AddTextButton("Добавить фильтр по программе обучения", "", "secondary")
 	k.AddRow()
-	k.AddTextButton("Добавить фильтр по названию события", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
@@ -173,4 +176,54 @@ func (state FindYearSearchAlbumState) Show(ctx context.Context, vkID int) ([]*pa
 
 func (state FindYearSearchAlbumState) Name() stateName {
 	return findYearSearchAlbum
+}
+
+// ShowListSearchAlbumState пользователь получает список найденных альбомов
+type ShowListSearchAlbumState struct {
+	postgres *postrgres.Repo
+}
+
+func (state ShowListSearchAlbumState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+	if messageText == "" {
+		return showListSearchAlbum, nil, nil
+	}
+
+	switch messageText {
+	case "Завершить поиск":
+		err := state.postgres.SearchAlbum.DeleteSearchAlbum(ctx, msg.PeerID)
+		if err != nil {
+			return eventYearPhotoArchive, nil, err
+		}
+		return photoStart, nil, nil
+	case "Назад":
+		return findYearSearchAlbum, nil, nil
+	default:
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Такого действия нет в предложенных вариантах")
+		return showListSearchAlbum, []*params.MessagesSendBuilder{b}, nil
+	}
+}
+
+func (state ShowListSearchAlbumState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	output, err := state.postgres.SearchAlbum.ShowList(ctx, vkID)
+	if err != nil {
+		return nil, err
+	}
+
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Найденные альбомы:\n" + output)
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Завершить поиск", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Назад", "", "negative")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state ShowListSearchAlbumState) Name() stateName {
+	return showListSearchAlbum
 }

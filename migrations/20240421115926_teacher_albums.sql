@@ -1,26 +1,13 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE albums
+CREATE TABLE teacher_albums
 (
-    id            serial PRIMARY KEY,
-    year          INT,
-    study_program VARCHAR(100),
-    event         VARCHAR(100),
-    teacher       VARCHAR(100),
-    url           VARCHAR(255)
+    id               serial PRIMARY KEY,
+    teacher          VARCHAR(100),
+    url              VARCHAR(255)
 );
-INSERT INTO albums (year, study_program, event, url)
-VALUES (2024, 'Бакалавриат', 'Диплом', 'https://example.com/1'),
-       (2024, 'Бакалавриат', 'Тазы', 'https://example.com/1'),
-       (2024, 'Магистратура', 'Диплом', 'https://example.com/1'),
-       (2024, 'Магистратура', 'Выпускной', 'https://example.com/1'),
 
-       (2023, 'Аспирантура', 'Выпускной', 'https://example.com/1'),
-       (2023, 'Специалитет', 'Учёба', 'https://example.com/1'),
-
-       (2022, 'Магистратура', 'Выпускной', 'https://example.com/1');
-
-INSERT INTO albums (teacher, url)
+INSERT INTO teacher_albums (teacher, url)
 VALUES
     ('Абулкасимов Манас Мукитович', 'https://example.com/1'),
     ('Аксёнова Мария Владимировна', 'https://example.com/2'),
@@ -87,5 +74,5 @@ VALUES
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS albums;
+DROP TABLE IF EXISTS teacher_albums;
 -- +goose StatementEnd
