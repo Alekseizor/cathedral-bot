@@ -50,10 +50,55 @@ func (r *Repo) UpdateYear(ctx context.Context, vkID int, year int) error {
 	return nil
 }
 
+// UpdateStudyProgram добавляет программу обучения для поиска альбома
+func (r *Repo) UpdateStudyProgram(ctx context.Context, vkID int, studyProgram string) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE search_album SET study_program = $1 WHERE user_id = $2", studyProgram, vkID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateEvent добавляет название события для поиска альбома
+func (r *Repo) UpdateEvent(ctx context.Context, vkID int, eventNumber int) error {
+	var event string
+	err := r.db.Get(&event, "SELECT name FROM events WHERE id = $1", eventNumber)
+	if err != nil {
+		return fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	_, err = r.db.ExecContext(ctx, "UPDATE search_album SET event = $1 WHERE user_id = $2", event, vkID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
 // DeleteYear удаляет год события для поиска альбома
 func (r *Repo) DeleteYear(ctx context.Context, vkID int) error {
-	var year *int
-	_, err := r.db.ExecContext(ctx, "UPDATE search_album SET year = $1 WHERE user_id = $2", year, vkID)
+	_, err := r.db.ExecContext(ctx, "UPDATE search_album SET year = $1 WHERE user_id = $2", nil, vkID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteStudyProgram удаляет программу обучения для поиска альбома
+func (r *Repo) DeleteStudyProgram(ctx context.Context, vkID int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE search_album SET study_program = $1 WHERE user_id = $2", nil, vkID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteEvent удаляет название события для поиска альбома
+func (r *Repo) DeleteEvent(ctx context.Context, vkID int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE search_album SET event = $1 WHERE user_id = $2", nil, vkID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -165,11 +210,49 @@ func (r *Repo) ShowList(ctx context.Context, vkID int) (string, error) {
 
 	var result string
 
-	for idx, album := range albums {
-		yearStr := strconv.Itoa(album.Year)
-		idxStr := strconv.Itoa(idx + 1)
-		result += idxStr + ") " + yearStr + " // " + album.StudyProgram + " // " + album.Event + "\n" + album.URL + "\n"
+	if len(albums) == 1 {
+		yearStr := strconv.Itoa(albums[0].Year)
+		result += yearStr + " // " + albums[0].StudyProgram + " // " + albums[0].Event + "\n" + albums[0].URL + "\n"
+	} else {
+		for idx, album := range albums {
+			yearStr := strconv.Itoa(album.Year)
+			idxStr := strconv.Itoa(idx + 1)
+			result += idxStr + ") " + yearStr + " // " + album.StudyProgram + " // " + album.Event + "\n" + album.URL + "\n"
+		}
 	}
 
 	return result, nil
+}
+
+// GetEventMaxID возвращает максимальное ID из событий для фотографий
+func (r *Repo) GetEventMaxID() (int, error) {
+	var maxID int
+	err := r.db.Get(&maxID, "SELECT MAX(id) FROM events")
+	if err != nil {
+		return 0, fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	return maxID, nil
+}
+
+// GetEventNames возвращает список названий событий для фотографии
+func (r *Repo) GetEventNames() (string, error) {
+	var output string
+
+	rows, err := r.db.Query("SELECT CONCAT(id, ') ', name) AS formatted_string FROM events")
+	if err != nil {
+		return "", fmt.Errorf("[db.Query]: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var formattedString string
+		err := rows.Scan(&formattedString)
+		if err != nil {
+			return "", fmt.Errorf("[db.Scan]: %w", err)
+		}
+		output += formattedString + "\n"
+	}
+
+	return output, nil
 }
