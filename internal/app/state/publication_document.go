@@ -57,7 +57,7 @@ func (state RequestDocumentFromQueueState) Handler(ctx context.Context, msg obje
 		}
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
-		b.Message(fmt.Sprintf("Файл c названием - %s успешно добавлен в документоархив", reqDocument.Title))
+		b.Message(fmt.Sprintf("Файл c названием - %s - успешно добавлен в документоархив", reqDocument.Title))
 		k := object.NewMessagesKeyboard(true)
 		addBackButton(k)
 		b.Keyboard(k)
@@ -76,9 +76,12 @@ func (state RequestDocumentFromQueueState) Handler(ctx context.Context, msg obje
 		b.Keyboard(k)
 		return workingRequestDocument, []*params.MessagesSendBuilder{b}, nil
 	case "Назад":
-		err = state.postgres.RequestsDocuments.UpdateStatus(ctx, ds.StatusUserConfirmed, requestID)
-		if err != nil {
-			return "", nil, fmt.Errorf("[requests_documents.UpdateStatus]: %w", err)
+		status, err := state.postgres.RequestsDocuments.GetStatus(ctx, requestID)
+		if status == ds.StatusAdminWorking {
+			err = state.postgres.RequestsDocuments.UpdateStatus(ctx, ds.StatusUserConfirmed, requestID)
+			if err != nil {
+				return "", nil, fmt.Errorf("[requests_documents.UpdateStatus]: %w", err)
+			}
 		}
 		return workingRequestDocument, nil, nil
 	default:
@@ -129,6 +132,89 @@ func (state RequestDocumentFromQueueState) Name() stateName {
 	return requestDocumentFromQueue
 }
 
+type RequestDocumentEntrySpecificApplicationState struct {
+	postgres *postrgres.Repo
+}
+
+func (state RequestDocumentEntrySpecificApplicationState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+
+	switch messageText {
+	case "Назад":
+		return workingRequestDocument, nil, nil
+	default:
+		requestID, err := strconv.Atoi(messageText)
+		if err != nil {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("ID заявки должно быть числом!")
+			k := object.NewMessagesKeyboard(true)
+			addBackButton(k)
+			b.Keyboard(k)
+			return requestDocumentEntrySpecificApplication, []*params.MessagesSendBuilder{b}, nil
+		}
+
+		requestDocument, err := state.postgres.RequestsDocuments.GetByID(ctx, requestID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				b := params.NewMessagesSendBuilder()
+				b.RandomID(0)
+				b.Message(fmt.Sprintf("Заяки с ID - %d - не найдено. Возможно, файл из этой заявки уже опубликован!", requestID))
+				k := object.NewMessagesKeyboard(true)
+				addBackButton(k)
+				b.Keyboard(k)
+				return requestDocumentEntrySpecificApplication, []*params.MessagesSendBuilder{b}, nil
+			}
+			return requestDocumentEntrySpecificApplication, nil, fmt.Errorf("[requests_documents.GetByID]: %w", err)
+		}
+
+		switch requestDocument.Status {
+		case ds.StatusAdminDeclined:
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message(fmt.Sprintf("Заяки с ID - %d - уже отклонена", requestID))
+			k := object.NewMessagesKeyboard(true)
+			addBackButton(k)
+			b.Keyboard(k)
+			return requestDocumentEntrySpecificApplication, []*params.MessagesSendBuilder{b}, nil
+		case ds.StatusAdminWorking:
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message(fmt.Sprintf("С заякой №%d сейчас работает другой администратор", requestID))
+			k := object.NewMessagesKeyboard(true)
+			addBackButton(k)
+			b.Keyboard(k)
+			return requestDocumentEntrySpecificApplication, []*params.MessagesSendBuilder{b}, nil
+		}
+
+		err = state.postgres.ObjectAdmin.Update(ctx, requestID, msg.PeerID)
+		if err != nil {
+			return requestDocumentEntrySpecificApplication, nil, fmt.Errorf("[object_admin.Update]: %w", err)
+		}
+
+		err = state.postgres.RequestsDocuments.UpdateStatus(ctx, ds.StatusAdminWorking, requestID)
+		if err != nil {
+			return requestDocumentEntrySpecificApplication, nil, fmt.Errorf("[requests_documents.UpdateStatus]: %w", err)
+		}
+
+		return requestDocumentSpecificApplication, nil, nil
+	}
+}
+
+func (state RequestDocumentEntrySpecificApplicationState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Введите ID заявки, над которой хотите поработать")
+	k := object.NewMessagesKeyboard(true)
+	addBackButton(k)
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state RequestDocumentEntrySpecificApplicationState) Name() stateName {
+	return requestDocumentEntrySpecificApplication
+}
+
 type RequestDocumentSpecificApplicationState struct {
 	postgres *postrgres.Repo
 }
@@ -168,7 +254,7 @@ func (state RequestDocumentSpecificApplicationState) Handler(ctx context.Context
 		}
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
-		b.Message(fmt.Sprintf("Файл c названием - %s успешно добавлен в документоархив", reqDocument.Title))
+		b.Message(fmt.Sprintf("Файл c названием - %s - успешно добавлен в документоархив", reqDocument.Title))
 		k := object.NewMessagesKeyboard(true)
 		addBackButton(k)
 		b.Keyboard(k)
@@ -187,9 +273,12 @@ func (state RequestDocumentSpecificApplicationState) Handler(ctx context.Context
 		b.Keyboard(k)
 		return workingRequestDocument, []*params.MessagesSendBuilder{b}, nil
 	case "Назад":
-		err = state.postgres.RequestsDocuments.UpdateStatus(ctx, ds.StatusUserConfirmed, requestID)
-		if err != nil {
-			return "", nil, fmt.Errorf("[requests_documents.UpdateStatus]: %w", err)
+		status, err := state.postgres.RequestsDocuments.GetStatus(ctx, requestID)
+		if status == ds.StatusAdminWorking {
+			err = state.postgres.RequestsDocuments.UpdateStatus(ctx, ds.StatusUserConfirmed, requestID)
+			if err != nil {
+				return "", nil, fmt.Errorf("[requests_documents.UpdateStatus]: %w", err)
+			}
 		}
 		return workingRequestDocument, nil, nil
 	default:

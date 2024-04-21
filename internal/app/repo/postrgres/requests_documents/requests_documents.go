@@ -45,6 +45,17 @@ func (r *Repo) UpdateStatus(ctx context.Context, status int, reqDocID int) error
 	return nil
 }
 
+// UpdateStatus изменяет статус заявки на загрузку документа по ID заявки
+func (r *Repo) GetStatus(ctx context.Context, reqDocID int) (int, error) {
+	var status int
+	err := r.db.GetContext(ctx, &status, "SELECT status FROM requests_documents WHERE id = $1", reqDocID)
+	if err != nil {
+		return 0, fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	return status, nil
+}
+
 // UploadDocument загружает документ
 func (r *Repo) UploadDocument(ctx context.Context, VK *api.VK, doc object.DocsDoc, vkID int) error {
 	resp, err := http.Get(doc.URL)

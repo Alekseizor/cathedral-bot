@@ -71,7 +71,7 @@ func (state WorkingRequestDocumentState) Handler(ctx context.Context, msg object
 	case "Заявки из очереди":
 		return requestDocumentFromQueue, nil, nil
 	case "Конкретная заявка":
-		return workingRequestDocument, nil, nil
+		return requestDocumentEntrySpecificApplication, nil, nil
 	case "Назад":
 		return documentCabinet, nil, nil
 	default:
