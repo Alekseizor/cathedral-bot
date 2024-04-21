@@ -24,7 +24,7 @@ func (state CategorySearchAlbumState) Handler(ctx context.Context, msg object.Me
 	case "Студентов":
 		return yearSearchAlbum, nil, nil
 	case "Преподавателя":
-		return categorySearchAlbum, nil, nil
+		return teacherSearchAlbum, nil, nil
 	case "Назад":
 		err := state.postgres.SearchAlbum.DeleteSearchAlbum(ctx, msg.PeerID)
 		if err != nil {
@@ -643,4 +643,127 @@ func (state FindEventSearchAlbumState) Show(ctx context.Context, vkID int) ([]*p
 
 func (state FindEventSearchAlbumState) Name() stateName {
 	return findEventSearchAlbum
+}
+
+// TeacherSearchAlbumState пользователь ищет альбом преподавателя
+type TeacherSearchAlbumState struct {
+	postgres *postrgres.Repo
+}
+
+func (state TeacherSearchAlbumState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+	if messageText == "" {
+		return teacherSearchAlbum, nil, nil
+	}
+
+	switch messageText {
+	case "Назад":
+		return categorySearchAlbum, nil, nil
+	default:
+		teacherID, err := strconv.Atoi(messageText)
+		if err != nil {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("Введите номер преподавателя числом")
+			return teacherSearchAlbum, []*params.MessagesSendBuilder{b}, nil
+		}
+
+		maxID, err := state.postgres.SearchAlbum.GetTeacherMaxID()
+		if err != nil {
+			return teacherSearchAlbum, []*params.MessagesSendBuilder{}, err
+		}
+
+		if !(teacherID >= 1 && teacherID <= maxID) {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("Такого преподавателя нет в списке")
+			return teacherSearchAlbum, []*params.MessagesSendBuilder{b}, nil
+		}
+
+		teacherName, err := state.postgres.SearchAlbum.GetTeacherName(ctx, teacherID)
+		if err != nil {
+			return teacherSearchAlbum, []*params.MessagesSendBuilder{}, err
+		}
+
+		err = state.postgres.SearchAlbum.UpdateTeacher(ctx, msg.PeerID, teacherName)
+		if err != nil {
+			return teacherSearchAlbum, []*params.MessagesSendBuilder{}, err
+		}
+
+		return showTeacherSearchAlbum, nil, nil
+	}
+}
+
+func (state TeacherSearchAlbumState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	teacherNames, err := state.postgres.SearchAlbum.GetTeacherNames()
+	if err != nil {
+		return []*params.MessagesSendBuilder{}, err
+	}
+
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Напишите номер преподавателя из списка ниже:\n" + teacherNames)
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Назад", "", "negative")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state TeacherSearchAlbumState) Name() stateName {
+	return teacherSearchAlbum
+}
+
+// ShowTeacherSearchAlbumState пользователь получает альбом преподавателя
+type ShowTeacherSearchAlbumState struct {
+	postgres *postrgres.Repo
+}
+
+func (state ShowTeacherSearchAlbumState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+	if messageText == "" {
+		return showTeacherSearchAlbum, nil, nil
+	}
+
+	switch messageText {
+	case "Завершить поиск":
+		err := state.postgres.SearchAlbum.DeleteSearchAlbum(ctx, msg.PeerID)
+		if err != nil {
+			return showTeacherSearchAlbum, nil, err
+		}
+		return photoStart, nil, nil
+	case "Назад":
+		err := state.postgres.SearchAlbum.DeleteTeacher(ctx, msg.PeerID)
+		if err != nil {
+			return showTeacherSearchAlbum, nil, err
+		}
+		return teacherSearchAlbum, nil, nil
+	default:
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Такого действия нет в предложенных вариантах")
+		return showTeacherSearchAlbum, []*params.MessagesSendBuilder{b}, nil
+	}
+}
+
+func (state ShowTeacherSearchAlbumState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	album, err := state.postgres.SearchAlbum.ShowTeacher(ctx, vkID)
+	if err != nil {
+		return nil, err
+	}
+
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message(album)
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Завершить поиск", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Назад", "", "negative")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state ShowTeacherSearchAlbumState) Name() stateName {
+	return showTeacherSearchAlbum
 }

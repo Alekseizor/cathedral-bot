@@ -143,6 +143,8 @@ const (
 	showListStudyProgramSearchAlbum  = stateName("showListStudyProgramSearchAlbum")
 	eventSearchAlbum                 = stateName("eventSearchAlbum")
 	findEventSearchAlbum             = stateName("findEventSearchAlbum")
+	teacherSearchAlbum               = stateName("teacherSearchAlbum")
+	showTeacherSearchAlbum           = stateName("showTeacherSearchAlbum")
 )
 
 type State interface {
@@ -301,6 +303,8 @@ func (s *States) Init(vk *api.VK) error {
 	showListStudyProgramSearchAlbumState := &ShowListStudyProgramSearchAlbumState{postgres: postgresRepo}
 	eventSearchAlbumState := &EventSearchAlbumState{postgres: postgresRepo}
 	findEventSearchAlbumState := &FindEventSearchAlbumState{postgres: postgresRepo}
+	teacherSearchAlbumState := &TeacherSearchAlbumState{postgres: postgresRepo}
+	showTeacherSearchAlbumState := &ShowTeacherSearchAlbumState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -430,6 +434,8 @@ func (s *States) Init(vk *api.VK) error {
 		showListStudyProgramSearchAlbumState.Name():  showListStudyProgramSearchAlbumState,
 		eventSearchAlbumState.Name():                 eventSearchAlbumState,
 		findEventSearchAlbumState.Name():             findEventSearchAlbumState,
+		teacherSearchAlbumState.Name():               teacherSearchAlbumState,
+		showTeacherSearchAlbumState.Name():           showTeacherSearchAlbumState,
 	}
 
 	return nil
