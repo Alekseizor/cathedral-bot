@@ -140,6 +140,8 @@ const (
 	// стейты администратора фотоархива
 	workingRequestPhoto             = stateName("workingRequestPhoto")
 	workingAlbums                   = stateName("workingAlbums")
+	workingAlbumsFromStudents       = stateName("workingAlbumsFromStudents")
+	workingAlbumsFromTeachers       = stateName("workingAlbumsFromTeachers")
 	addPhotoAdministrator           = stateName("addPhotoAdministrator")
 	removePhotoAdministrator        = stateName("removePhotoAdministrator")
 	requestPhotoFromQueue           = stateName("requestPhotoFromQueue")
@@ -207,7 +209,6 @@ func (s *States) Init(vk *api.VK) error {
 	descriptionArchiveState := &DescriptionArchiveState{postgres: postgresRepo}
 	hashtagArchiveState := &HashtagArchiveState{postgres: postgresRepo}
 	checkArchiveState := &CheckArchiveState{postgres: postgresRepo}
-	albumsCabinetState := &AlbumsCabinetState{postgres: postgresRepo}
 	documentCabinetState := &DocumentCabinetState{postgres: postgresRepo}
 	blockUserState := &BlockUserState{postgres: postgresRepo}
 	blockingState := &BlockingState{}
@@ -299,6 +300,14 @@ func (s *States) Init(vk *api.VK) error {
 	findYearLess2SearchAlbumState := &FindYearLess2SearchAlbumState{postgres: postgresRepo}
 	showListYearSearchAlbumState := &ShowListYearSearchAlbumState{postgres: postgresRepo}
 
+	// стейты администратора фотоархива
+	albumsCabinetState := &AlbumsCabinetState{postgres: postgresRepo}
+	workingRequestPhotoState := &WorkingRequestPhotoState{}
+	workingAlbumsState := &WorkingAlbumsState{}
+	workingAlbumsFromStudentsState := &WorkingAlbumsFromStudentsState{postgres: postgresRepo}
+	actionOnPhotoState := &ActionOnPhotoState{postgres: postgresRepo}
+	changeAlbumsState := &ChangeAlbumsState{postgres: postgresRepo}
+
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
 		startState.Name():                                   startState,
@@ -330,7 +339,6 @@ func (s *States) Init(vk *api.VK) error {
 		descriptionArchiveState.Name():                      descriptionArchiveState,
 		hashtagArchiveState.Name():                          hashtagArchiveState,
 		checkArchiveState.Name():                            checkArchiveState,
-		albumsCabinetState.Name():                           albumsCabinetState,
 		documentCabinetState.Name():                         documentCabinetState,
 		blockUserState.Name():                               blockUserState,
 		blockingState.Name():                                blockingState,
@@ -421,6 +429,14 @@ func (s *States) Init(vk *api.VK) error {
 		findYearSearchAlbumState.Name():      findYearSearchAlbumState,
 		findYearLess2SearchAlbumState.Name(): findYearLess2SearchAlbumState,
 		showListYearSearchAlbumState.Name():  showListYearSearchAlbumState,
+
+		// стейты администратора фотоархива
+		albumsCabinetState.Name():             albumsCabinetState,
+		workingRequestPhotoState.Name():       workingRequestPhotoState,
+		workingAlbumsState.Name():             workingAlbumsState,
+		workingAlbumsFromStudentsState.Name(): workingAlbumsFromStudentsState,
+		actionOnPhotoState.Name():             actionOnPhotoState,
+		changeAlbumsState.Name():              changeAlbumsState,
 	}
 
 	return nil

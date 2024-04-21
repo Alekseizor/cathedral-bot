@@ -99,14 +99,51 @@ func (state WorkingRequestPhotoState) Name() stateName {
 ///////////
 
 type WorkingAlbumsState struct {
-	postgres *postrgres.Repo
 }
 
 func (state WorkingAlbumsState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 
-	if messageText == "Назад" {
+	switch messageText {
+	case "Студенческие":
+		return workingAlbumsFromStudents, nil, nil
+	case "Преподавательские":
+		return workingAlbums, nil, nil
+	case "Назад":
 		return albumsCabinet, nil, nil
+	default:
+		return workingAlbums, nil, nil
+	}
+}
+
+func (state WorkingAlbumsState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message("Вы хотите работать с альбомами студенческими или преподавательскими?")
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Студенческие", "", "secondary")
+	k.AddTextButton("Преподавательские", "", "secondary")
+	addBackButton(k)
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state WorkingAlbumsState) Name() stateName {
+	return workingAlbums
+}
+
+///////////
+
+type WorkingAlbumsFromStudentsState struct {
+	postgres *postrgres.Repo
+}
+
+func (state WorkingAlbumsFromStudentsState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+
+	if messageText == "Назад" {
+		return workingAlbums, nil, nil
 	}
 
 	documentID, err := strconv.Atoi(messageText)
@@ -114,24 +151,24 @@ func (state WorkingAlbumsState) Handler(ctx context.Context, msg object.Messages
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
 		b.Message("ID должно быть числом, например, 12")
-		return workingAlbums, []*params.MessagesSendBuilder{b}, nil
+		return workingAlbumsFromStudents, []*params.MessagesSendBuilder{b}, nil
 	}
 
-	exists, err := state.postgres.Documents.CheckExistence(ctx, documentID)
+	exists, err := state.postgres.StudentAlbums.CheckExistence(ctx, documentID)
 	if err != nil {
-		return workingAlbums, nil, err
+		return workingAlbumsFromStudents, nil, err
 	}
+
 	if !exists {
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
-		b.Message("ID c таким фото не найдено")
-		return workingAlbums, []*params.MessagesSendBuilder{b}, nil
+		b.Message("Альбома студентов с таким ID не найдено")
+		return workingAlbumsFromStudents, []*params.MessagesSendBuilder{b}, nil
 	}
 
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	output, attachment, err := state.postgres.Documents.GetOutput(ctx, documentID)
-	b.Attachment(attachment)
+	output, err := state.postgres.StudentAlbums.GetAlbum(ctx, documentID)
 	b.Message(output)
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
@@ -140,14 +177,17 @@ func (state WorkingAlbumsState) Handler(ctx context.Context, msg object.Messages
 	addBackButton(k)
 	b.Keyboard(k)
 
-	return workingAlbums, []*params.MessagesSendBuilder{b}, nil
+	return actionOnPhoto, []*params.MessagesSendBuilder{b}, nil
 }
 
-func (state WorkingAlbumsState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+func (state WorkingAlbumsFromStudentsState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	//TODO: показываем существующие альбомы как id и название
-	b.Message("Показываем существующие альбомы как id и название")
+	output, err := state.postgres.StudentAlbums.GetAllAlbumsOutput(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("[student_albums.GetAllAlbumsOutput]: %w", err)
+	}
+	b.Message(fmt.Sprintf("Существующие студенческие альбомы:\n%s", output))
 
 	b1 := params.NewMessagesSendBuilder()
 	b1.RandomID(0)
@@ -158,8 +198,8 @@ func (state WorkingAlbumsState) Show(ctx context.Context, vkID int) ([]*params.M
 	return []*params.MessagesSendBuilder{b, b1}, nil
 }
 
-func (state WorkingAlbumsState) Name() stateName {
-	return workingAlbums
+func (state WorkingAlbumsFromStudentsState) Name() stateName {
+	return workingAlbumsFromStudents
 }
 
 ///////////

@@ -2,12 +2,15 @@ package postrgres
 
 import (
 	"fmt"
+
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/documents"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/object_admin"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/request_photo"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/request_photo_archive"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/search_album"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/search_document"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/student_albums"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/teacher_albums"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/Alekseizor/cathedral-bot/internal/app/config"
@@ -34,6 +37,8 @@ type Repo struct {
 	Documents           *documents.Repo
 	SearchDocument      *search_document.Repo
 	ObjectAdmin         *object_admin.Repo
+	StudentAlbums       *student_albums.Repo
+	TeacherAlbums       *teacher_albums.Repo
 }
 
 // New - создаем новое объект репо, подключения к бд еще нет!
@@ -62,6 +67,8 @@ func (r *Repo) Init() error {
 	r.Documents = documents.New(db)
 	r.ObjectAdmin = object_admin.New(db)
 	r.SearchDocument = search_document.New(db)
+	r.StudentAlbums = student_albums.New(db)
+	r.TeacherAlbums = teacher_albums.New(db)
 
 	return nil
 }
