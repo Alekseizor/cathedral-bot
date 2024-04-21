@@ -20,6 +20,14 @@ func (state PhotoStartState) Handler(ctx context.Context, msg object.MessagesMes
 	switch messageText {
 	case "Загрузка фото":
 		return loadPhoto, nil, nil
+	case "Загрузка архива":
+		return loadPhotoArchive, nil, nil
+	case "Поиск альбома":
+		err := state.postgres.SearchAlbum.CreateSearchAlbum(ctx, msg.PeerID)
+		if err != nil {
+			return photoStart, []*params.MessagesSendBuilder{}, err
+		}
+		return categorySearchAlbum, nil, nil
 	case "Кабинет администратора фотоархива":
 		return albumsCabinet, nil, nil
 	case "Назад":
