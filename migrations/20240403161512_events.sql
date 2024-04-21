@@ -5,6 +5,7 @@ CREATE TABLE events
     id   SERIAL PRIMARY KEY,
     name VARCHAR(255) unique
 );
+
 INSERT INTO events(name)
 VALUES ('Учёба'),
        ('Диплом'),

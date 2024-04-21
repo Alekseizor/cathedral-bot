@@ -7,10 +7,8 @@ import (
 	"fmt"
 	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
 	"github.com/SevereCloud/vksdk/v2/api"
-	"github.com/SevereCloud/vksdk/v2/object"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"io"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -29,86 +27,6 @@ func New(db *sqlx.DB) *Repo {
 	}
 }
 
-type docsDoc struct {
-	File string `json:"file"`
-}
-
-// UploadPhotoAsFile загружает фотографию как документ
-func (r *Repo) UploadPhotoAsFile(ctx context.Context, VK *api.VK, doc object.DocsDoc, vkID int) error {
-	resp, err := http.Get(doc.URL)
-	if err != nil {
-		return fmt.Errorf("failed to retrieve document URL: %w", err)
-	}
-	defer resp.Body.Close()
-
-	upload, err := VK.DocsGetMessagesUploadServer(api.Params{
-		"type":    "doc",
-		"peer_id": vkID,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to get upload server URL: %w", err)
-	}
-
-	file, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read document content: %w", err)
-	}
-	fileBody := bytes.NewReader(file)
-
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile("file", doc.Title)
-	if err != nil {
-		return fmt.Errorf("failed to create form file: %w", err)
-	}
-	_, err = io.Copy(part, fileBody)
-	if err != nil {
-		return fmt.Errorf("failed to copy file content to form file: %w", err)
-	}
-	err = writer.Close()
-	if err != nil {
-		return fmt.Errorf("failed to close multipart writer: %w", err)
-	}
-
-	req, err := http.NewRequest("POST", upload.UploadURL, body)
-	if err != nil {
-		return fmt.Errorf("failed to create HTTP request: %w", err)
-	}
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-
-	client := &http.Client{}
-	response, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to perform HTTP request: %w", err)
-	}
-	defer response.Body.Close()
-
-	docs := &docsDoc{}
-	err = json.NewDecoder(response.Body).Decode(docs)
-	if err != nil {
-		return fmt.Errorf("failed to decode response body: %w", err)
-	}
-
-	log.Println(docs.File)
-
-	savedDoc, err := VK.DocsSave(api.Params{
-		"file":  docs.File,
-		"title": doc.Title,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to save document: %w", err)
-	}
-
-	attachment := "doc" + strconv.Itoa(savedDoc.Doc.OwnerID) + "_" + strconv.Itoa(savedDoc.Doc.ID)
-
-	_, err = r.db.ExecContext(ctx, "INSERT INTO request_photo(attachment, user_id) VALUES ($1, $2)", attachment, vkID)
-	if err != nil {
-		return fmt.Errorf("failed to insert into database: %w", err)
-	}
-
-	return nil
-}
-
 type photosPhoto struct {
 	Server int    `json:"server"`
 	Photo  string `json:"photo"`
@@ -116,14 +34,7 @@ type photosPhoto struct {
 }
 
 // UploadPhoto загружает фотографию
-func (r *Repo) UploadPhoto(ctx context.Context, VK *api.VK, photo object.PhotosPhoto, vkID int) error {
-	resp, err := http.Get(photo.Sizes[4].URL)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	defer resp.Body.Close()
-
+func (r *Repo) UploadPhoto(ctx context.Context, VK *api.VK, photoData []byte, vkID int) error {
 	uploadServer, err := VK.PhotosGetMessagesUploadServer(api.Params{
 		"peer_id": vkID,
 	})
@@ -132,13 +43,6 @@ func (r *Repo) UploadPhoto(ctx context.Context, VK *api.VK, photo object.PhotosP
 		return err
 	}
 
-	file, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	fileBody := bytes.NewReader(file)
-
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	part, err := writer.CreateFormFile("photo", "photo.jpg")
@@ -146,7 +50,7 @@ func (r *Repo) UploadPhoto(ctx context.Context, VK *api.VK, photo object.PhotosP
 		log.Println(err)
 		return err
 	}
-	_, err = io.Copy(part, fileBody)
+	_, err = part.Write(photoData)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -162,6 +66,11 @@ func (r *Repo) UploadPhoto(ctx context.Context, VK *api.VK, photo object.PhotosP
 
 	client := &http.Client{}
 	response, err := client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer response.Body.Close()
 
 	uploadResult := &photosPhoto{}
 	err = json.NewDecoder(response.Body).Decode(uploadResult)
@@ -443,10 +352,20 @@ func (r *Repo) CheckParams(ctx context.Context, photoID int) (string, string, er
 
 	err := r.db.QueryRow(sqlQuery, photoID).Scan(&year, &studyProgram, &event, &description, &markedPeople, &teachers, &attachment)
 	if err != nil {
-		return "", "", fmt.Errorf("[db.GetContext]: %w", err)
+		return "", "", fmt.Errorf("[db.QueryRow]: %w", err)
 	}
 
 	output := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s\n", year, studyProgram, event, description, markedPeople, teachers)
 
 	return output, attachment, nil
+}
+
+// UpdateStatus изменяет статус заявки на загрузку фотографии по ID заявки
+func (r *Repo) UpdateStatus(ctx context.Context, status int, photoID int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE request_photo SET status = $1 WHERE id = $2", status, photoID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
 }

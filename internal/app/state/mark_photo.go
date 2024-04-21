@@ -39,7 +39,10 @@ func (state IsPeoplePresentPhotoState) Handler(ctx context.Context, msg object.M
 		}
 		return loadPhoto, nil, nil
 	default:
-		return isPeoplePresentPhoto, nil, nil
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Выберите из предложенных вариантов")
+		return isPeoplePresentPhoto, []*params.MessagesSendBuilder{b}, nil
 	}
 }
 
@@ -53,7 +56,7 @@ func (state IsPeoplePresentPhotoState) Show(ctx context.Context, vkID int) ([]*p
 	k.AddTextButton("Нет", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
-	k.AddTextButton("Назад", "", "secondary")
+	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -71,7 +74,7 @@ func (state CountPeoplePhotoState) Handler(ctx context.Context, msg object.Messa
 	messageText := msg.Text
 	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
 	if err != nil {
-		return editEventYearPhoto, []*params.MessagesSendBuilder{}, err
+		return countPeoplePhoto, []*params.MessagesSendBuilder{}, err
 	}
 
 	switch messageText {
@@ -106,7 +109,7 @@ func (state CountPeoplePhotoState) Show(ctx context.Context, vkID int) ([]*param
 	b.Message("Напишите количество людей на фото")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
-	k.AddTextButton("Назад", "", "secondary")
+	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -124,7 +127,7 @@ func (state MarkedPeoplePhotoState) Handler(ctx context.Context, msg object.Mess
 	messageText := msg.Text
 	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
 	if err != nil {
-		return editEventYearPhoto, []*params.MessagesSendBuilder{}, err
+		return markedPeoplePhoto, []*params.MessagesSendBuilder{}, err
 	}
 
 	switch messageText {
@@ -174,7 +177,7 @@ func (state MarkedPeoplePhotoState) Show(ctx context.Context, vkID int) ([]*para
 	k.AddRow()
 	k.AddTextButton("Закончить отмечать людей", "", "secondary")
 	k.AddRow()
-	k.AddTextButton("Назад", "", "secondary")
+	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -213,10 +216,9 @@ func (state IsTeacherPhotoState) Show(ctx context.Context, vkID int) ([]*params.
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Да", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Нет", "", "secondary")
 	k.AddRow()
-	k.AddTextButton("Назад", "", "secondary")
+	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -299,7 +301,7 @@ func (state TeacherNamePhotoState) Show(ctx context.Context, vkID int) ([]*param
 	k.AddRow()
 	k.AddTextButton("Ввести ФИО вручную", "", "secondary")
 	k.AddRow()
-	k.AddTextButton("Назад", "", "secondary")
+	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -315,6 +317,10 @@ type UserTeacherNamePhotoState struct {
 
 func (state UserTeacherNamePhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
+	if messageText == "" {
+		return userTeacherNamePhoto, nil, nil
+	}
+
 	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
 	if err != nil {
 		return userTeacherNamePhoto, []*params.MessagesSendBuilder{}, err
@@ -348,7 +354,7 @@ func (state UserTeacherNamePhotoState) Show(ctx context.Context, vkID int) ([]*p
 	b.Message("Напишите ФИО преподавателя")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
-	k.AddTextButton("Назад", "", "secondary")
+	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -364,9 +370,13 @@ type StudentNamePhotoState struct {
 
 func (state StudentNamePhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
+	if messageText == "" {
+		return studentNamePhoto, nil, nil
+	}
+
 	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
 	if err != nil {
-		return userTeacherNamePhoto, []*params.MessagesSendBuilder{}, err
+		return studentNamePhoto, []*params.MessagesSendBuilder{}, err
 	}
 
 	switch messageText {
@@ -375,7 +385,7 @@ func (state StudentNamePhotoState) Handler(ctx context.Context, msg object.Messa
 	default:
 		allMarked, err := state.postgres.RequestPhoto.UpdateMarkedPeople(ctx, photoID, messageText)
 		if err != nil {
-			return userTeacherNamePhoto, []*params.MessagesSendBuilder{}, err
+			return studentNamePhoto, []*params.MessagesSendBuilder{}, err
 		}
 
 		if allMarked {
@@ -389,10 +399,10 @@ func (state StudentNamePhotoState) Handler(ctx context.Context, msg object.Messa
 func (state StudentNamePhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Напишите фамилию и имя студента")
+	b.Message("Напишите фамилию и имя человека")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
-	k.AddTextButton("Назад", "", "secondary")
+	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }

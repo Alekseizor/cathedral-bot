@@ -2,20 +2,21 @@ package state
 
 import (
 	"context"
+	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
 	"github.com/SevereCloud/vksdk/v2/api"
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
+	"io"
+	"net/http"
 	"strconv"
 	"time"
 )
 
-var validExtension = map[string]struct{}{
-	"jpg":  struct{}{},
-	"jpeg": struct{}{},
-	"png":  struct{}{},
-	"tif":  struct{}{},
-	"tiff": struct{}{},
+var validExtensionPhoto = map[string]struct{}{
+	"image/jpeg":               struct{}{},
+	"image/png":                struct{}{},
+	"application/octet-stream": struct{}{},
 }
 
 // LoadPhotoState пользователь загружает фотографию
@@ -45,41 +46,58 @@ func (state LoadPhotoState) Handler(ctx context.Context, msg object.MessagesMess
 		return loadPhoto, []*params.MessagesSendBuilder{b}, nil
 	}
 
-	if attachment[0].Type == "photo" {
-		err := state.postgres.RequestPhoto.UploadPhoto(ctx, state.vk, attachment[0].Photo, msg.PeerID)
-		if err != nil {
-			return loadPhoto, []*params.MessagesSendBuilder{}, err
-		}
+	var resp *http.Response
+	var err error
 
-		return isPeoplePresentPhoto, nil, nil
+	switch attachment[0].Type {
+	case "photo":
+		resp, err = http.Get(attachment[0].Photo.Sizes[4].URL)
+	case "doc":
+		resp, err = http.Get(attachment[0].Doc.URL)
+	default:
+		return loadPhoto, nil, err
 	}
 
-	if attachment[0].Type == "doc" {
-		if _, ok := validExtension[attachment[0].Doc.Ext]; !ok {
-			b := params.NewMessagesSendBuilder()
-			b.RandomID(0)
-			b.Message("Данная фотография недопустимого формата")
-			return loadPhoto, []*params.MessagesSendBuilder{b}, nil
-		}
+	if err != nil {
+		return loadPhoto, nil, err
+	}
+	defer resp.Body.Close()
 
-		err := state.postgres.RequestPhoto.UploadPhotoAsFile(ctx, state.vk, attachment[0].Doc, msg.PeerID)
-		if err != nil {
-			return loadPhoto, []*params.MessagesSendBuilder{}, err
-		}
-
-		return isPeoplePresentPhoto, nil, nil
+	photo, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return loadPhoto, nil, err
 	}
 
-	return loadPhoto, nil, nil
+	contentType := http.DetectContentType(photo)
+	if _, ok := validExtensionPhoto[contentType]; !ok {
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Данная фотография недопустимого формата")
+		return loadPhoto, []*params.MessagesSendBuilder{b}, nil
+	}
+
+	if contentType == "application/octet-stream" {
+		photo, err = convertTiffToJpg(photo)
+		if err != nil {
+			return loadPhoto, nil, err
+		}
+	}
+
+	err = state.postgres.RequestPhoto.UploadPhoto(ctx, state.vk, photo, msg.PeerID)
+	if err != nil {
+		return loadPhoto, []*params.MessagesSendBuilder{}, err
+	}
+
+	return isPeoplePresentPhoto, nil, nil
 }
 
 func (state LoadPhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Загрузите фото. Допустимые  форматы фото: jpg, jpeg, png, tif, tiff")
+	b.Message("Загрузите фото или документ. Допустимые форматы: jpg, jpeg, png, tif, tiff")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
-	k.AddTextButton("Назад", "", "secondary")
+	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -88,7 +106,7 @@ func (state LoadPhotoState) Name() stateName {
 	return loadPhoto
 }
 
-// EventYearPhotoState пользователь указывает год создания документа
+// EventYearPhotoState пользователь указывает год создания фотографии
 type EventYearPhotoState struct {
 	postgres *postrgres.Repo
 }
@@ -136,8 +154,7 @@ func (state EventYearPhotoState) Show(ctx context.Context, vkID int) ([]*params.
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
-	k.AddRow()
-	k.AddTextButton("Назад", "", "secondary")
+	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -200,7 +217,7 @@ func (state StudyProgramPhotoState) Show(ctx context.Context, vkID int) ([]*para
 	k.AddTextButton("Аспирантура", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
-	k.AddTextButton("Назад", "", "secondary")
+	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -270,8 +287,7 @@ func (state EventNamePhotoState) Show(ctx context.Context, vkID int) ([]*params.
 	k.AddTextButton("Своё событие", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
-	k.AddRow()
-	k.AddTextButton("Назад", "", "secondary")
+	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -287,6 +303,10 @@ type UserEventNamePhotoState struct {
 
 func (state UserEventNamePhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
+	if messageText == "" {
+		return userEventNamePhoto, nil, nil
+	}
+
 	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
 	if err != nil {
 		return userEventNamePhoto, []*params.MessagesSendBuilder{}, err
@@ -309,12 +329,11 @@ func (state UserEventNamePhotoState) Handler(ctx context.Context, msg object.Mes
 func (state UserEventNamePhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Напишите название своего события. Оно будет рассмотрено администратором")
+	b.Message("Напишите название своего события")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
-	k.AddRow()
-	k.AddTextButton("Назад", "", "secondary")
+	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -330,6 +349,10 @@ type DescriptionPhotoState struct {
 
 func (state DescriptionPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
+	if messageText == "" {
+		return descriptionPhoto, nil, nil
+	}
+
 	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
 	if err != nil {
 		return descriptionPhoto, []*params.MessagesSendBuilder{}, err
@@ -356,8 +379,7 @@ func (state DescriptionPhotoState) Show(ctx context.Context, vkID int) ([]*param
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
-	k.AddRow()
-	k.AddTextButton("Назад", "", "secondary")
+	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -373,9 +395,22 @@ type CheckPhotoState struct {
 
 func (state CheckPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
+	if messageText == "" {
+		return checkPhoto, nil, nil
+	}
+
+	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
+	if err != nil {
+		return checkPhoto, []*params.MessagesSendBuilder{}, err
+	}
 
 	switch messageText {
 	case "Отправить":
+		err = state.postgres.RequestPhoto.UpdateStatus(ctx, ds.StatusUserConfirmed, photoID)
+		if err != nil {
+			return checkPhoto, []*params.MessagesSendBuilder{}, err
+		}
+
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
 		b.Message("Фотография отправлена администратору на рассмотрение. Вы можете отслеживать статус своей заявки в личном кабинете")
@@ -406,11 +441,10 @@ func (state CheckPhotoState) Show(ctx context.Context, vkID int) ([]*params.Mess
 	b.Attachment(attachment)
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
-	k.AddTextButton("Отправить", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Редактировать заявку", "", "secondary")
 	k.AddRow()
-	k.AddTextButton("Назад", "", "secondary")
+	k.AddTextButton("Отправить", "", "secondary")
+	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }

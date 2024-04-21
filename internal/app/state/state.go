@@ -117,6 +117,26 @@ const (
 	editUserTeacherNamePhoto = stateName("editUserTeacherNamePhoto")
 	editStudentNamePhoto     = stateName("editStudentNamePhoto")
 
+	loadPhotoArchive              = stateName("loadPhotoArchive")
+	eventYearPhotoArchive         = stateName("eventYearPhotoArchive")
+	studyProgramPhotoArchive      = stateName("studyProgramPhotoArchive")
+	eventNamePhotoArchive         = stateName("eventNamePhotoArchive")
+	userEventNamePhotoArchive     = stateName("userEventNamePhotoArchive")
+	descriptionPhotoArchive       = stateName("descriptionPhotoArchive")
+	checkPhotoArchive             = stateName("checkPhotoArchive")
+	editPhotoArchive              = stateName("editPhotoArchive")
+	editEventYearPhotoArchive     = stateName("editEventYearPhotoArchive")
+	editStudyProgramPhotoArchive  = stateName("editStudyProgramPhotoArchive")
+	editEventNamePhotoArchive     = stateName("editEventNamePhotoArchive")
+	editUserEventNamePhotoArchive = stateName("editUserEventNamePhotoArchive")
+	editDescriptionPhotoArchive   = stateName("editDescriptionPhotoArchive")
+
+	categorySearchAlbum      = stateName("categorySearchAlbum")
+	yearSearchAlbum          = stateName("yearSearchAlbum")
+	findYearSearchAlbum      = stateName("findYearSearchAlbum")
+	findYearLess2SearchAlbum = stateName("findYearLess2SearchAlbum")
+	showListYearSearchAlbum  = stateName("showListYearSearchAlbum")
+
 	// стейты администратора фотоархива
 	workingRequestPhoto             = stateName("workingRequestPhoto")
 	workingAlbums                   = stateName("workingAlbums")
@@ -159,35 +179,6 @@ func (s *States) Init(vk *api.VK) error {
 	//здесь инициализируются все стейты
 	startState := &StartState{postgres: postgresRepo}
 	selectArchiveState := &SelectArchiveState{postgres: postgresRepo}
-
-	photoStartState := &PhotoStartState{postgres: postgresRepo}
-	loadPhotoState := &LoadPhotoState{postgres: postgresRepo, vk: vk}
-	isPeoplePresentPhotoState := &IsPeoplePresentPhotoState{postgres: postgresRepo}
-	countPeoplePhotoState := &CountPeoplePhotoState{postgres: postgresRepo}
-	markedPeoplePhotoState := &MarkedPeoplePhotoState{postgres: postgresRepo}
-	isTeacherPhotoState := &IsTeacherPhotoState{postgres: postgresRepo}
-	teacherNamePhotoState := &TeacherNamePhotoState{postgres: postgresRepo}
-	userTeacherNamePhotoState := &UserTeacherNamePhotoState{postgres: postgresRepo}
-	studentNamePhotoState := &StudentNamePhotoState{postgres: postgresRepo}
-	eventYearPhotoState := &EventYearPhotoState{postgres: postgresRepo}
-	studyProgramPhotoState := &StudyProgramPhotoState{postgres: postgresRepo}
-	eventNamePhotoState := &EventNamePhotoState{postgres: postgresRepo}
-	userEventNamePhotoState := &UserEventNamePhotoState{postgres: postgresRepo}
-	descriptionPhotoState := &DescriptionPhotoState{postgres: postgresRepo}
-	checkPhotoState := &CheckPhotoState{postgres: postgresRepo}
-	editPhotoState := &EditPhotoState{postgres: postgresRepo}
-	editEventYearPhotoState := &EditEventYearPhotoState{postgres: postgresRepo}
-	editStudyProgramPhotoState := &EditStudyProgramPhotoState{postgres: postgresRepo}
-	editEventNamePhotoState := &EditEventNamePhotoState{postgres: postgresRepo}
-	editUserEventNamePhotoState := &EditUserEventNamePhotoState{postgres: postgresRepo}
-	editDescriptionPhotoState := &EditDescriptionPhotoState{postgres: postgresRepo}
-	editIsPeoplePresentPhotoState := &EditIsPeoplePresentPhotoState{postgres: postgresRepo}
-	editCountPeoplePhotoState := &EditCountPeoplePhotoState{postgres: postgresRepo}
-	editMarkedPeoplePhotoState := &EditMarkedPeoplePhotoState{postgres: postgresRepo}
-	editIsTeacherPhotoState := &EditIsTeacherPhotoState{postgres: postgresRepo}
-	editTeacherNamePhotoState := &EditTeacherNamePhotoState{postgres: postgresRepo}
-	editUserTeacherNamePhotoState := &EditUserTeacherNamePhotoState{postgres: postgresRepo}
-	editStudentNamePhotoState := &EditStudentNamePhotoState{postgres: postgresRepo}
 
 	documentStartState := &DocumentStartState{postgres: postgresRepo}
 	loadDocumentState := &LoadDocumentState{postgres: postgresRepo, vk: vk}
@@ -258,6 +249,55 @@ func (s *States) Init(vk *api.VK) error {
 	editDescriptionDocumentAdminState := &EditDescriptionDocumentAdminState{postgres: postgresRepo}
 	editHashtagDocumentAdminState := &EditHashtagDocumentAdminState{postgres: postgresRepo}
 	requestDocumentEntrySpecificApplicationState := &RequestDocumentEntrySpecificApplicationState{postgres: postgresRepo}
+
+	photoStartState := &PhotoStartState{postgres: postgresRepo}
+	loadPhotoState := &LoadPhotoState{postgres: postgresRepo, vk: vk}
+	isPeoplePresentPhotoState := &IsPeoplePresentPhotoState{postgres: postgresRepo}
+	countPeoplePhotoState := &CountPeoplePhotoState{postgres: postgresRepo}
+	markedPeoplePhotoState := &MarkedPeoplePhotoState{postgres: postgresRepo}
+	isTeacherPhotoState := &IsTeacherPhotoState{postgres: postgresRepo}
+	teacherNamePhotoState := &TeacherNamePhotoState{postgres: postgresRepo}
+	userTeacherNamePhotoState := &UserTeacherNamePhotoState{postgres: postgresRepo}
+	studentNamePhotoState := &StudentNamePhotoState{postgres: postgresRepo}
+	eventYearPhotoState := &EventYearPhotoState{postgres: postgresRepo}
+	studyProgramPhotoState := &StudyProgramPhotoState{postgres: postgresRepo}
+	eventNamePhotoState := &EventNamePhotoState{postgres: postgresRepo}
+	userEventNamePhotoState := &UserEventNamePhotoState{postgres: postgresRepo}
+	descriptionPhotoState := &DescriptionPhotoState{postgres: postgresRepo}
+	checkPhotoState := &CheckPhotoState{postgres: postgresRepo}
+	editPhotoState := &EditPhotoState{postgres: postgresRepo}
+	editEventYearPhotoState := &EditEventYearPhotoState{postgres: postgresRepo}
+	editStudyProgramPhotoState := &EditStudyProgramPhotoState{postgres: postgresRepo}
+	editEventNamePhotoState := &EditEventNamePhotoState{postgres: postgresRepo}
+	editUserEventNamePhotoState := &EditUserEventNamePhotoState{postgres: postgresRepo}
+	editDescriptionPhotoState := &EditDescriptionPhotoState{postgres: postgresRepo}
+	editIsPeoplePresentPhotoState := &EditIsPeoplePresentPhotoState{postgres: postgresRepo}
+	editCountPeoplePhotoState := &EditCountPeoplePhotoState{postgres: postgresRepo}
+	editMarkedPeoplePhotoState := &EditMarkedPeoplePhotoState{postgres: postgresRepo}
+	editIsTeacherPhotoState := &EditIsTeacherPhotoState{postgres: postgresRepo}
+	editTeacherNamePhotoState := &EditTeacherNamePhotoState{postgres: postgresRepo}
+	editUserTeacherNamePhotoState := &EditUserTeacherNamePhotoState{postgres: postgresRepo}
+	editStudentNamePhotoState := &EditStudentNamePhotoState{postgres: postgresRepo}
+
+	loadPhotoArchiveState := &LoadPhotoArchiveState{postgres: postgresRepo, vk: vk}
+	eventYearPhotoArchiveState := &EventYearPhotoArchiveState{postgres: postgresRepo}
+	studyProgramPhotoArchiveState := &StudyProgramPhotoArchiveState{postgres: postgresRepo}
+	eventNamePhotoArchiveState := &EventNamePhotoArchiveState{postgres: postgresRepo}
+	userEventNamePhotoArchiveState := &UserEventNamePhotoArchiveState{postgres: postgresRepo}
+	descriptionPhotoArchiveState := &DescriptionPhotoArchiveState{postgres: postgresRepo}
+	checkPhotoArchiveState := &CheckPhotoArchiveState{postgres: postgresRepo}
+	editPhotoArchiveState := &EditPhotoArchiveState{postgres: postgresRepo}
+	editEventYearPhotoArchiveState := &EditEventYearPhotoArchiveState{postgres: postgresRepo}
+	editStudyProgramPhotoArchiveState := &EditStudyProgramPhotoArchiveState{postgres: postgresRepo}
+	editEventNamePhotoArchiveState := &EditEventNamePhotoArchiveState{postgres: postgresRepo}
+	editUserEventNamePhotoArchiveState := &EditUserEventNamePhotoArchiveState{postgres: postgresRepo}
+	editDescriptionPhotoArchiveState := &EditDescriptionPhotoArchiveState{postgres: postgresRepo}
+
+	categorySearchAlbumState := &CategorySearchAlbumState{postgres: postgresRepo}
+	yearSearchAlbumState := &YearSearchAlbumState{postgres: postgresRepo}
+	findYearSearchAlbumState := &FindYearSearchAlbumState{postgres: postgresRepo}
+	findYearLess2SearchAlbumState := &FindYearLess2SearchAlbumState{postgres: postgresRepo}
+	showListYearSearchAlbumState := &ShowListYearSearchAlbumState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -361,6 +401,26 @@ func (s *States) Init(vk *api.VK) error {
 		editTeacherNamePhotoState.Name():     editTeacherNamePhotoState,
 		editUserTeacherNamePhotoState.Name(): editUserTeacherNamePhotoState,
 		editStudentNamePhotoState.Name():     editStudentNamePhotoState,
+
+		loadPhotoArchiveState.Name():              loadPhotoArchiveState,
+		eventYearPhotoArchiveState.Name():         eventYearPhotoArchiveState,
+		studyProgramPhotoArchiveState.Name():      studyProgramPhotoArchiveState,
+		eventNamePhotoArchiveState.Name():         eventNamePhotoArchiveState,
+		userEventNamePhotoArchiveState.Name():     userEventNamePhotoArchiveState,
+		descriptionPhotoArchiveState.Name():       descriptionPhotoArchiveState,
+		checkPhotoArchiveState.Name():             checkPhotoArchiveState,
+		editPhotoArchiveState.Name():              editPhotoArchiveState,
+		editEventYearPhotoArchiveState.Name():     editEventYearPhotoArchiveState,
+		editStudyProgramPhotoArchiveState.Name():  editStudyProgramPhotoArchiveState,
+		editEventNamePhotoArchiveState.Name():     editEventNamePhotoArchiveState,
+		editUserEventNamePhotoArchiveState.Name(): editUserEventNamePhotoArchiveState,
+		editDescriptionPhotoArchiveState.Name():   editDescriptionPhotoArchiveState,
+
+		categorySearchAlbumState.Name():      categorySearchAlbumState,
+		yearSearchAlbumState.Name():          yearSearchAlbumState,
+		findYearSearchAlbumState.Name():      findYearSearchAlbumState,
+		findYearLess2SearchAlbumState.Name(): findYearLess2SearchAlbumState,
+		showListYearSearchAlbumState.Name():  showListYearSearchAlbumState,
 	}
 
 	return nil
