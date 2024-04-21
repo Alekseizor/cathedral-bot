@@ -4,11 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"strconv"
-	"strings"
 )
 
 // Repo инстанс репо для работы с загруженными документами
@@ -21,6 +22,20 @@ func New(db *sqlx.DB) *Repo {
 	return &Repo{
 		db: db,
 	}
+}
+
+func (r *Repo) UploadDocument(ctx context.Context, document ds.RequestDocument) error {
+	query := `
+        INSERT INTO documents (title, author, year, category, description, hashtags, attachment, user_id)
+        VALUES (:title, :author, :year, :category, :description, :hashtags, :attachment, :user_id)
+    `
+
+	_, err := r.db.NamedExecContext(ctx, query, document)
+	if err != nil {
+		return fmt.Errorf("[db.NamedExecContext]: %w", err)
+	}
+
+	return nil
 }
 
 func (r *Repo) CheckExistence(ctx context.Context, documentID int) (bool, error) {
@@ -86,7 +101,7 @@ func (r *Repo) UpdateCategoryByCategoryName(ctx context.Context, documentID int,
 }
 
 func (r *Repo) NewCategory(ctx context.Context, category string) error {
-	_, err := r.db.ExecContext(ctx, "INSERT INTO categories VALUES ($1)", category)
+	_, err := r.db.ExecContext(ctx, "INSERT INTO categories(name) VALUES ($1)", category)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
