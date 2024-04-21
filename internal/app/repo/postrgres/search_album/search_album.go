@@ -155,7 +155,7 @@ func (r *Repo) ShowList(ctx context.Context, vkID int) (string, error) {
 		argIndex++
 	}
 
-	query += " ORDER BY year" + "DESC"
+	query += " ORDER BY year" + " DESC"
 
 	var albums []ds.StudentAlbum
 	err = r.db.SelectContext(ctx, &albums, query, args...)

@@ -121,10 +121,11 @@ const (
 	editUserEventNamePhotoArchive = stateName("editUserEventNamePhotoArchive")
 	editDescriptionPhotoArchive   = stateName("editDescriptionPhotoArchive")
 
-	categorySearchAlbum = stateName("categorySearchAlbum")
-	yearSearchAlbum     = stateName("yearSearchAlbum")
-	findYearSearchAlbum = stateName("findYearSearchAlbum")
-	showListSearchAlbum = stateName("showListSearchAlbum")
+	categorySearchAlbum      = stateName("categorySearchAlbum")
+	yearSearchAlbum          = stateName("yearSearchAlbum")
+	findYearSearchAlbum      = stateName("findYearSearchAlbum")
+	findYearLess2SearchAlbum = stateName("findYearLess2SearchAlbum")
+	showListYearSearchAlbum  = stateName("showListYearSearchAlbum")
 )
 
 type State interface {
@@ -264,7 +265,8 @@ func (s *States) Init(vk *api.VK) error {
 	categorySearchAlbumState := &CategorySearchAlbumState{postgres: postgresRepo}
 	yearSearchAlbumState := &YearSearchAlbumState{postgres: postgresRepo}
 	findYearSearchAlbumState := &FindYearSearchAlbumState{postgres: postgresRepo}
-	showListSearchAlbumState := &ShowListSearchAlbumState{postgres: postgresRepo}
+	findYearLess2SearchAlbumState := &FindYearLess2SearchAlbumState{postgres: postgresRepo}
+	showListYearSearchAlbumState := &ShowListYearSearchAlbumState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -372,10 +374,11 @@ func (s *States) Init(vk *api.VK) error {
 		editUserEventNamePhotoArchiveState.Name(): editUserEventNamePhotoArchiveState,
 		editDescriptionPhotoArchiveState.Name():   editDescriptionPhotoArchiveState,
 
-		categorySearchAlbumState.Name(): categorySearchAlbumState,
-		yearSearchAlbumState.Name():     yearSearchAlbumState,
-		findYearSearchAlbumState.Name(): findYearSearchAlbumState,
-		showListSearchAlbumState.Name(): showListSearchAlbumState,
+		categorySearchAlbumState.Name():      categorySearchAlbumState,
+		yearSearchAlbumState.Name():          yearSearchAlbumState,
+		findYearSearchAlbumState.Name():      findYearSearchAlbumState,
+		findYearLess2SearchAlbumState.Name(): findYearLess2SearchAlbumState,
+		showListYearSearchAlbumState.Name():  showListYearSearchAlbumState,
 	}
 
 	return nil
