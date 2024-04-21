@@ -19,7 +19,6 @@ const (
 	start                                   = stateName("start")
 	selectArchive                           = stateName("selectArchive")
 	documentStart                           = stateName("documentStart")
-	photoStub                               = stateName("photoStub")
 	loadDocument                            = stateName("loadDocument")
 	nameDocument                            = stateName("nameDocument")
 	authorDocument                          = stateName("authorDocument")
@@ -117,6 +116,16 @@ const (
 	editTeacherNamePhoto     = stateName("editTeacherNamePhoto")
 	editUserTeacherNamePhoto = stateName("editUserTeacherNamePhoto")
 	editStudentNamePhoto     = stateName("editStudentNamePhoto")
+
+	// стейты администратора фотоархива
+	workingRequestPhoto             = stateName("workingRequestPhoto")
+	workingAlbums                   = stateName("workingAlbums")
+	addPhotoAdministrator           = stateName("addPhotoAdministrator")
+	removePhotoAdministrator        = stateName("removePhotoAdministrator")
+	requestPhotoFromQueue           = stateName("requestPhotoFromQueue")
+	requestPhotoSpecificApplication = stateName("requestPhotoSpecificApplication")
+	actionOnPhoto                   = stateName("actionOnPhoto")
+	changeAlbums                    = stateName("changeAlbums")
 )
 
 type State interface {
