@@ -7,6 +7,7 @@ CREATE TABLE search_album
     study_program VARCHAR(100),
     event         VARCHAR(100),
     teacher       VARCHAR(100),
+    pointer       INT DEFAULT 0,
     user_id       INT NOT NULL
 );
 -- +goose StatementEnd

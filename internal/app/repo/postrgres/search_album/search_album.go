@@ -278,12 +278,26 @@ func (r *Repo) GetEventNames() (string, error) {
 }
 
 // GetTeacherNames возвращает ФИО преподавателей
-func (r *Repo) GetTeacherNames() (string, error) {
+func (r *Repo) GetTeacherNames(vkID int) (string, int, int, error) {
+	var pointer int
+
+	err := r.db.Get(&pointer, "SELECT pointer FROM search_album WHERE user_id = $1", vkID)
+	if err != nil {
+		return "", 0, 0, fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	var count int
+
+	err = r.db.Get(&count, "SELECT count(*) FROM teacher_albums")
+	if err != nil {
+		return "", 0, 0, fmt.Errorf("[db.Get]: %w", err)
+	}
+
 	var teacherNames string
 
-	rows, err := r.db.Query("SELECT CONCAT(id, ') ', name) AS formatted_string FROM teachers")
+	rows, err := r.db.Query("SELECT CONCAT(id, ') ', name) AS formatted_string FROM teacher_albums offset $1 limit 10", pointer)
 	if err != nil {
-		return "", fmt.Errorf("[db.Query]: %w", err)
+		return "", 0, 0, fmt.Errorf("[db.Query]: %w", err)
 	}
 	defer rows.Close()
 
@@ -291,18 +305,59 @@ func (r *Repo) GetTeacherNames() (string, error) {
 		var formattedString string
 		err := rows.Scan(&formattedString)
 		if err != nil {
-			return "", fmt.Errorf("[db.Scan]: %w", err)
+			return "", 0, 0, fmt.Errorf("[db.Scan]: %w", err)
 		}
 		teacherNames += formattedString + "\n"
 	}
 
-	return teacherNames, nil
+	return teacherNames, pointer, count, nil
+}
+
+// ChangePointer меняет указатель
+func (r *Repo) ChangePointer(vkID int, flag bool) error {
+	var pointer int
+
+	err := r.db.Get(&pointer, "SELECT pointer FROM search_album WHERE user_id = $1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	var count int
+
+	err = r.db.Get(&count, "SELECT count(*) FROM teacher_albums")
+	if err != nil {
+		return fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	if !flag {
+		pointer -= 10
+	} else {
+		pointer += 10
+	}
+
+	if pointer >= 0 && pointer < count {
+		_, err = r.db.Exec("UPDATE search_album SET pointer = $1 WHERE user_id = $2", pointer, vkID)
+		if err != nil {
+			return fmt.Errorf("[db.Exec]: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// DeletePointer удаляет указатель
+func (r *Repo) DeletePointer(vkID int) error {
+	_, err := r.db.Exec("UPDATE search_album SET pointer = 0 WHERE user_id = $1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.Exec]: %w", err)
+	}
+	return nil
 }
 
 // GetTeacherMaxID возвращает максимальное ID из преподавателей
 func (r *Repo) GetTeacherMaxID() (int, error) {
 	var maxID int
-	err := r.db.Get(&maxID, "SELECT MAX(id) FROM teachers")
+	err := r.db.Get(&maxID, "SELECT MAX(id) FROM teacher_albums")
 	if err != nil {
 		return 0, fmt.Errorf("[db.Get]: %w", err)
 	}
@@ -313,7 +368,7 @@ func (r *Repo) GetTeacherMaxID() (int, error) {
 // GetTeacherName возвращает ФИО преподавателя
 func (r *Repo) GetTeacherName(ctx context.Context, teacherID int) (string, error) {
 	var name string
-	err := r.db.Get(&name, "SELECT name FROM teachers WHERE id = $1", teacherID)
+	err := r.db.Get(&name, "SELECT name FROM teacher_albums WHERE id = $1", teacherID)
 	if err != nil {
 		return "", fmt.Errorf("[db.Get]: %w", err)
 	}
@@ -331,12 +386,12 @@ func (r *Repo) ShowTeacher(ctx context.Context, vkID int) (string, error) {
 	}
 
 	var album ds.TeacherAlbum
-	err = r.db.GetContext(ctx, &album, "SELECT * FROM teacher_albums WHERE teacher = $1", teacher)
+	err = r.db.GetContext(ctx, &album, "SELECT * FROM teacher_albums WHERE name = $1", teacher)
 	if err != nil {
 		return "", fmt.Errorf("[db.GetContext]: %w", err)
 	}
 
-	result := album.Teacher + "\n" + album.URL
+	result := album.Name + "\n" + album.URL
 
 	return result, nil
 }

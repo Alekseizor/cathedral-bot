@@ -658,7 +658,23 @@ func (state TeacherSearchAlbumState) Handler(ctx context.Context, msg object.Mes
 
 	switch messageText {
 	case "Назад":
+		err := state.postgres.SearchAlbum.DeletePointer(msg.PeerID)
+		if err != nil {
+			return teacherSearchAlbum, nil, err
+		}
 		return categorySearchAlbum, nil, nil
+	case "⬅️":
+		err := state.postgres.SearchAlbum.ChangePointer(msg.PeerID, false)
+		if err != nil {
+			return teacherSearchAlbum, nil, err
+		}
+		return teacherSearchAlbum, nil, nil
+	case "➡️":
+		err := state.postgres.SearchAlbum.ChangePointer(msg.PeerID, true)
+		if err != nil {
+			return teacherSearchAlbum, nil, err
+		}
+		return teacherSearchAlbum, nil, nil
 	default:
 		teacherID, err := strconv.Atoi(messageText)
 		if err != nil {
@@ -695,7 +711,7 @@ func (state TeacherSearchAlbumState) Handler(ctx context.Context, msg object.Mes
 }
 
 func (state TeacherSearchAlbumState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
-	teacherNames, err := state.postgres.SearchAlbum.GetTeacherNames()
+	teacherNames, pointer, count, err := state.postgres.SearchAlbum.GetTeacherNames(vkID)
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
 	}
@@ -704,6 +720,15 @@ func (state TeacherSearchAlbumState) Show(ctx context.Context, vkID int) ([]*par
 	b.RandomID(0)
 	b.Message("Напишите номер преподавателя из списка ниже:\n" + teacherNames)
 	k := object.NewMessagesKeyboard(true)
+	if count > 10 {
+		k.AddRow()
+		if pointer != 0 {
+			k.AddTextButton("⬅️", "", "secondary")
+		}
+		if count-pointer > 10 {
+			k.AddTextButton("➡️", "", "secondary")
+		}
+	}
 	k.AddRow()
 	k.AddTextButton("Назад", "", "negative")
 	b.Keyboard(k)
