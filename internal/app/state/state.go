@@ -132,11 +132,19 @@ const (
 	editUserEventNamePhotoArchive = stateName("editUserEventNamePhotoArchive")
 	editDescriptionPhotoArchive   = stateName("editDescriptionPhotoArchive")
 
-	categorySearchAlbum      = stateName("categorySearchAlbum")
-	yearSearchAlbum          = stateName("yearSearchAlbum")
-	findYearSearchAlbum      = stateName("findYearSearchAlbum")
-	findYearLess2SearchAlbum = stateName("findYearLess2SearchAlbum")
-	showListYearSearchAlbum  = stateName("showListYearSearchAlbum")
+	categorySearchAlbum              = stateName("categorySearchAlbum")
+	yearSearchAlbum                  = stateName("yearSearchAlbum")
+	findYearSearchAlbum              = stateName("findYearSearchAlbum")
+	findYearLess2SearchAlbum         = stateName("findYearLess2SearchAlbum")
+	showListYearSearchAlbum          = stateName("showListYearSearchAlbum")
+	studyProgramSearchAlbum          = stateName("studyProgramSearchAlbum")
+	findStudyProgramSearchAlbum      = stateName("findStudyProgramSearchAlbum")
+	findStudyProgramLess2SearchAlbum = stateName("findStudyProgramLess2SearchAlbum")
+	showListStudyProgramSearchAlbum  = stateName("showListStudyProgramSearchAlbum")
+	eventSearchAlbum                 = stateName("eventSearchAlbum")
+	findEventSearchAlbum             = stateName("findEventSearchAlbum")
+	teacherSearchAlbum               = stateName("teacherSearchAlbum")
+	showTeacherSearchAlbum           = stateName("showTeacherSearchAlbum")
 )
 
 type State interface {
@@ -289,6 +297,14 @@ func (s *States) Init(vk *api.VK) error {
 	findYearSearchAlbumState := &FindYearSearchAlbumState{postgres: postgresRepo}
 	findYearLess2SearchAlbumState := &FindYearLess2SearchAlbumState{postgres: postgresRepo}
 	showListYearSearchAlbumState := &ShowListYearSearchAlbumState{postgres: postgresRepo}
+	studyProgramSearchAlbumState := &StudyProgramSearchAlbumState{postgres: postgresRepo}
+	findStudyProgramSearchAlbumState := &FindStudyProgramSearchAlbumState{postgres: postgresRepo}
+	findStudyProgramLess2SearchAlbumState := &FindStudyProgramLess2SearchAlbumState{postgres: postgresRepo}
+	showListStudyProgramSearchAlbumState := &ShowListStudyProgramSearchAlbumState{postgres: postgresRepo}
+	eventSearchAlbumState := &EventSearchAlbumState{postgres: postgresRepo}
+	findEventSearchAlbumState := &FindEventSearchAlbumState{postgres: postgresRepo}
+	teacherSearchAlbumState := &TeacherSearchAlbumState{postgres: postgresRepo}
+	showTeacherSearchAlbumState := &ShowTeacherSearchAlbumState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -407,11 +423,19 @@ func (s *States) Init(vk *api.VK) error {
 		editUserEventNamePhotoArchiveState.Name(): editUserEventNamePhotoArchiveState,
 		editDescriptionPhotoArchiveState.Name():   editDescriptionPhotoArchiveState,
 
-		categorySearchAlbumState.Name():      categorySearchAlbumState,
-		yearSearchAlbumState.Name():          yearSearchAlbumState,
-		findYearSearchAlbumState.Name():      findYearSearchAlbumState,
-		findYearLess2SearchAlbumState.Name(): findYearLess2SearchAlbumState,
-		showListYearSearchAlbumState.Name():  showListYearSearchAlbumState,
+		categorySearchAlbumState.Name():              categorySearchAlbumState,
+		yearSearchAlbumState.Name():                  yearSearchAlbumState,
+		findYearSearchAlbumState.Name():              findYearSearchAlbumState,
+		findYearLess2SearchAlbumState.Name():         findYearLess2SearchAlbumState,
+		showListYearSearchAlbumState.Name():          showListYearSearchAlbumState,
+		studyProgramSearchAlbumState.Name():          studyProgramSearchAlbumState,
+		findStudyProgramSearchAlbumState.Name():      findStudyProgramSearchAlbumState,
+		findStudyProgramLess2SearchAlbumState.Name(): findStudyProgramLess2SearchAlbumState,
+		showListStudyProgramSearchAlbumState.Name():  showListStudyProgramSearchAlbumState,
+		eventSearchAlbumState.Name():                 eventSearchAlbumState,
+		findEventSearchAlbumState.Name():             findEventSearchAlbumState,
+		teacherSearchAlbumState.Name():               teacherSearchAlbumState,
+		showTeacherSearchAlbumState.Name():           showTeacherSearchAlbumState,
 	}
 
 	return nil
