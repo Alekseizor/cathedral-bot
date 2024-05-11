@@ -179,12 +179,12 @@ func (r *Repo) CountAlbums(ctx context.Context, vkID int) (int, error) {
 }
 
 // ShowList возвращает список найденных альбомов
-func (r *Repo) ShowList(ctx context.Context, vkID int) (string, error) {
+func (r *Repo) ShowList(ctx context.Context, vkID int) (string, int, int, error) {
 	var searchAlbum ds.SearchAlbum
 
 	err := r.db.GetContext(ctx, &searchAlbum, "SELECT * FROM search_album WHERE user_id = $1", vkID)
 	if err != nil {
-		return "", fmt.Errorf("[db.GetContext]: %w", err)
+		return "", 0, 0, fmt.Errorf("[db.GetContext]: %w", err)
 	}
 
 	query := "SELECT * FROM student_albums"
@@ -220,12 +220,19 @@ func (r *Repo) ShowList(ctx context.Context, vkID int) (string, error) {
 		argIndex++
 	}
 
-	query += " ORDER BY year" + " DESC"
-
 	var albums []ds.StudentAlbum
 	err = r.db.SelectContext(ctx, &albums, query, args...)
 	if err != nil {
-		return "", fmt.Errorf("[db.SelectContext]: %w", err)
+		return "", 0, 0, fmt.Errorf("[db.SelectContext]: %w", err)
+	}
+	count := len(albums)
+
+	query += " ORDER BY year" + " DESC" + " offset $" + strconv.Itoa(argIndex) + " limit 10"
+	args = append(args, *searchAlbum.Pointer)
+
+	err = r.db.SelectContext(ctx, &albums, query, args...)
+	if err != nil {
+		return "", 0, 0, fmt.Errorf("[db.SelectContext]: %w", err)
 	}
 
 	var result string
@@ -236,12 +243,12 @@ func (r *Repo) ShowList(ctx context.Context, vkID int) (string, error) {
 	} else {
 		for idx, album := range albums {
 			yearStr := strconv.Itoa(album.Year)
-			idxStr := strconv.Itoa(idx + 1)
+			idxStr := strconv.Itoa(*searchAlbum.Pointer + idx + 1)
 			result += idxStr + ") " + yearStr + " // " + album.StudyProgram + " // " + album.Event + "\n" + album.URL + "\n"
 		}
 	}
 
-	return result, nil
+	return result, *searchAlbum.Pointer, count, nil
 }
 
 // GetEventMaxID возвращает максимальное ID из событий для фотографий
@@ -313,8 +320,8 @@ func (r *Repo) GetTeacherNames(vkID int) (string, int, int, error) {
 	return teacherNames, pointer, count, nil
 }
 
-// ChangePointer меняет указатель
-func (r *Repo) ChangePointer(vkID int, flag bool) error {
+// ChangePointerTeacher меняет указатель при поиске альбома преподавателя
+func (r *Repo) ChangePointerTeacher(vkID int, flag bool) error {
 	var pointer int
 
 	err := r.db.Get(&pointer, "SELECT pointer FROM search_album WHERE user_id = $1", vkID)
@@ -336,6 +343,31 @@ func (r *Repo) ChangePointer(vkID int, flag bool) error {
 	}
 
 	if pointer >= 0 && pointer < count {
+		_, err = r.db.Exec("UPDATE search_album SET pointer = $1 WHERE user_id = $2", pointer, vkID)
+		if err != nil {
+			return fmt.Errorf("[db.Exec]: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// ChangePointerStudents меняет указатель при поиске альбома студентов
+func (r *Repo) ChangePointerStudents(vkID int, flag bool) error {
+	var pointer int
+
+	err := r.db.Get(&pointer, "SELECT pointer FROM search_album WHERE user_id = $1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	if !flag {
+		pointer -= 10
+	} else {
+		pointer += 10
+	}
+
+	if pointer >= 0 {
 		_, err = r.db.Exec("UPDATE search_album SET pointer = $1 WHERE user_id = $2", pointer, vkID)
 		if err != nil {
 			return fmt.Errorf("[db.Exec]: %w", err)

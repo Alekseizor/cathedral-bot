@@ -214,7 +214,7 @@ func (state FindYearLess2SearchAlbumState) Show(ctx context.Context, vkID int) (
 	}
 
 	countString := strconv.Itoa(count)
-	albums, err := state.postgres.SearchAlbum.ShowList(ctx, vkID)
+	albums, _, _, err := state.postgres.SearchAlbum.ShowList(ctx, vkID)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +254,23 @@ func (state ShowListYearSearchAlbumState) Handler(ctx context.Context, msg objec
 		}
 		return photoStart, nil, nil
 	case "Назад":
+		err := state.postgres.SearchAlbum.DeletePointer(msg.PeerID)
+		if err != nil {
+			return showListYearSearchAlbum, nil, err
+		}
 		return findYearSearchAlbum, nil, nil
+	case "⬅️":
+		err := state.postgres.SearchAlbum.ChangePointerStudents(msg.PeerID, false)
+		if err != nil {
+			return showListYearSearchAlbum, nil, err
+		}
+		return showListYearSearchAlbum, nil, nil
+	case "➡️":
+		err := state.postgres.SearchAlbum.ChangePointerStudents(msg.PeerID, true)
+		if err != nil {
+			return showListYearSearchAlbum, nil, err
+		}
+		return showListYearSearchAlbum, nil, nil
 	default:
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
@@ -264,15 +280,25 @@ func (state ShowListYearSearchAlbumState) Handler(ctx context.Context, msg objec
 }
 
 func (state ShowListYearSearchAlbumState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
-	albums, err := state.postgres.SearchAlbum.ShowList(ctx, vkID)
+	albums, pointer, count, err := state.postgres.SearchAlbum.ShowList(ctx, vkID)
 	if err != nil {
 		return nil, err
 	}
+	countString := strconv.Itoa(count)
 
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message(albums)
+	b.Message("Найдено альбомов: " + countString + "\n" + albums)
 	k := object.NewMessagesKeyboard(true)
+	if count > 10 {
+		k.AddRow()
+		if pointer != 0 {
+			k.AddTextButton("⬅️", "", "secondary")
+		}
+		if count-pointer > 10 {
+			k.AddTextButton("➡️", "", "secondary")
+		}
+	}
 	k.AddRow()
 	k.AddTextButton("Завершить поиск", "", "secondary")
 	k.AddRow()
@@ -449,7 +475,7 @@ func (state FindStudyProgramLess2SearchAlbumState) Show(ctx context.Context, vkI
 	}
 
 	countString := strconv.Itoa(count)
-	albums, err := state.postgres.SearchAlbum.ShowList(ctx, vkID)
+	albums, _, _, err := state.postgres.SearchAlbum.ShowList(ctx, vkID)
 	if err != nil {
 		return nil, err
 	}
@@ -489,7 +515,23 @@ func (state ShowListStudyProgramSearchAlbumState) Handler(ctx context.Context, m
 		}
 		return photoStart, nil, nil
 	case "Назад":
+		err := state.postgres.SearchAlbum.DeletePointer(msg.PeerID)
+		if err != nil {
+			return showListStudyProgramSearchAlbum, nil, err
+		}
 		return findStudyProgramSearchAlbum, nil, nil
+	case "⬅️":
+		err := state.postgres.SearchAlbum.ChangePointerStudents(msg.PeerID, false)
+		if err != nil {
+			return showListStudyProgramSearchAlbum, nil, err
+		}
+		return showListStudyProgramSearchAlbum, nil, nil
+	case "➡️":
+		err := state.postgres.SearchAlbum.ChangePointerStudents(msg.PeerID, true)
+		if err != nil {
+			return showListStudyProgramSearchAlbum, nil, err
+		}
+		return showListStudyProgramSearchAlbum, nil, nil
 	default:
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
@@ -499,15 +541,25 @@ func (state ShowListStudyProgramSearchAlbumState) Handler(ctx context.Context, m
 }
 
 func (state ShowListStudyProgramSearchAlbumState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
-	albums, err := state.postgres.SearchAlbum.ShowList(ctx, vkID)
+	albums, pointer, count, err := state.postgres.SearchAlbum.ShowList(ctx, vkID)
 	if err != nil {
 		return nil, err
 	}
+	countString := strconv.Itoa(count)
 
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message(albums)
+	b.Message("Найдено альбомов: " + countString + "\n" + albums)
 	k := object.NewMessagesKeyboard(true)
+	if count > 10 {
+		k.AddRow()
+		if pointer != 0 {
+			k.AddTextButton("⬅️", "", "secondary")
+		}
+		if count-pointer > 10 {
+			k.AddTextButton("➡️", "", "secondary")
+		}
+	}
 	k.AddRow()
 	k.AddTextButton("Завершить поиск", "", "secondary")
 	k.AddRow()
@@ -608,7 +660,25 @@ func (state FindEventSearchAlbumState) Handler(ctx context.Context, msg object.M
 		if err != nil {
 			return findEventSearchAlbum, nil, err
 		}
+
+		err = state.postgres.SearchAlbum.DeletePointer(msg.PeerID)
+		if err != nil {
+			return findEventSearchAlbum, nil, err
+		}
+
 		return eventSearchAlbum, nil, nil
+	case "⬅️":
+		err := state.postgres.SearchAlbum.ChangePointerStudents(msg.PeerID, false)
+		if err != nil {
+			return findEventSearchAlbum, nil, err
+		}
+		return findEventSearchAlbum, nil, nil
+	case "➡️":
+		err := state.postgres.SearchAlbum.ChangePointerStudents(msg.PeerID, true)
+		if err != nil {
+			return findEventSearchAlbum, nil, err
+		}
+		return findEventSearchAlbum, nil, nil
 	default:
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
@@ -618,21 +688,25 @@ func (state FindEventSearchAlbumState) Handler(ctx context.Context, msg object.M
 }
 
 func (state FindEventSearchAlbumState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
-	count, err := state.postgres.SearchAlbum.CountAlbums(ctx, vkID)
+	albums, pointer, count, err := state.postgres.SearchAlbum.ShowList(ctx, vkID)
 	if err != nil {
 		return nil, err
 	}
-
 	countString := strconv.Itoa(count)
-	albums, err := state.postgres.SearchAlbum.ShowList(ctx, vkID)
-	if err != nil {
-		return nil, err
-	}
 
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message("Найдено альбомов: " + countString + "\n" + albums)
 	k := object.NewMessagesKeyboard(true)
+	if count > 10 {
+		k.AddRow()
+		if pointer != 0 {
+			k.AddTextButton("⬅️", "", "secondary")
+		}
+		if count-pointer > 10 {
+			k.AddTextButton("➡️", "", "secondary")
+		}
+	}
 	k.AddRow()
 	k.AddTextButton("Завершить поиск", "", "secondary")
 	k.AddRow()
@@ -664,13 +738,13 @@ func (state TeacherSearchAlbumState) Handler(ctx context.Context, msg object.Mes
 		}
 		return categorySearchAlbum, nil, nil
 	case "⬅️":
-		err := state.postgres.SearchAlbum.ChangePointer(msg.PeerID, false)
+		err := state.postgres.SearchAlbum.ChangePointerTeacher(msg.PeerID, false)
 		if err != nil {
 			return teacherSearchAlbum, nil, err
 		}
 		return teacherSearchAlbum, nil, nil
 	case "➡️":
-		err := state.postgres.SearchAlbum.ChangePointer(msg.PeerID, true)
+		err := state.postgres.SearchAlbum.ChangePointerTeacher(msg.PeerID, true)
 		if err != nil {
 			return teacherSearchAlbum, nil, err
 		}
