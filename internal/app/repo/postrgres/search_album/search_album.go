@@ -245,24 +245,19 @@ func (r *Repo) GetEventMaxID() (int, error) {
 
 // GetEventNames возвращает список названий событий для фотографии
 func (r *Repo) GetEventNames() (string, error) {
-	var output string
-
-	rows, err := r.db.Query("SELECT CONCAT(id, ') ', name) AS formatted_string FROM events")
+	var events []ds.Event
+	err := r.db.Select(&events, "SELECT * FROM events ORDER BY name")
 	if err != nil {
-		return "", fmt.Errorf("[db.Query]: %w", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var formattedString string
-		err := rows.Scan(&formattedString)
-		if err != nil {
-			return "", fmt.Errorf("[db.Scan]: %w", err)
-		}
-		output += formattedString + "\n"
+		return "", fmt.Errorf("[db.Select]: %w", err)
 	}
 
-	return output, nil
+	var result string
+	for idx, event := range events {
+		idxStr := strconv.Itoa(idx + 1)
+		result += idxStr + ") " + event.Name + "\n"
+	}
+
+	return result, nil
 }
 
 // GetTeacherNames возвращает ФИО преподавателей
@@ -382,4 +377,37 @@ func (r *Repo) UpdateName(ctx context.Context, vkID int, name string) error {
 	}
 
 	return nil
+}
+
+// GetSearchParams возвращает параметры поиска
+func (r *Repo) GetSearchParams(vkID int) (string, error) {
+	var searchAlbum ds.SearchAlbum
+	err := r.db.Get(&searchAlbum, "SELECT * FROM search_album WHERE user_id = $1", vkID)
+	if err != nil {
+		return "", fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	var year, studyProgram, event string
+	if searchAlbum.Year == nil {
+		year = "Не указано"
+	} else {
+		year = strconv.Itoa(*searchAlbum.Year)
+	}
+
+	if searchAlbum.StudyProgram == nil {
+		studyProgram = "Не указано"
+	} else {
+		studyProgram = *searchAlbum.StudyProgram
+	}
+
+	if searchAlbum.Event == nil {
+		event = "Не указано"
+	} else {
+		event = *searchAlbum.Event
+	}
+
+	var result string
+	result += "Параметры поиска:" + "\n" + "1) Год события: " + year + "\n" + "2) Программа обучения: " + studyProgram + "\n" + "3) Название события: " + event
+
+	return result, nil
 }

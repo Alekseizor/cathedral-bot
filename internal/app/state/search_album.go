@@ -154,12 +154,16 @@ func (state FindYearSearchAlbumState) Show(ctx context.Context, vkID int) ([]*pa
 	if err != nil {
 		return nil, err
 	}
-
 	countString := strconv.Itoa(count)
+
+	searchParams, err := state.postgres.SearchAlbum.GetSearchParams(vkID)
+	if err != nil {
+		return nil, err
+	}
 
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Найдено альбомов: " + countString)
+	b.Message(searchParams + "\n" + "Найдено альбомов: " + countString)
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Показать найденные альбомы", "", "secondary")
@@ -415,12 +419,16 @@ func (state FindStudyProgramSearchAlbumState) Show(ctx context.Context, vkID int
 	if err != nil {
 		return nil, err
 	}
-
 	countString := strconv.Itoa(count)
+
+	searchParams, err := state.postgres.SearchAlbum.GetSearchParams(vkID)
+	if err != nil {
+		return nil, err
+	}
 
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Найдено альбомов: " + countString)
+	b.Message(searchParams + "\n" + "Найдено альбомов: " + countString)
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Показать найденные альбомы", "", "secondary")

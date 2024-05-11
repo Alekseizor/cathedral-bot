@@ -160,24 +160,19 @@ func (r *Repo) UpdateEvent(ctx context.Context, photoID, eventNumber int) error 
 
 // GetEventNames возвращает список названий событий для фотографии
 func (r *Repo) GetEventNames() (string, error) {
-	var output string
-
-	rows, err := r.db.Query("SELECT CONCAT(id, ') ', name) AS formatted_string FROM events")
+	var events []ds.Event
+	err := r.db.Select(&events, "SELECT * FROM events ORDER BY name")
 	if err != nil {
-		return "", fmt.Errorf("[db.Query]: %w", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var formattedString string
-		err := rows.Scan(&formattedString)
-		if err != nil {
-			return "", fmt.Errorf("[db.Scan]: %w", err)
-		}
-		output += formattedString + "\n"
+		return "", fmt.Errorf("[db.Select]: %w", err)
 	}
 
-	return output, nil
+	var result string
+	for idx, event := range events {
+		idxStr := strconv.Itoa(idx + 1)
+		result += idxStr + ") " + event.Name + "\n"
+	}
+
+	return result, nil
 }
 
 // UpdateUserEvent добавляет пользовательское название события
