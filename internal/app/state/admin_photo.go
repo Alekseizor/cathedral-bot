@@ -234,17 +234,14 @@ func (state ActionOnPhotoState) Handler(ctx context.Context, msg object.Messages
 	case "Изменить":
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
-		b.Message("Что Вы хотите изменить в документе?")
+		b.Message("Что Вы хотите изменить в альбоме?")
 		k := object.NewMessagesKeyboard(true)
 		k.AddRow()
-		k.AddTextButton("Название", albumID, "secondary")
+		k.AddTextButton("Год события", albumID, "secondary")
+		k.AddTextButton("Программа обучения", albumID, "secondary")
+		k.AddRow()
+		k.AddTextButton("Название события", albumID, "secondary")
 		k.AddTextButton("Описание", albumID, "secondary")
-		k.AddRow()
-		k.AddTextButton("Автор", albumID, "secondary")
-		k.AddTextButton("Год", albumID, "secondary")
-		k.AddRow()
-		k.AddTextButton("Категория", albumID, "secondary")
-		k.AddTextButton("Хештеги", albumID, "secondary")
 		addBackButton(k)
 		b.Keyboard(k)
 		return changeAlbums, []*params.MessagesSendBuilder{b}, nil
@@ -286,18 +283,16 @@ func (state ChangeAlbumsState) Handler(ctx context.Context, msg object.MessagesM
 	}
 
 	switch messageText {
-	case "Название":
-		return changeTitleDocument, nil, nil
+	case "Год события":
+		return changeEventYearPhoto, nil, nil
+	case "Программа обучения":
+		return changeStudyProgramPhoto, nil, nil
+	case "Название события":
+		return changeEventNamePhoto, nil, nil
 	case "Описание":
-		return changeDescriptionDocument, nil, nil
-	case "Автор":
-		return changeAuthorDocument, nil, nil
-	case "Год":
-		return changeYearDocument, nil, nil
-	case "Категория":
-		return changeCategoryDocument, nil, nil
-	case "Хештеги":
-		return changeHashtagsDocument, nil, nil
+		return changeDescriptionPhoto, nil, nil
+	case "Назад":
+		return workingAlbums, nil, nil
 	default:
 		return workingAlbums, nil, nil
 	}

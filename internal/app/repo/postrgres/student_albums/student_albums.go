@@ -89,3 +89,42 @@ func (r *Repo) CheckExistence(ctx context.Context, albumID int) (bool, error) {
 
 	return exists, nil
 }
+
+func (r *Repo) UpdateYear(ctx context.Context, albumID, year int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE student_albums SET year = $1 WHERE id = $2", year, albumID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+	return nil
+}
+
+func (r *Repo) UpdateStudyProgram(ctx context.Context, albumID int, program string) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE student_albums SET study_program = $1 WHERE id = $2", program, albumID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+	return nil
+}
+
+func (r *Repo) UpdateEvent(ctx context.Context, albumID int, eventNumber int) error {
+	var name string
+	err := r.db.Get(&name, "SELECT name FROM events WHERE id = $1", eventNumber)
+	if err != nil {
+		return fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	_, err = r.db.ExecContext(ctx, "UPDATE student_albums SET event = $1 WHERE id = $2", name, albumID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+func (r *Repo) UpdateDescription(ctx context.Context, albumID int, description string) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE student_albums SET description = $1 WHERE id = $2", description, albumID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+	return nil
+}

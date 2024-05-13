@@ -156,6 +156,11 @@ const (
 	requestPhotoSpecificApplication = stateName("requestPhotoSpecificApplication")
 	actionOnPhoto                   = stateName("actionOnPhoto")
 	changeAlbums                    = stateName("changeAlbums")
+	changeEventYearPhoto            = stateName("changeEventYearPhoto")
+	changeUserEventNamePhoto        = stateName("changeUserEventNamePhoto")
+	changeStudyProgramPhoto         = stateName("changeStudyProgramPhoto")
+	changeEventNamePhoto            = stateName("changeEventNamePhoto")
+	changeDescriptionPhoto          = stateName("changeDescriptionPhoto")
 )
 
 type State interface {
@@ -322,7 +327,14 @@ func (s *States) Init(vk *api.VK) error {
 	workingAlbumsState := &WorkingAlbumsState{}
 	workingAlbumsFromStudentsState := &WorkingAlbumsFromStudentsState{postgres: postgresRepo}
 	actionOnPhotoState := &ActionOnPhotoState{postgres: postgresRepo}
+
+	// администратор изменяет информацию об опубликованных альбомах
 	changeAlbumsState := &ChangeAlbumsState{postgres: postgresRepo}
+	changeEventYearPhotoState := &ChangeEventYearPhotoState{postgres: postgresRepo}
+	changeStudyProgramPhotoState := &ChangeStudyProgramPhotoState{postgres: postgresRepo}
+	changeEventNamePhotoState := &ChangeEventNamePhotoState{postgres: postgresRepo}
+	changeUserEventNamePhotoState := &ChangeUserEventNamePhotoState{postgres: postgresRepo}
+	changeDescriptionPhotoState := &ChangeDescriptionPhotoState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -461,6 +473,13 @@ func (s *States) Init(vk *api.VK) error {
 		workingAlbumsFromStudentsState.Name(): workingAlbumsFromStudentsState,
 		actionOnPhotoState.Name():             actionOnPhotoState,
 		changeAlbumsState.Name():              changeAlbumsState,
+
+		// администратор изменяет информацию об опубликованных альбомах
+		changeEventYearPhotoState.Name():     changeEventYearPhotoState,
+		changeStudyProgramPhotoState.Name():  changeStudyProgramPhotoState,
+		changeEventNamePhotoState.Name():     changeEventNamePhotoState,
+		changeUserEventNamePhotoState.Name(): changeUserEventNamePhotoState,
+		changeDescriptionPhotoState.Name():   changeDescriptionPhotoState,
 	}
 
 	return nil
