@@ -115,9 +115,11 @@ func (state LoadPhotoArchiveState) Handler(ctx context.Context, msg object.Messa
 		if err != nil {
 			return loadPhotoArchive, nil, err
 		}
+
+		return eventYearPhotoArchive, nil, nil
 	}
 
-	return eventYearPhotoArchive, nil, nil
+	return loadPhotoArchive, nil, nil
 }
 
 func (state LoadPhotoArchiveState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
