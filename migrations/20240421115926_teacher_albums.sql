@@ -3,11 +3,11 @@
 CREATE TABLE teacher_albums
 (
     id      serial PRIMARY KEY,
-    teacher VARCHAR(100),
+    name VARCHAR(100),
     url     VARCHAR(255)
 );
 
-INSERT INTO teacher_albums (teacher, url)
+INSERT INTO teacher_albums (name, url)
 VALUES ('Абулкасимов Манас Мукитович', 'https://vk.com/album-211704031_283523239'),
        ('Аксёнова Мария Владимировна', 'https://vk.com/album-211704031_283523240'),
        ('Аладин Дмитрий Владимирович', 'https://vk.com/album-211704031_283523241'),
@@ -68,8 +68,6 @@ VALUES ('Абулкасимов Манас Мукитович', 'https://vk.com/
        ('Шкуратова Людмила Петровна', 'https://vk.com/album-211704031_283523296'),
        ('Шук Владимир Павлович', 'https://vk.com/album-211704031_283523297'),
        ('Якубов Алексей Ренатович', 'https://vk.com/album-211704031_283523298');
-
-
 -- +goose StatementEnd
 
 -- +goose Down

@@ -6,6 +6,7 @@ import (
 	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
 	"github.com/jmoiron/sqlx"
 	"strconv"
+	"strings"
 )
 
 // Repo инстанс репо для работы с параметрами для поиска альбома
@@ -76,16 +77,6 @@ func (r *Repo) UpdateEvent(ctx context.Context, vkID int, eventNumber int) error
 	return nil
 }
 
-// UpdateTeacher добавляет ФИО преподавателя для поиска альбома
-func (r *Repo) UpdateTeacher(ctx context.Context, vkID int, teacherName string) error {
-	_, err := r.db.ExecContext(ctx, "UPDATE search_album SET teacher = $1 WHERE user_id = $2", teacherName, vkID)
-	if err != nil {
-		return fmt.Errorf("[db.ExecContext]: %w", err)
-	}
-
-	return nil
-}
-
 // DeleteYear удаляет год события для поиска альбома
 func (r *Repo) DeleteYear(ctx context.Context, vkID int) error {
 	_, err := r.db.ExecContext(ctx, "UPDATE search_album SET year = $1 WHERE user_id = $2", nil, vkID)
@@ -109,16 +100,6 @@ func (r *Repo) DeleteStudyProgram(ctx context.Context, vkID int) error {
 // DeleteEvent удаляет название события для поиска альбома
 func (r *Repo) DeleteEvent(ctx context.Context, vkID int) error {
 	_, err := r.db.ExecContext(ctx, "UPDATE search_album SET event = $1 WHERE user_id = $2", nil, vkID)
-	if err != nil {
-		return fmt.Errorf("[db.ExecContext]: %w", err)
-	}
-
-	return nil
-}
-
-// DeleteTeacher удаляет ФИО преподавателя для поиска альбома
-func (r *Repo) DeleteTeacher(ctx context.Context, vkID int) error {
-	_, err := r.db.ExecContext(ctx, "UPDATE search_album SET teacher = $1 WHERE user_id = $2", nil, vkID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -179,12 +160,12 @@ func (r *Repo) CountAlbums(ctx context.Context, vkID int) (int, error) {
 }
 
 // ShowList возвращает список найденных альбомов
-func (r *Repo) ShowList(ctx context.Context, vkID int) (string, error) {
+func (r *Repo) ShowList(ctx context.Context, vkID int) (string, int, int, error) {
 	var searchAlbum ds.SearchAlbum
 
 	err := r.db.GetContext(ctx, &searchAlbum, "SELECT * FROM search_album WHERE user_id = $1", vkID)
 	if err != nil {
-		return "", fmt.Errorf("[db.GetContext]: %w", err)
+		return "", 0, 0, fmt.Errorf("[db.GetContext]: %w", err)
 	}
 
 	query := "SELECT * FROM student_albums"
@@ -220,12 +201,19 @@ func (r *Repo) ShowList(ctx context.Context, vkID int) (string, error) {
 		argIndex++
 	}
 
-	query += " ORDER BY year" + " DESC"
-
 	var albums []ds.StudentAlbum
 	err = r.db.SelectContext(ctx, &albums, query, args...)
 	if err != nil {
-		return "", fmt.Errorf("[db.SelectContext]: %w", err)
+		return "", 0, 0, fmt.Errorf("[db.SelectContext]: %w", err)
+	}
+	count := len(albums)
+
+	query += " ORDER BY year DESC, study_program, event" + " offset $" + strconv.Itoa(argIndex) + " limit 10"
+	args = append(args, *searchAlbum.Pointer)
+
+	err = r.db.SelectContext(ctx, &albums, query, args...)
+	if err != nil {
+		return "", 0, 0, fmt.Errorf("[db.SelectContext]: %w", err)
 	}
 
 	var result string
@@ -236,12 +224,12 @@ func (r *Repo) ShowList(ctx context.Context, vkID int) (string, error) {
 	} else {
 		for idx, album := range albums {
 			yearStr := strconv.Itoa(album.Year)
-			idxStr := strconv.Itoa(idx + 1)
+			idxStr := strconv.Itoa(*searchAlbum.Pointer + idx + 1)
 			result += idxStr + ") " + yearStr + " // " + album.StudyProgram + " // " + album.Event + "\n" + album.URL + "\n"
 		}
 	}
 
-	return result, nil
+	return result, *searchAlbum.Pointer, count, nil
 }
 
 // GetEventMaxID возвращает максимальное ID из событий для фотографий
@@ -257,86 +245,162 @@ func (r *Repo) GetEventMaxID() (int, error) {
 
 // GetEventNames возвращает список названий событий для фотографии
 func (r *Repo) GetEventNames() (string, error) {
-	var output string
-
-	rows, err := r.db.Query("SELECT CONCAT(id, ') ', name) AS formatted_string FROM events")
+	var events []ds.Event
+	err := r.db.Select(&events, "SELECT * FROM events ORDER BY name")
 	if err != nil {
-		return "", fmt.Errorf("[db.Query]: %w", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var formattedString string
-		err := rows.Scan(&formattedString)
-		if err != nil {
-			return "", fmt.Errorf("[db.Scan]: %w", err)
-		}
-		output += formattedString + "\n"
+		return "", fmt.Errorf("[db.Select]: %w", err)
 	}
 
-	return output, nil
+	var result string
+	for idx, event := range events {
+		idxStr := strconv.Itoa(idx + 1)
+		result += idxStr + ") " + event.Name + "\n"
+	}
+
+	return result, nil
 }
 
 // GetTeacherNames возвращает ФИО преподавателей
-func (r *Repo) GetTeacherNames() (string, error) {
-	var teacherNames string
-
-	rows, err := r.db.Query("SELECT CONCAT(id, ') ', name) AS formatted_string FROM teachers")
+func (r *Repo) GetTeacherNames(vkID int) (string, int, int, error) {
+	var searchAlbum ds.SearchAlbum
+	err := r.db.Get(&searchAlbum, "SELECT * FROM search_album WHERE user_id = $1", vkID)
 	if err != nil {
-		return "", fmt.Errorf("[db.Query]: %w", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var formattedString string
-		err := rows.Scan(&formattedString)
-		if err != nil {
-			return "", fmt.Errorf("[db.Scan]: %w", err)
-		}
-		teacherNames += formattedString + "\n"
+		return "", 0, 0, fmt.Errorf("[db.Get]: %w", err)
 	}
 
-	return teacherNames, nil
-}
-
-// GetTeacherMaxID возвращает максимальное ID из преподавателей
-func (r *Repo) GetTeacherMaxID() (int, error) {
-	var maxID int
-	err := r.db.Get(&maxID, "SELECT MAX(id) FROM teachers")
-	if err != nil {
-		return 0, fmt.Errorf("[db.Get]: %w", err)
-	}
-
-	return maxID, nil
-}
-
-// GetTeacherName возвращает ФИО преподавателя
-func (r *Repo) GetTeacherName(ctx context.Context, teacherID int) (string, error) {
 	var name string
-	err := r.db.Get(&name, "SELECT name FROM teachers WHERE id = $1", teacherID)
+	if searchAlbum.Surname != nil {
+		name = *searchAlbum.Surname
+	}
+
+	var count int
+	err = r.db.Get(&count, "SELECT COUNT(*) FROM teacher_albums WHERE LOWER(name) LIKE $1 || '%'", strings.ToLower(name))
+	if err != nil {
+		return "", 0, 0, fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	var albums []ds.TeacherAlbum
+	err = r.db.Select(&albums, "SELECT * FROM teacher_albums WHERE LOWER(name) LIKE $1 || '%' OFFSET $2 LIMIT 10", strings.ToLower(name), searchAlbum.Pointer)
+	if err != nil {
+		return "", 0, 0, fmt.Errorf("[db.Select]: %w", err)
+	}
+
+	var result string
+	for idx, album := range albums {
+		idxStr := strconv.Itoa(*searchAlbum.Pointer + idx + 1)
+		result += idxStr + ") " + album.Name + "\n" + album.URL + "\n"
+	}
+
+	return result, *searchAlbum.Pointer, count, nil
+}
+
+// ChangePointerTeacher меняет указатель при поиске альбома преподавателя
+func (r *Repo) ChangePointerTeacher(vkID int, flag bool) error {
+	var pointer int
+
+	err := r.db.Get(&pointer, "SELECT pointer FROM search_album WHERE user_id = $1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	if !flag {
+		pointer -= 10
+	} else {
+		pointer += 10
+	}
+
+	if pointer >= 0 {
+		_, err = r.db.Exec("UPDATE search_album SET pointer = $1 WHERE user_id = $2", pointer, vkID)
+		if err != nil {
+			return fmt.Errorf("[db.Exec]: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// ChangePointerStudents меняет указатель при поиске альбома студентов
+func (r *Repo) ChangePointerStudents(vkID int, flag bool) error {
+	var pointer int
+
+	err := r.db.Get(&pointer, "SELECT pointer FROM search_album WHERE user_id = $1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	if !flag {
+		pointer -= 10
+	} else {
+		pointer += 10
+	}
+
+	if pointer >= 0 {
+		_, err = r.db.Exec("UPDATE search_album SET pointer = $1 WHERE user_id = $2", pointer, vkID)
+		if err != nil {
+			return fmt.Errorf("[db.Exec]: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// DeletePointer удаляет указатель
+func (r *Repo) DeletePointer(vkID int) error {
+	_, err := r.db.Exec("UPDATE search_album SET pointer = 0 WHERE user_id = $1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.Exec]: %w", err)
+	}
+	return nil
+}
+
+// DeleteSurname удаляет фамилию преподавателя из поиска альбома
+func (r *Repo) DeleteSurname(vkID int) error {
+	_, err := r.db.Exec("UPDATE search_album SET surname = '' WHERE user_id = $1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.Exec]: %w", err)
+	}
+	return nil
+}
+
+// UpdateName добавляет первые буквы фамилии преподавателя для поиска альбома
+func (r *Repo) UpdateName(ctx context.Context, vkID int, name string) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE search_album SET surname = $1 WHERE user_id = $2", name, vkID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// GetSearchParams возвращает параметры поиска
+func (r *Repo) GetSearchParams(vkID int) (string, error) {
+	var searchAlbum ds.SearchAlbum
+	err := r.db.Get(&searchAlbum, "SELECT * FROM search_album WHERE user_id = $1", vkID)
 	if err != nil {
 		return "", fmt.Errorf("[db.Get]: %w", err)
 	}
 
-	return name, nil
-}
-
-// ShowTeacher возвращает найденный альбом преподавателя
-func (r *Repo) ShowTeacher(ctx context.Context, vkID int) (string, error) {
-	var teacher string
-
-	err := r.db.GetContext(ctx, &teacher, "SELECT teacher FROM search_album WHERE user_id = $1", vkID)
-	if err != nil {
-		return "", fmt.Errorf("[db.GetContext]: %w", err)
+	var year, studyProgram, event string
+	if searchAlbum.Year == nil {
+		year = "Не указано"
+	} else {
+		year = strconv.Itoa(*searchAlbum.Year)
 	}
 
-	var album ds.TeacherAlbum
-	err = r.db.GetContext(ctx, &album, "SELECT * FROM teacher_albums WHERE teacher = $1", teacher)
-	if err != nil {
-		return "", fmt.Errorf("[db.GetContext]: %w", err)
+	if searchAlbum.StudyProgram == nil {
+		studyProgram = "Не указано"
+	} else {
+		studyProgram = *searchAlbum.StudyProgram
 	}
 
-	result := album.Teacher + "\n" + album.URL
+	if searchAlbum.Event == nil {
+		event = "Не указано"
+	} else {
+		event = *searchAlbum.Event
+	}
+
+	var result string
+	result += "Параметры поиска:" + "\n" + "1) Год события: " + year + "\n" + "2) Программа обучения: " + studyProgram + "\n" + "3) Название события: " + event
 
 	return result, nil
 }

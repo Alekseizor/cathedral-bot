@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/documents"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/object_admin"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/personal_account_photo"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/request_photo"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/request_photo_archive"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/search_album"
@@ -23,17 +24,18 @@ const (
 
 // Repo инстанс репо для работы с postgres
 type Repo struct {
-	repoCfg             config.PostgresConfig
-	State               *state.Repo
-	Document            *documents.Repo
-	RequestsDocuments   *requests_documents.Repo
-	RequestPhoto        *request_photo.Repo
-	RequestPhotoArchive *request_photo_archive.Repo
-	SearchAlbum         *search_album.Repo
-	Admin               *admin.Repo
-	Documents           *documents.Repo
-	SearchDocument      *search_document.Repo
-	ObjectAdmin         *object_admin.Repo
+	repoCfg              config.PostgresConfig
+	State                *state.Repo
+	Document             *documents.Repo
+	RequestsDocuments    *requests_documents.Repo
+	RequestPhoto         *request_photo.Repo
+	RequestPhotoArchive  *request_photo_archive.Repo
+	SearchAlbum          *search_album.Repo
+	Admin                *admin.Repo
+	Documents            *documents.Repo
+	SearchDocument       *search_document.Repo
+	ObjectAdmin          *object_admin.Repo
+	PersonalAccountPhoto *personal_account_photo.Repo
 }
 
 // New - создаем новое объект репо, подключения к бд еще нет!
@@ -62,6 +64,7 @@ func (r *Repo) Init() error {
 	r.Documents = documents.New(db)
 	r.ObjectAdmin = object_admin.New(db)
 	r.SearchDocument = search_document.New(db)
+	r.PersonalAccountPhoto = personal_account_photo.New(db)
 
 	return nil
 }

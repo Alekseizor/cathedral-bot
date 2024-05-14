@@ -5,6 +5,7 @@ type SearchAlbum struct {
 	Year         *int    `db:"year"`
 	StudyProgram *string `db:"study_program"`
 	Event        *string `db:"event"`
-	Teacher      *string `db:"teacher"`
+	Surname      *string `db:"surname"`
+	Pointer      *int    `db:"pointer"`
 	UserID       int     `db:"user_id"`
 }

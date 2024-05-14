@@ -413,7 +413,7 @@ func (state CheckPhotoState) Handler(ctx context.Context, msg object.MessagesMes
 
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
-		b.Message("Фотография отправлена администратору на рассмотрение. Вы можете отслеживать статус своей заявки в личном кабинете")
+		b.Message("Фотография отправлена администратору на рассмотрение. Вы можете отслеживать статус фотографии в личном кабинете")
 		return photoStart, []*params.MessagesSendBuilder{b}, nil
 	case "Редактировать заявку":
 		return editPhoto, nil, nil
