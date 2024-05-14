@@ -844,7 +844,6 @@ func (state TeacherSearchAlbumState) Show(ctx context.Context, vkID int) ([]*par
 
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message(teacherNames)
 	b.Message("Найдено альбомов: " + countString + "\n" + teacherNames)
 	k := object.NewMessagesKeyboard(true)
 	if count > 10 {

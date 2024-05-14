@@ -303,20 +303,13 @@ func (r *Repo) ChangePointerTeacher(vkID int, flag bool) error {
 		return fmt.Errorf("[db.Get]: %w", err)
 	}
 
-	var count int
-
-	err = r.db.Get(&count, "SELECT count(*) FROM teacher_albums")
-	if err != nil {
-		return fmt.Errorf("[db.Get]: %w", err)
-	}
-
 	if !flag {
 		pointer -= 10
 	} else {
 		pointer += 10
 	}
 
-	if pointer >= 0 && pointer < count {
+	if pointer >= 0 {
 		_, err = r.db.Exec("UPDATE search_album SET pointer = $1 WHERE user_id = $2", pointer, vkID)
 		if err != nil {
 			return fmt.Errorf("[db.Exec]: %w", err)
