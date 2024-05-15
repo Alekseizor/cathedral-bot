@@ -18,8 +18,9 @@ type Config struct {
 
 // BotConfig -  конфигурация бота в VK
 type BotConfig struct {
-	Token string `yaml:"token" mapstructure:"token"`
-	Admin Admin  `yaml:"admin" mapstructure:"admin"`
+	Token     string `yaml:"token" mapstructure:"token"`
+	UserToken string `yaml:"user_token" mapstructure:"user_token"`
+	GroupID   int    `yaml:"group_id" mapstructure:"group_id"`
 }
 
 type Admin struct {

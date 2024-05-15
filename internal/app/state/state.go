@@ -147,6 +147,10 @@ const (
 	teacherSearchAlbum               = stateName("teacherSearchAlbum")
 
 	personalAccountPhoto = stateName("personalAccountPhoto")
+
+	createAlbum        = stateName("createAlbum")
+	createStudentAlbum = stateName("createStudentAlbum")
+	createTeacherAlbum = stateName("createTeacherAlbum")
 )
 
 type State interface {
@@ -167,7 +171,7 @@ func New(cfg config.Config) *States {
 	}
 }
 
-func (s *States) Init(vk *api.VK) error {
+func (s *States) Init(vk *api.VK, vkUser *api.VK, groupID int) error {
 	postgresRepo := postrgres.New(s.cfg.ClientsConfig.PostgresConfig)
 
 	err := postgresRepo.Init()
@@ -310,6 +314,10 @@ func (s *States) Init(vk *api.VK) error {
 
 	personalAccountPhotoState := &PersonalAccountPhotoState{postgres: postgresRepo}
 
+	createAlbumState := &CreateAlbumState{postgres: postgresRepo, vk: vk}
+	createStudentAlbumState := &CreateStudentAlbumState{postgres: postgresRepo, vk: vk, vkUser: vkUser, groupID: groupID}
+	createTeacherAlbumState := &CreateTeacherAlbumState{postgres: postgresRepo, vk: vk, vkUser: vkUser, groupID: groupID}
+
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
 		startState.Name():                                   startState,
@@ -442,6 +450,10 @@ func (s *States) Init(vk *api.VK) error {
 		teacherSearchAlbumState.Name():               teacherSearchAlbumState,
 
 		personalAccountPhotoState.Name(): personalAccountPhotoState,
+
+		createAlbumState.Name():        createAlbumState,
+		createStudentAlbumState.Name(): createStudentAlbumState,
+		createTeacherAlbumState.Name(): createTeacherAlbumState,
 	}
 
 	return nil

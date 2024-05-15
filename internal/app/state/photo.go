@@ -36,6 +36,8 @@ func (state PhotoStartState) Handler(ctx context.Context, msg object.MessagesMes
 		return personalAccountPhoto, nil, nil
 	case "Кабинет администратора фотоархива":
 		return albumsCabinet, nil, nil
+	case "Создать альбом":
+		return createAlbum, nil, nil
 	case "Назад":
 		return selectArchive, nil, nil
 	default:
@@ -50,12 +52,12 @@ func (state PhotoStartState) Show(ctx context.Context, vkID int) ([]*params.Mess
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Загрузка фото", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Загрузка архива", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Поиск альбома", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Личный кабинет", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Создать альбом", "", "secondary")
 
 	albumsAdmins, err := state.postgres.Admin.GetAlbumsAdmins(ctx)
 	if err != nil {
