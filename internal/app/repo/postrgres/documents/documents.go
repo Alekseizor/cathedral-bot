@@ -143,7 +143,7 @@ func (r *Repo) SearchDocuments(ctx context.Context, params ds.SearchDocument, vk
 
 	if len(params.Hashtags) > 0 {
 		placeholder := "$" + strconv.Itoa(len(values)+1)
-		conditions = append(conditions, "hashtags = ANY("+placeholder+")")
+		conditions = append(conditions, placeholder+" && hashtags")
 		values = append(values, pq.Array(params.Hashtags))
 	}
 

@@ -147,6 +147,9 @@ const (
 	teacherSearchAlbum               = stateName("teacherSearchAlbum")
 
 	personalAccountPhoto = stateName("personalAccountPhoto")
+
+	showUserDocumentPublication = stateName("showUserDocumentPublication")
+	showUserDocumentApproved    = stateName("showUserDocumentApproved")
 )
 
 type State interface {
@@ -310,6 +313,9 @@ func (s *States) Init(vk *api.VK) error {
 
 	personalAccountPhotoState := &PersonalAccountPhotoState{postgres: postgresRepo}
 
+	showUserDocumentPublicationState := &ShowUserDocumentPublicationsState{postgres: postgresRepo}
+	showUserDocumentApprovedState := &ShowUserDocumentApprovedState{postgres: postgresRepo}
+
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
 		startState.Name():                                   startState,
@@ -442,6 +448,9 @@ func (s *States) Init(vk *api.VK) error {
 		teacherSearchAlbumState.Name():               teacherSearchAlbumState,
 
 		personalAccountPhotoState.Name(): personalAccountPhotoState,
+
+		showUserDocumentPublicationState.Name(): showUserDocumentPublicationState,
+		showUserDocumentApprovedState.Name():    showUserDocumentApprovedState,
 	}
 
 	return nil

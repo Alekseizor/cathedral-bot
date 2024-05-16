@@ -29,6 +29,18 @@ func (state DocumentStartState) Handler(ctx context.Context, msg object.Messages
 		return nameSearchDocument, nil, nil
 	case "Кабинет администратора документоархива":
 		return documentCabinet, nil, nil
+	case "Мои заявки":
+		err := state.postgres.UserDocumentPublication.CreateUserDocumentPublication(ctx, msg.PeerID)
+		if err != nil {
+			return documentStart, []*params.MessagesSendBuilder{}, err
+		}
+		return showUserDocumentPublication, nil, nil
+	case "Мои документы":
+		err := state.postgres.UserDocumentApproved.CreateUserDocumentApproved(ctx, msg.PeerID)
+		if err != nil {
+			return documentStart, []*params.MessagesSendBuilder{}, err
+		}
+		return showUserDocumentApproved, nil, nil
 	case "Назад":
 		return selectArchive, nil, nil
 	default:
@@ -57,6 +69,9 @@ func (state DocumentStartState) Show(ctx context.Context, vkID int) ([]*params.M
 	k.AddTextButton("Загрузка архива", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Поиск документа", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Мои заявки", "", "secondary")
+	k.AddTextButton("Мои документы", "", "secondary")
 	addBackButton(k)
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
