@@ -211,7 +211,8 @@ func (r *Repo) GetSearchDocuments(ctx context.Context, vkID int) (string, error)
 		}
 		index := params.PointerDoc + 1
 		if doc.Author == nil {
-			*doc.Author = "Автор не указан"
+			text := "Автор не указан"
+			doc.Author = &text
 		}
 		if doc.Year != nil {
 			output += fmt.Sprintf("[%d]. %s, %s, %d (%s)\n", index, *doc.Title, *doc.Author, *doc.Year, *doc.Category)
