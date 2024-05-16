@@ -124,6 +124,8 @@ func (state YearSearchDocumentState) Handler(ctx context.Context, msg object.Mes
 		return authorSearchDocument, nil, nil
 	case "Пропустить":
 		return categoriesSearchDocument, nil, nil
+	case "Перейти к поиску":
+		return doSearchDocument, nil, nil
 	default:
 		if len(messageText) == 4 {
 			year, err := strconv.Atoi(messageText)
@@ -195,6 +197,8 @@ func (state YearSearchDocumentState) Show(ctx context.Context, vkID int) ([]*par
 	k.AddTextButton("Назад", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Перейти к поиску", "", "secondary")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -216,6 +220,8 @@ func (state CategoriesSearchDocumentState) Handler(ctx context.Context, msg obje
 		return yearSearchDocument, nil, nil
 	case "Пропустить":
 		return hashtagSearchDocument, nil, nil
+	case "Перейти к поиску":
+		return doSearchDocument, nil, nil
 	default:
 		maxID, err := state.postgres.RequestsDocuments.GetCategoryMaxID()
 		if err != nil {
@@ -260,6 +266,8 @@ func (state CategoriesSearchDocumentState) Show(ctx context.Context, vkID int) (
 	k.AddTextButton("Назад", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Перейти к поиску", "", "secondary")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -281,6 +289,8 @@ func (state HashtagSearchDocumentState) Handler(ctx context.Context, msg object.
 		return categoriesSearchDocument, nil, nil
 	case "Пропустить":
 		return checkSearchDocument, nil, nil
+	case "Перейти к поиску":
+		return doSearchDocument, nil, nil
 	default:
 		hashtags := strings.Split(messageText, " ")
 		err := state.postgres.SearchDocument.UpdateHashtagsSearch(ctx, hashtags, msg.PeerID)
@@ -300,6 +310,8 @@ func (state HashtagSearchDocumentState) Show(ctx context.Context, vkID int) ([]*
 	k.AddTextButton("Назад", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Перейти к поиску", "", "secondary")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
