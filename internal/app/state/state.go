@@ -181,7 +181,7 @@ func New(cfg config.Config) *States {
 	}
 }
 
-func (s *States) Init(vk *api.VK) error {
+func (s *States) Init(vk *api.VK, vkUser *api.VK) error {
 	postgresRepo := postrgres.New(s.cfg.ClientsConfig.PostgresConfig)
 
 	err := postgresRepo.Init()
@@ -330,11 +330,11 @@ func (s *States) Init(vk *api.VK) error {
 
 	// администратор изменяет информацию об опубликованных альбомах
 	changeAlbumsState := &ChangeAlbumsState{postgres: postgresRepo}
-	changeEventYearPhotoState := &ChangeEventYearPhotoState{postgres: postgresRepo}
-	changeStudyProgramPhotoState := &ChangeStudyProgramPhotoState{postgres: postgresRepo}
-	changeEventNamePhotoState := &ChangeEventNamePhotoState{postgres: postgresRepo}
+	changeEventYearPhotoState := &ChangeEventYearPhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
+	changeStudyProgramPhotoState := &ChangeStudyProgramPhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
+	changeEventNamePhotoState := &ChangeEventNamePhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
 	changeUserEventNamePhotoState := &ChangeUserEventNamePhotoState{postgres: postgresRepo}
-	changeDescriptionPhotoState := &ChangeDescriptionPhotoState{postgres: postgresRepo}
+	changeDescriptionPhotoState := &ChangeDescriptionPhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{

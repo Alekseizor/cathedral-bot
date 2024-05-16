@@ -128,3 +128,27 @@ func (r *Repo) UpdateDescription(ctx context.Context, albumID int, description s
 	}
 	return nil
 }
+
+func (r *Repo) GetVKID(ctx context.Context, albumID int) (string, error) {
+	var vkID string
+	err := r.db.GetContext(ctx, &vkID, "SELECT vk_id FROM student_albums WHERE id = $1", albumID)
+	if err != nil {
+		return "", fmt.Errorf("[db.GetContext]: %w", err)
+	}
+	return vkID, nil
+}
+
+func (r *Repo) GetTitle(ctx context.Context, albumID int) (string, error) {
+	var (
+		year         int
+		studyProgram string
+		event        string
+	)
+
+	err := r.db.QueryRowContext(ctx, "SELECT year,study_program,event FROM student_albums WHERE id = $1", albumID).Scan(&year, &studyProgram, &event)
+	if err != nil {
+		return "", fmt.Errorf("[db.QueryRowContext]: %w", err)
+	}
+
+	return fmt.Sprintf("%d // %s // %s", year, studyProgram, event), nil
+}

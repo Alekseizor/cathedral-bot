@@ -7,12 +7,15 @@ import (
 	"time"
 
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres"
+	"github.com/SevereCloud/vksdk/v2/api"
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
 )
 
 type ChangeEventYearPhotoState struct {
 	postgres *postrgres.Repo
+	vk       *api.VK
+	vkUser   *api.VK
 }
 
 func (state ChangeEventYearPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
@@ -47,11 +50,42 @@ func (state ChangeEventYearPhotoState) Handler(ctx context.Context, msg object.M
 			return changeEventYearPhoto, []*params.MessagesSendBuilder{}, err
 		}
 
+		err = changeNameAlbum(ctx, photoID, state.postgres, state.vk, state.vkUser)
+		if err != nil {
+			return changeEventYearPhoto, []*params.MessagesSendBuilder{}, err
+		}
+
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
 		b.Message(fmt.Sprintf("Для альбома №%d изменен год на - %d", photoID, year))
+
 		return workingAlbums, []*params.MessagesSendBuilder{b}, nil
 	}
+}
+
+func changeNameAlbum(ctx context.Context, albumID int, postgres *postrgres.Repo, vk, vkUser *api.VK) error {
+	newTitle, err := postgres.StudentAlbums.GetTitle(ctx, albumID)
+	if err != nil {
+		return err
+	}
+
+	albumVKID, err := postgres.StudentAlbums.GetVKID(ctx, albumID)
+	if err != nil {
+		return err
+	}
+
+	// достали id группы
+	groupID, err := vk.GroupsGetByID(nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = vkUser.PhotosEditAlbum(api.Params{"album_id": albumVKID, "title": newTitle, "owner_id": groupID[0].ID * (-1)})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (state ChangeEventYearPhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
@@ -71,6 +105,8 @@ func (state ChangeEventYearPhotoState) Name() stateName {
 
 type ChangeStudyProgramPhotoState struct {
 	postgres *postrgres.Repo
+	vk       *api.VK
+	vkUser   *api.VK
 }
 
 func (state ChangeStudyProgramPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
@@ -105,6 +141,11 @@ func (state ChangeStudyProgramPhotoState) Handler(ctx context.Context, msg objec
 		return changeStudyProgramPhoto, []*params.MessagesSendBuilder{}, err
 	}
 
+	err = changeNameAlbum(ctx, photoID, state.postgres, state.vk, state.vkUser)
+	if err != nil {
+		return changeEventYearPhoto, []*params.MessagesSendBuilder{}, err
+	}
+
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message(fmt.Sprintf("Для альбома №%d изменена программа обучения на - %s", photoID, educationProgram))
@@ -133,6 +174,8 @@ func (state ChangeStudyProgramPhotoState) Name() stateName {
 
 type ChangeEventNamePhotoState struct {
 	postgres *postrgres.Repo
+	vk       *api.VK
+	vkUser   *api.VK
 }
 
 func (state ChangeEventNamePhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
@@ -175,9 +218,14 @@ func (state ChangeEventNamePhotoState) Handler(ctx context.Context, msg object.M
 			return changeEventNamePhoto, []*params.MessagesSendBuilder{}, err
 		}
 
+		err = changeNameAlbum(ctx, photoID, state.postgres, state.vk, state.vkUser)
+		if err != nil {
+			return changeEventYearPhoto, []*params.MessagesSendBuilder{}, err
+		}
+
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
-		b.Message(fmt.Sprintf("Для альбома №%d изменен номер события на - %s", photoID, eventNumber))
+		b.Message(fmt.Sprintf("Для альбома №%d изменен номер события на - %d", photoID, eventNumber))
 		return workingAlbums, []*params.MessagesSendBuilder{b}, nil
 	}
 }
@@ -204,6 +252,8 @@ func (state ChangeEventNamePhotoState) Name() stateName {
 
 type ChangeDescriptionPhotoState struct {
 	postgres *postrgres.Repo
+	vk       *api.VK
+	vkUser   *api.VK
 }
 
 func (state ChangeDescriptionPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
@@ -225,9 +275,27 @@ func (state ChangeDescriptionPhotoState) Handler(ctx context.Context, msg object
 		if err != nil {
 			return changeDescriptionPhoto, []*params.MessagesSendBuilder{}, err
 		}
+
+		albumVKID, err := state.postgres.StudentAlbums.GetVKID(ctx, photoID)
+		if err != nil {
+			return changeDescriptionPhoto, []*params.MessagesSendBuilder{}, err
+		}
+
+		// достали id группы
+		groupID, err := state.vk.GroupsGetByID(nil)
+		if err != nil {
+			return changeDescriptionPhoto, []*params.MessagesSendBuilder{}, err
+		}
+
+		_, err = state.vkUser.PhotosEditAlbum(api.Params{"album_id": albumVKID, "description": messageText, "owner_id": groupID[0].ID * (-1)})
+		if err != nil {
+			return changeDescriptionPhoto, []*params.MessagesSendBuilder{}, err
+		}
+
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
 		b.Message(fmt.Sprintf("Для альбома №%d изменено описание на - %s", photoID, messageText))
+
 		return workingAlbums, []*params.MessagesSendBuilder{b}, nil
 	}
 }
@@ -249,6 +317,7 @@ func (state ChangeDescriptionPhotoState) Name() stateName {
 
 type ChangeUserEventNamePhotoState struct {
 	postgres *postrgres.Repo
+	vk       *api.VK
 }
 
 func (state ChangeUserEventNamePhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {

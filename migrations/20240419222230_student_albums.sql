@@ -7,7 +7,8 @@ CREATE TABLE student_albums
     study_program VARCHAR(100),
     event         VARCHAR(100),
     description         VARCHAR(10000),
-    url           VARCHAR(255)
+    url           VARCHAR(255),
+    vk_id           VARCHAR(255)
 );
 
 INSERT INTO student_albums (year, study_program, event,description, url)

@@ -5,7 +5,8 @@ CREATE TABLE teacher_albums
     id               serial PRIMARY KEY,
     teacher          VARCHAR(100),
     description         VARCHAR(10000),
-    url              VARCHAR(255)
+    url              VARCHAR(255),
+    vk_id           VARCHAR(255)
 );
 
 INSERT INTO teacher_albums (teacher,description, url)
