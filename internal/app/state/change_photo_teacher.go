@@ -84,7 +84,7 @@ func (state ChangeNameTeacherPhotoState) Handler(ctx context.Context, msg object
 }
 
 func (state ChangeNameTeacherPhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
-	teachers, err := state.postgres.RequestPhoto.GetTeacherNames()
+	teachers, err := state.postgres.RequestPhoto.GetAllTeacherNames()
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
 	}

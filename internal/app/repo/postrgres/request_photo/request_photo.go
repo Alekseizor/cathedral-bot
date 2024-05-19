@@ -5,14 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
-	"github.com/SevereCloud/vksdk/v2/api"
-	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"strconv"
+
+	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
+	"github.com/SevereCloud/vksdk/v2/api"
+	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 // Repo инстанс репо для работы с фотографиями пользователя
@@ -208,6 +209,28 @@ func (r *Repo) GetTeacherNames(vkID int) (string, int, int, error) {
 	}
 
 	return teacherNames, pointer, count, nil
+}
+
+// GetAllTeacherNames возвращает все имеющиеся ФИО преподавателей разом
+func (r *Repo) GetAllTeacherNames() (string, error) {
+	var teacherNames string
+
+	rows, err := r.db.Query("SELECT CONCAT(id, ') ', name) AS formatted_string FROM teacher_albums")
+	if err != nil {
+		return "", fmt.Errorf("[db.Query]: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var formattedString string
+		err := rows.Scan(&formattedString)
+		if err != nil {
+			return "", fmt.Errorf("[db.Scan]: %w", err)
+		}
+		teacherNames += formattedString + "\n"
+	}
+
+	return teacherNames, nil
 }
 
 // ChangePointer меняет указатель

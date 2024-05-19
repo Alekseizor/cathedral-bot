@@ -185,13 +185,23 @@ func (state WorkingAlbumsFromStudentsState) Handler(ctx context.Context, msg obj
 }
 
 func (state WorkingAlbumsFromStudentsState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
-	b := params.NewMessagesSendBuilder()
-	b.RandomID(0)
 	output, err := state.postgres.StudentAlbums.GetAllAlbumsOutput(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("[student_albums.GetAllAlbumsOutput]: %w", err)
 	}
-	b.Message(fmt.Sprintf("Существующие студенческие альбомы:\n%s", output))
+	messages := make([]*params.MessagesSendBuilder, 0)
+
+	if len(output) > 0 {
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message(fmt.Sprintf("Существующие студенческие альбомы:"))
+
+		messages = append(messages, b)
+	}
+
+	for _, outputElem := range output {
+		messages = append(messages, params.NewMessagesSendBuilder().RandomID(0).Message(outputElem))
+	}
 
 	b1 := params.NewMessagesSendBuilder()
 	b1.RandomID(0)
@@ -199,7 +209,8 @@ func (state WorkingAlbumsFromStudentsState) Show(ctx context.Context, vkID int) 
 	k := object.NewMessagesKeyboard(true)
 	addBackButton(k)
 	b1.Keyboard(k)
-	return []*params.MessagesSendBuilder{b, b1}, nil
+
+	return append(messages, b1), nil
 }
 
 func (state WorkingAlbumsFromStudentsState) Name() stateName {
@@ -368,7 +379,7 @@ func (state WorkingAlbumsFromTeacherState) Handler(ctx context.Context, msg obje
 	b.RandomID(0)
 	output, err := state.postgres.TeacherAlbums.GetAlbum(ctx, documentID)
 	if err != nil {
-		return workingAlbumsFromTeachers, nil, nil
+		return workingAlbumsFromTeachers, nil, err
 	}
 	b.Message(output)
 	k := object.NewMessagesKeyboard(true)
@@ -382,13 +393,24 @@ func (state WorkingAlbumsFromTeacherState) Handler(ctx context.Context, msg obje
 }
 
 func (state WorkingAlbumsFromTeacherState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
-	b := params.NewMessagesSendBuilder()
-	b.RandomID(0)
 	output, err := state.postgres.TeacherAlbums.GetAllAlbumsOutput(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("[student_albums.GetAllAlbumsOutput]: %w", err)
+		return nil, fmt.Errorf("[teacher_albums.GetAllAlbumsOutput]: %w", err)
 	}
-	b.Message(fmt.Sprintf("Существующие альбомы преподавателей:\n%s", output))
+
+	messages := make([]*params.MessagesSendBuilder, 0)
+
+	if len(output) > 0 {
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message(fmt.Sprintf("Существующие альбомы преподавателей:"))
+
+		messages = append(messages, b)
+	}
+
+	for _, outputElem := range output {
+		messages = append(messages, params.NewMessagesSendBuilder().RandomID(0).Message(outputElem))
+	}
 
 	b1 := params.NewMessagesSendBuilder()
 	b1.RandomID(0)
@@ -396,7 +418,7 @@ func (state WorkingAlbumsFromTeacherState) Show(ctx context.Context, vkID int) (
 	k := object.NewMessagesKeyboard(true)
 	addBackButton(k)
 	b1.Keyboard(k)
-	return []*params.MessagesSendBuilder{b, b1}, nil
+	return append(messages, b1), nil
 }
 
 func (state WorkingAlbumsFromTeacherState) Name() stateName {

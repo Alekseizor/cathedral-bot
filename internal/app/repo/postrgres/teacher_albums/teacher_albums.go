@@ -23,51 +23,63 @@ func New(db *sqlx.DB) *Repo {
 func (r *Repo) GetAlbum(ctx context.Context, albumID int) (string, error) {
 	sqlQuery := `
 	SELECT 
-    	'1) Альбом про преподавателя: ' || COALESCE(teacher, 'Не указано') AS teacher,
-    	'2) Описание: ' || COALESCE(description, 'Не указано') AS description
+    	'1) Альбом про преподавателя: ' || COALESCE(name, 'Не указано') AS name,
+    	'2) Описание: ' || COALESCE(description, 'Не указано') AS description,
+    	'3) url: ' || COALESCE(url, 'Не указано') AS url
 	FROM teacher_albums
 	WHERE id = $1;`
 
 	var (
 		teacher     string
 		description string
+		url         string
 	)
 
-	err := r.db.QueryRowContext(ctx, sqlQuery, albumID).Scan(&teacher, &description)
+	err := r.db.QueryRowContext(ctx, sqlQuery, albumID).Scan(&teacher, &description, &url)
 	if err != nil {
 		return "", fmt.Errorf("[db.QueryRowContext]: %w", err)
 	}
 
-	output := fmt.Sprintf("%s\n%s", teacher, description)
+	output := fmt.Sprintf("%s\n%s\n%s", teacher, description, url)
 
 	return output, nil
 }
 
-func (r *Repo) GetAllAlbumsOutput(ctx context.Context) (string, error) {
+func (r *Repo) GetAllAlbumsOutput(ctx context.Context) ([]string, error) {
 	sqlQuery := `
     SELECT 
         'ID: ' || CAST(id AS VARCHAR) AS id,
-        'Название альбома: ' || teacher AS name
+        'Название альбома: ' || name AS name,
+        'url: ' || url AS url
     FROM teacher_albums;`
 
 	rows, err := r.db.QueryContext(ctx, sqlQuery)
 	if err != nil {
-		return "", fmt.Errorf("[db.QueryContext]: %w", err)
+		return nil, fmt.Errorf("[db.QueryContext]: %w", err)
 	}
 	defer rows.Close()
 
-	var output string
+	output := make([]string, 0)
+	index := 0
+	outputElem := ""
 
 	for rows.Next() {
-		var id, name string
-		if err := rows.Scan(&id, &name); err != nil {
-			return "", fmt.Errorf("[rows.Scan]: %w", err)
+		index++
+		var id, name, url string
+		if err := rows.Scan(&id, &name, &url); err != nil {
+			return nil, fmt.Errorf("[rows.Scan]: %w", err)
 		}
-		output += fmt.Sprintf("%s\n%s\n\n", id, name)
+		outputElem += fmt.Sprintf("%s\n%s\n%s\n\n", id, name, url)
+
+		if index == 10 {
+			output = append(output, outputElem)
+			index = 0
+			outputElem = ""
+		}
 	}
 
 	if err := rows.Err(); err != nil {
-		return "", fmt.Errorf("[rows.Err]: %w", err)
+		return nil, fmt.Errorf("[rows.Err]: %w", err)
 	}
 
 	return output, nil

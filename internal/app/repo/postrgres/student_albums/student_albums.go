@@ -26,7 +26,8 @@ func (r *Repo) GetAlbum(ctx context.Context, albumID int) (string, error) {
     	'1) Год события: ' || COALESCE(CAST(year AS VARCHAR), 'Не указано') AS year,
     	'2) Программа обучения: ' || COALESCE(study_program, 'Не указано') AS studyProgram,
     	'3) Название события: ' || COALESCE(event, 'Не указано') AS event,
-    	'4) Описание: ' || COALESCE(description, 'Не указано') AS description
+    	'4) Описание: ' || COALESCE(description, 'Не указано') AS description,
+    	'5) url: ' || COALESCE(url, 'Не указано') AS url
 	FROM student_albums
 	WHERE id = $1;`
 
@@ -35,46 +36,57 @@ func (r *Repo) GetAlbum(ctx context.Context, albumID int) (string, error) {
 		studyProgram string
 		event        string
 		description  string
+		url          string
 	)
 
-	err := r.db.QueryRowContext(ctx, sqlQuery, albumID).Scan(&year, &studyProgram, &event, &description)
+	err := r.db.QueryRowContext(ctx, sqlQuery, albumID).Scan(&year, &studyProgram, &event, &description, &url)
 	if err != nil {
 		return "", fmt.Errorf("[db.QueryRow]: %w", err)
 	}
 
-	output := fmt.Sprintf("%s\n%s\n%s\n%s\n", year, studyProgram, event, description)
+	output := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n", year, studyProgram, event, description, url)
 
 	return output, nil
 }
 
-func (r *Repo) GetAllAlbumsOutput(ctx context.Context) (string, error) {
+func (r *Repo) GetAllAlbumsOutput(ctx context.Context) ([]string, error) {
 	sqlQuery := `
     SELECT 
         'ID: ' || CAST(id AS VARCHAR) AS id,
         CASE 
             WHEN year IS NULL AND study_program IS NULL AND event IS NULL THEN '2. Название альбома: Остальное' 
             ELSE 'Название альбома: ' || COALESCE(CAST(year AS VARCHAR), '---') ||' // '|| COALESCE(study_program, '---')||' // ' || COALESCE(event, '---') 
-        END AS name
+        END AS name,
+        'url: ' || url AS url    
     FROM student_albums;`
 
 	rows, err := r.db.QueryContext(ctx, sqlQuery)
 	if err != nil {
-		return "", fmt.Errorf("[db.QueryContext]: %w", err)
+		return nil, fmt.Errorf("[db.QueryContext]: %w", err)
 	}
 	defer rows.Close()
 
-	var output string
+	output := make([]string, 0)
+	index := 0
+	outputElem := ""
 
 	for rows.Next() {
-		var id, name string
-		if err := rows.Scan(&id, &name); err != nil {
-			return "", fmt.Errorf("[rows.Scan]: %w", err)
+		index++
+		var id, name, url string
+		if err := rows.Scan(&id, &name, &url); err != nil {
+			return nil, fmt.Errorf("[rows.Scan]: %w", err)
 		}
-		output += fmt.Sprintf("%s\n%s\n\n", id, name)
+		outputElem += fmt.Sprintf("%s\n%s\n%s\n\n", id, name, url)
+
+		if index == 10 {
+			output = append(output, outputElem)
+			index = 0
+			outputElem = ""
+		}
 	}
 
 	if err := rows.Err(); err != nil {
-		return "", fmt.Errorf("[rows.Err]: %w", err)
+		return nil, fmt.Errorf("[rows.Err]: %w", err)
 	}
 
 	return output, nil
