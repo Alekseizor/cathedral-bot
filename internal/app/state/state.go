@@ -151,6 +151,10 @@ const (
 	createAlbum        = stateName("createAlbum")
 	createStudentAlbum = stateName("createStudentAlbum")
 	createTeacherAlbum = stateName("createTeacherAlbum")
+
+	addPhotoToAlbum = stateName("addPhotoToAlbum")
+
+	//viewRequests  = stateName("addPhotoToAlbum")
 )
 
 type State interface {
@@ -318,6 +322,8 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK, groupID int) error {
 	createStudentAlbumState := &CreateStudentAlbumState{postgres: postgresRepo, vk: vk, vkUser: vkUser, groupID: groupID}
 	createTeacherAlbumState := &CreateTeacherAlbumState{postgres: postgresRepo, vk: vk, vkUser: vkUser, groupID: groupID}
 
+	addPhotoToAlbumState := &AddPhotoToAlbumState{postgres: postgresRepo, vk: vk, vkUser: vkUser, groupID: groupID}
+
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
 		startState.Name():                                   startState,
@@ -454,6 +460,8 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK, groupID int) error {
 		createAlbumState.Name():        createAlbumState,
 		createStudentAlbumState.Name(): createStudentAlbumState,
 		createTeacherAlbumState.Name(): createTeacherAlbumState,
+
+		addPhotoToAlbumState.Name(): addPhotoToAlbumState,
 	}
 
 	return nil

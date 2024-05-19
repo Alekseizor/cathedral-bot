@@ -38,6 +38,8 @@ func (state PhotoStartState) Handler(ctx context.Context, msg object.MessagesMes
 		return albumsCabinet, nil, nil
 	case "Создать альбом":
 		return createAlbum, nil, nil
+	case "Добавить фото в альбом":
+		return addPhotoToAlbum, nil, nil
 	case "Назад":
 		return selectArchive, nil, nil
 	default:
@@ -58,6 +60,7 @@ func (state PhotoStartState) Show(ctx context.Context, vkID int) ([]*params.Mess
 	k.AddTextButton("Личный кабинет", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Создать альбом", "", "secondary")
+	k.AddTextButton("Добавить фото в альбом", "", "secondary")
 
 	albumsAdmins, err := state.postgres.Admin.GetAlbumsAdmins(ctx)
 	if err != nil {

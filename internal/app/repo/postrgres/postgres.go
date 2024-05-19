@@ -2,6 +2,7 @@ package postrgres
 
 import (
 	"fmt"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/add_photo_to_album"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/create_album"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/documents"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/object_admin"
@@ -38,6 +39,7 @@ type Repo struct {
 	ObjectAdmin          *object_admin.Repo
 	PersonalAccountPhoto *personal_account_photo.Repo
 	CreateAlbum          *create_album.Repo
+	AddPhotoToAlbum      *add_photo_to_album.Repo
 }
 
 // New - создаем новое объект репо, подключения к бд еще нет!
@@ -68,6 +70,7 @@ func (r *Repo) Init() error {
 	r.SearchDocument = search_document.New(db)
 	r.PersonalAccountPhoto = personal_account_photo.New(db)
 	r.CreateAlbum = create_album.New(db)
+	r.AddPhotoToAlbum = add_photo_to_album.New(db)
 
 	return nil
 }
