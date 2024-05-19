@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/SevereCloud/vksdk/v2/api"
 	"github.com/SevereCloud/vksdk/v2/api/params"
 	"github.com/SevereCloud/vksdk/v2/object"
 
@@ -108,7 +109,7 @@ func (state WorkingAlbumsState) Handler(ctx context.Context, msg object.Messages
 	case "Студенческие":
 		return workingAlbumsFromStudents, nil, nil
 	case "Преподавательские":
-		return workingAlbums, nil, nil
+		return workingAlbumsFromTeachers, nil, nil
 	case "Назад":
 		return albumsCabinet, nil, nil
 	default:
@@ -169,6 +170,9 @@ func (state WorkingAlbumsFromStudentsState) Handler(ctx context.Context, msg obj
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	output, err := state.postgres.StudentAlbums.GetAlbum(ctx, documentID)
+	if err != nil {
+		return workingAlbumsFromStudents, nil, err
+	}
 	b.Message(output)
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
@@ -206,6 +210,8 @@ func (state WorkingAlbumsFromStudentsState) Name() stateName {
 
 type ActionOnPhotoState struct {
 	postgres *postrgres.Repo
+	vk       *api.VK
+	vkUser   *api.VK
 }
 
 func (state ActionOnPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
@@ -223,13 +229,30 @@ func (state ActionOnPhotoState) Handler(ctx context.Context, msg object.Messages
 
 	switch messageText {
 	case "Удалить":
-		err = state.postgres.Documents.Delete(ctx, albumID)
+		albumVKID, err := state.postgres.StudentAlbums.GetVKID(ctx, albumID)
 		if err != nil {
-			return "", nil, err
+			return "", nil, fmt.Errorf("[StudentAlbums.GetVKID]: %w", err)
 		}
+
+		// достали id группы
+		groupID, err := state.vk.GroupsGetByID(nil)
+		if err != nil {
+			return "", nil, fmt.Errorf("[vk.GroupsGetByID]: %w", err)
+		}
+
+		resp, err := state.vkUser.PhotosDeleteAlbum(api.Params{"album_id": albumVKID, "group_id": groupID[0].ID})
+		if err != nil || resp != 1 {
+			return "", nil, fmt.Errorf("[vkUser.PhotosDeleteAlbum]: %w", err)
+		}
+
+		err = state.postgres.StudentAlbums.Delete(ctx, albumID)
+		if err != nil {
+			return "", nil, fmt.Errorf("[TeacherAlbums.Delete]: %w", err)
+		}
+
 		b := params.NewMessagesSendBuilder()
 		b.RandomID(0)
-		b.Message("Документ успешно удален")
+		b.Message(fmt.Sprintf("Студенческий альбом №%d успешно удален", albumID))
 		return workingAlbums, []*params.MessagesSendBuilder{b}, nil
 	case "Изменить":
 		b := params.NewMessagesSendBuilder()
@@ -304,4 +327,197 @@ func (state ChangeAlbumsState) Show(ctx context.Context, vkID int) ([]*params.Me
 
 func (state ChangeAlbumsState) Name() stateName {
 	return changeAlbums
+}
+
+/////
+
+///////////
+
+type WorkingAlbumsFromTeacherState struct {
+	postgres *postrgres.Repo
+}
+
+func (state WorkingAlbumsFromTeacherState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+
+	if messageText == "Назад" {
+		return workingAlbums, nil, nil
+	}
+
+	documentID, err := strconv.Atoi(messageText)
+	if err != nil {
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("ID должно быть числом, например, 12")
+		return workingAlbumsFromTeachers, []*params.MessagesSendBuilder{b}, nil
+	}
+
+	exists, err := state.postgres.TeacherAlbums.CheckExistence(ctx, documentID)
+	if err != nil {
+		return workingAlbumsFromTeachers, nil, err
+	}
+
+	if !exists {
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Альбома студентов с таким ID не найдено")
+		return workingAlbumsFromTeachers, []*params.MessagesSendBuilder{b}, nil
+	}
+
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	output, err := state.postgres.TeacherAlbums.GetAlbum(ctx, documentID)
+	if err != nil {
+		return workingAlbumsFromTeachers, nil, nil
+	}
+	b.Message(output)
+	k := object.NewMessagesKeyboard(true)
+	k.AddRow()
+	k.AddTextButton("Изменить", documentID, "secondary")
+	k.AddTextButton("Удалить", documentID, "secondary")
+	addBackButton(k)
+	b.Keyboard(k)
+
+	return actionOnPhotoTeacher, []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state WorkingAlbumsFromTeacherState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	output, err := state.postgres.TeacherAlbums.GetAllAlbumsOutput(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("[student_albums.GetAllAlbumsOutput]: %w", err)
+	}
+	b.Message(fmt.Sprintf("Существующие альбомы преподавателей:\n%s", output))
+
+	b1 := params.NewMessagesSendBuilder()
+	b1.RandomID(0)
+	b1.Message("Введите ID альбома, над которым хотите поработать. Например: 12")
+	k := object.NewMessagesKeyboard(true)
+	addBackButton(k)
+	b1.Keyboard(k)
+	return []*params.MessagesSendBuilder{b, b1}, nil
+}
+
+func (state WorkingAlbumsFromTeacherState) Name() stateName {
+	return workingAlbumsFromTeachers
+}
+
+///////////
+
+type ActionOnPhotoTeacherState struct {
+	postgres *postrgres.Repo
+	vk       *api.VK
+	vkUser   *api.VK
+}
+
+func (state ActionOnPhotoTeacherState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+	if messageText == "Назад" {
+		return workingAlbums, nil, nil
+	}
+
+	payload := msg.Payload
+
+	albumID, err := strconv.Atoi(payload)
+	if err != nil {
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Введите одну из команд, которые предлагает бот")
+		return workingAlbums, []*params.MessagesSendBuilder{b}, nil
+	}
+
+	switch messageText {
+	case "Удалить":
+		albumVKID, err := state.postgres.TeacherAlbums.GetVKID(ctx, albumID)
+		if err != nil {
+			return "", nil, err
+		}
+
+		// достали id группы
+		groupID, err := state.vk.GroupsGetByID(nil)
+		if err != nil {
+			return "", nil, fmt.Errorf("[vk.GroupsGetByID]: %w", err)
+		}
+
+		resp, err := state.vkUser.PhotosDeleteAlbum(api.Params{"album_id": albumVKID, "group_id": groupID[0].ID})
+		if err != nil || resp != 1 {
+			return "", nil, fmt.Errorf("[vkUser.PhotosDeleteAlbum]: %w", err)
+		}
+
+		err = state.postgres.TeacherAlbums.Delete(ctx, albumID)
+		if err != nil {
+			return "", nil, fmt.Errorf("[TeacherAlbums.Delete]: %w", err)
+		}
+
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message(fmt.Sprintf("Альбом учителя №%d успешно удален", albumID))
+		return workingAlbums, []*params.MessagesSendBuilder{b}, nil
+	case "Изменить":
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Что Вы хотите изменить в альбоме?")
+		k := object.NewMessagesKeyboard(true)
+		k.AddRow()
+		k.AddTextButton("ФИО", albumID, "secondary")
+		k.AddTextButton("Описание", albumID, "secondary")
+		addBackButton(k)
+		b.Keyboard(k)
+		return changeAlbumsTeacher, []*params.MessagesSendBuilder{b}, nil
+	default:
+		return workingAlbums, nil, nil
+	}
+}
+
+func (state ActionOnPhotoTeacherState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	return nil, nil
+}
+
+func (state ActionOnPhotoTeacherState) Name() stateName {
+	return actionOnPhotoTeacher
+}
+
+///////////
+
+type ChangeAlbumsTeacherState struct {
+	postgres *postrgres.Repo
+}
+
+func (state ChangeAlbumsTeacherState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+	if messageText == "Назад" {
+		return workingAlbums, nil, nil
+	}
+
+	payload := msg.Payload
+
+	documentID, err := strconv.Atoi(payload)
+	if err != nil {
+		return "", nil, err
+	}
+
+	err = state.postgres.ObjectAdmin.Update(ctx, documentID, msg.PeerID)
+	if err != nil {
+		return "", nil, fmt.Errorf("[object_admin.Update]: %w", err)
+	}
+
+	switch messageText {
+	case "ФИО":
+		return changeNameTeacherPhoto, nil, nil
+	case "Описание":
+		return changeDescriptionPhotoTeacher, nil, nil
+	case "Назад":
+		return workingAlbums, nil, nil
+	default:
+		return workingAlbums, nil, nil
+	}
+}
+
+func (state ChangeAlbumsTeacherState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	return nil, nil
+}
+
+func (state ChangeAlbumsTeacherState) Name() stateName {
+	return changeAlbumsTeacher
 }

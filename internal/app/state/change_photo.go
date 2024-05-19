@@ -318,28 +318,34 @@ func (state ChangeDescriptionPhotoState) Name() stateName {
 type ChangeUserEventNamePhotoState struct {
 	postgres *postrgres.Repo
 	vk       *api.VK
+	vkUser   *api.VK
 }
 
 func (state ChangeUserEventNamePhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	if messageText == "" {
-		return changeUserEventNamePhoto, nil, nil
-	}
-
-	photoID, err := state.postgres.RequestPhoto.GetPhotoLastID(ctx, msg.PeerID)
-	if err != nil {
-		return changeUserEventNamePhoto, []*params.MessagesSendBuilder{}, err
-	}
-
 	switch messageText {
 	case "Назад":
 		return changeEventNamePhoto, nil, nil
 	default:
-		err := state.postgres.RequestPhoto.UpdateUserEvent(ctx, photoID, messageText)
+		photoID, err := state.postgres.ObjectAdmin.Get(ctx, msg.PeerID)
 		if err != nil {
 			return changeUserEventNamePhoto, []*params.MessagesSendBuilder{}, err
 		}
-		return checkPhoto, nil, nil
+
+		err = state.postgres.StudentAlbums.UpdateNewEvent(ctx, photoID, messageText)
+		if err != nil {
+			return changeUserEventNamePhoto, []*params.MessagesSendBuilder{}, err
+		}
+
+		err = changeNameAlbum(ctx, photoID, state.postgres, state.vk, state.vkUser)
+		if err != nil {
+			return changeUserEventNamePhoto, []*params.MessagesSendBuilder{}, err
+		}
+
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message(fmt.Sprintf("Для альбома №%d задано новое название события - %s", photoID, messageText))
+		return workingAlbums, []*params.MessagesSendBuilder{b}, nil
 	}
 }
 
@@ -348,8 +354,7 @@ func (state ChangeUserEventNamePhotoState) Show(ctx context.Context, vkID int) (
 	b.RandomID(0)
 	b.Message("Напишите название своего события")
 	k := object.NewMessagesKeyboard(true)
-	k.AddRow()
-	k.AddTextButton("Назад", "", "negative")
+	addBackButton(k)
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }

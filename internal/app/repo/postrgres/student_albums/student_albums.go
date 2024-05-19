@@ -121,6 +121,20 @@ func (r *Repo) UpdateEvent(ctx context.Context, albumID int, eventNumber int) er
 	return nil
 }
 
+func (r *Repo) UpdateNewEvent(ctx context.Context, albumID int, newEvent string) error {
+	_, err := r.db.ExecContext(ctx, "INSERT INTO events (name) VALUES ($1)", newEvent)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	_, err = r.db.ExecContext(ctx, "UPDATE student_albums SET event = $1 WHERE id = $2", newEvent, albumID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
 func (r *Repo) UpdateDescription(ctx context.Context, albumID int, description string) error {
 	_, err := r.db.ExecContext(ctx, "UPDATE student_albums SET description = $1 WHERE id = $2", description, albumID)
 	if err != nil {
@@ -151,4 +165,12 @@ func (r *Repo) GetTitle(ctx context.Context, albumID int) (string, error) {
 	}
 
 	return fmt.Sprintf("%d // %s // %s", year, studyProgram, event), nil
+}
+
+func (r *Repo) Delete(ctx context.Context, albumID int) error {
+	_, err := r.db.ExecContext(ctx, "DELETE FROM student_albums WHERE id = $1", albumID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+	return err
 }
