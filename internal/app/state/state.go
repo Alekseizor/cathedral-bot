@@ -142,8 +142,10 @@ const (
 	showListStudyProgramSearchAlbum  = stateName("showListStudyProgramSearchAlbum")
 	eventSearchAlbum                 = stateName("eventSearchAlbum")
 	findEventSearchAlbum             = stateName("findEventSearchAlbum")
+	surnameTeacherSearchAlbum        = stateName("surnameTeacherSearchAlbum")
 	teacherSearchAlbum               = stateName("teacherSearchAlbum")
-	showTeacherSearchAlbum           = stateName("showTeacherSearchAlbum")
+
+	personalAccountPhoto = stateName("personalAccountPhoto")
 
 	// стейты администратора фотоархива
 	workingRequestPhoto             = stateName("workingRequestPhoto")
@@ -325,8 +327,10 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK) error {
 	showListStudyProgramSearchAlbumState := &ShowListStudyProgramSearchAlbumState{postgres: postgresRepo}
 	eventSearchAlbumState := &EventSearchAlbumState{postgres: postgresRepo}
 	findEventSearchAlbumState := &FindEventSearchAlbumState{postgres: postgresRepo}
+	surnameTeacherSearchAlbumState := &SurnameTeacherSearchAlbumState{postgres: postgresRepo}
 	teacherSearchAlbumState := &TeacherSearchAlbumState{postgres: postgresRepo}
-	showTeacherSearchAlbumState := &ShowTeacherSearchAlbumState{postgres: postgresRepo}
+
+	personalAccountPhotoState := &PersonalAccountPhotoState{postgres: postgresRepo}
 
 	// стейты администратора фотоархива
 	albumsCabinetState := &AlbumsCabinetState{postgres: postgresRepo}
@@ -482,8 +486,10 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK) error {
 		showListStudyProgramSearchAlbumState.Name():  showListStudyProgramSearchAlbumState,
 		eventSearchAlbumState.Name():                 eventSearchAlbumState,
 		findEventSearchAlbumState.Name():             findEventSearchAlbumState,
+		surnameTeacherSearchAlbumState.Name():        surnameTeacherSearchAlbumState,
 		teacherSearchAlbumState.Name():               teacherSearchAlbumState,
-		showTeacherSearchAlbumState.Name():           showTeacherSearchAlbumState,
+
+		personalAccountPhotoState.Name(): personalAccountPhotoState,
 
 		// стейты администратора фотоархива
 		albumsCabinetState.Name():             albumsCabinetState,

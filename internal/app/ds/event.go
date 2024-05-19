@@ -1,7 +1,6 @@
 package ds
 
-type TeacherAlbum struct {
+type Event struct {
 	ID   int    `db:"id"`
 	Name string `db:"name"`
-	URL  string `db:"url"`
 }

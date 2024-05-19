@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/SevereCloud/vksdk/v2/object"
 	"github.com/disintegration/imaging"
+	"unicode"
 )
 
 func contains(slice []int64, value int64) bool {
@@ -36,4 +37,22 @@ func convertTiffToJpg(tiffImage []byte) ([]byte, error) {
 	jpgImage = buf.Bytes()
 
 	return jpgImage, nil
+}
+
+func containsDigits(name string) bool {
+	for _, char := range name {
+		if unicode.IsDigit(char) {
+			return true
+		}
+	}
+	return false
+}
+
+func containsNonRussianChars(name string) bool {
+	for _, char := range name {
+		if !unicode.Is(unicode.Cyrillic, char) {
+			return true
+		}
+	}
+	return false
 }

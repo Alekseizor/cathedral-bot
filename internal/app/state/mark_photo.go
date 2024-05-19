@@ -243,7 +243,23 @@ func (state TeacherNamePhotoState) Handler(ctx context.Context, msg object.Messa
 	case "Ввести ФИО вручную":
 		return userTeacherNamePhoto, nil, nil
 	case "Назад":
+		err = state.postgres.RequestPhoto.DeletePointer(msg.PeerID)
+		if err != nil {
+			return teacherNamePhoto, nil, err
+		}
 		return isTeacherPhoto, nil, nil
+	case "⬅️":
+		err = state.postgres.RequestPhoto.ChangePointer(msg.PeerID, false)
+		if err != nil {
+			return teacherNamePhoto, nil, err
+		}
+		return teacherNamePhoto, nil, nil
+	case "➡️":
+		err = state.postgres.RequestPhoto.ChangePointer(msg.PeerID, true)
+		if err != nil {
+			return teacherNamePhoto, nil, err
+		}
+		return teacherNamePhoto, nil, nil
 	default:
 		teacherID, err := strconv.Atoi(messageText)
 		if err != nil {
@@ -280,6 +296,11 @@ func (state TeacherNamePhotoState) Handler(ctx context.Context, msg object.Messa
 			return teacherNamePhoto, []*params.MessagesSendBuilder{}, err
 		}
 
+		err = state.postgres.RequestPhoto.DeletePointer(msg.PeerID)
+		if err != nil {
+			return teacherNamePhoto, nil, err
+		}
+
 		if allMarked {
 			return eventYearPhoto, nil, nil
 		}
@@ -289,7 +310,7 @@ func (state TeacherNamePhotoState) Handler(ctx context.Context, msg object.Messa
 }
 
 func (state TeacherNamePhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
-	teacherNames, err := state.postgres.RequestPhoto.GetTeacherNames()
+	teacherNames, pointer, count, err := state.postgres.RequestPhoto.GetTeacherNames(vkID)
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
 	}
@@ -298,6 +319,15 @@ func (state TeacherNamePhotoState) Show(ctx context.Context, vkID int) ([]*param
 	b.RandomID(0)
 	b.Message("Напишите номер преподавателя из списка ниже:\n" + teacherNames)
 	k := object.NewMessagesKeyboard(true)
+	if count > 10 {
+		k.AddRow()
+		if pointer != 0 {
+			k.AddTextButton("⬅️", "", "secondary")
+		}
+		if count-pointer > 10 {
+			k.AddTextButton("➡️", "", "secondary")
+		}
+	}
 	k.AddRow()
 	k.AddTextButton("Ввести ФИО вручную", "", "secondary")
 	k.AddRow()

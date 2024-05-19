@@ -15,6 +15,7 @@ type RequestPhoto struct {
 	MarkedPerson int            `db:"marked_person"`
 	MarkedPeople pq.StringArray `db:"marked_people"`
 	Teachers     pq.StringArray `db:"teachers"`
+	Pointer      int            `db:"pointer"`
 	Attachment   string         `db:"attachment"`
 	Attachments  pq.StringArray `db:"attachments"`
 	UserID       int            `db:"user_id"`
