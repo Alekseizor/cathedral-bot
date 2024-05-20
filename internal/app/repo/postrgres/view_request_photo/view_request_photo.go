@@ -63,6 +63,9 @@ func (r *Repo) GetRequestPhoto(vkID int) (string, string, int, int, error) {
 	)
 	err = r.db.QueryRow(sqlQuery, pointer).Scan(&year, &studyProgram, &event, &description, &markedPeople, &teachers, &status, &attachment)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", "", 0, 0, nil
+		}
 		return "", "", 0, 0, fmt.Errorf("[db.QueryRow]: %w", err)
 	}
 

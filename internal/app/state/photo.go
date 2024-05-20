@@ -73,8 +73,7 @@ func (state PhotoStartState) Show(ctx context.Context, vkID int) ([]*params.Mess
 		k.AddTextButton("Кабинет администратора фотоархива", "", "secondary")
 	}
 
-	k.AddRow()
-	k.AddTextButton("Назад", "", "negative")
+	addBackButton(k)
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }

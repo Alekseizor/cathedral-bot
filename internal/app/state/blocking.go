@@ -17,7 +17,7 @@ type BlockUserState struct {
 func (state BlockUserState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
 	if messageText == "Назад" {
-		return documentCabinet, nil, nil
+		return selectArchive, nil, nil
 	}
 
 	vkID, err := strconv.Atoi(messageText)

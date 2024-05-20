@@ -74,7 +74,16 @@ func (state ViewRequestsPhotoState) Show(ctx context.Context, vkID int) ([]*para
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
 	}
-
+	if message == "" {
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Заявок нет")
+		k := object.NewMessagesKeyboard(true)
+		k.AddRow()
+		k.AddTextButton("Завершить просмотр заявок", "", "negative")
+		b.Keyboard(k)
+		return []*params.MessagesSendBuilder{b}, err
+	}
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
 	b.Message(message)

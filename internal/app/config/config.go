@@ -23,11 +23,6 @@ type BotConfig struct {
 	GroupID   int    `yaml:"group_id" mapstructure:"group_id"`
 }
 
-type Admin struct {
-	Documents []int `yaml:"documents" mapstructure:"documents"`
-	Albums    []int `yaml:"albums" mapstructure:"albums"`
-}
-
 // ClientsConfig - конфигурация клиентов
 type ClientsConfig struct {
 	// PostgresConfig - клиент СУБД

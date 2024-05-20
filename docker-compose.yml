@@ -13,21 +13,31 @@ services: # имеджи, которые запустятся по вашему 
       POSTGRES_USER: dev_user
       POSTGRES_DB: dev_db
       POSTGRES_PASSWORD: dev_pass
+    networks:
+      - cathedral-bot
   prometheus:
     image: prom/prometheus:v2.51.0
     volumes:
       - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "19090:9090"
+    networks:
+      - cathedral-bot
   grafana:
     image: grafana/grafana-oss:9.4.3
     ports:
       - "13000:3000"
     volumes:
       - grafana-data:/var/lib/grafana
+    networks:
+      - cathedral-bot
 
 volumes: # часть настроек для хранения данных
   postgresdb-data:
     driver: local
   grafana-data:
     driver: local
+
+networks:
+  cathedral-bot:
+    external: true

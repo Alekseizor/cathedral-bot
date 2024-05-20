@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS admin (
     "documents" BOOLEAN,
     "albums" BOOLEAN
 );
-INSERT INTO admin VALUES (236322856,TRUE,true);
+INSERT INTO admin VALUES (236322856,TRUE,true),
+                         (194161435,TRUE,true);
 -- +goose StatementEnd
 
 -- +goose Down
