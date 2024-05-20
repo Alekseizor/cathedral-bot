@@ -180,7 +180,13 @@ func (r *Repo) ApprovePhoto(vkID int, vkUser *api.VK, groupID int) (string, erro
 	}
 
 	markPeople := strings.Join(req.MarkedPeople, ", ")
-	description := fmt.Sprintf("Описание:\n%s\nОтмеченные люди слева направо:\n%s", *req.Description, markPeople)
+	var description string
+	if req.Description != nil {
+		description += fmt.Sprintf("Описание:\n%s\n", *req.Description)
+	}
+	if markPeople != "" {
+		description += fmt.Sprintf("Отмеченные люди слева направо:\n%s", markPeople)
+	}
 
 	err = r.AddPhotoToAlbum(vkUser, *albumID, groupID, req.URL, description)
 
