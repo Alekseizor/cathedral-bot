@@ -145,7 +145,7 @@ func (r *Repo) GetEventMaxID() (int, error) {
 // UpdateEvent добавляет событие для фотографии
 func (r *Repo) UpdateEvent(ctx context.Context, photoID, eventNumber int) error {
 	var name string
-	err := r.db.Get(&name, "SELECT name FROM events WHERE id = $1", eventNumber)
+	err := r.db.Get(&name, "SELECT name FROM events ORDER BY name OFFSET $1 LIMIT 1", eventNumber)
 	if err != nil {
 		return fmt.Errorf("[db.Get]: %w", err)
 	}

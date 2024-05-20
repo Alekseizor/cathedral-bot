@@ -303,7 +303,7 @@ func (state EventNamePhotoArchiveState) Handler(ctx context.Context, msg object.
 			return eventNamePhotoArchive, []*params.MessagesSendBuilder{b}, nil
 		}
 
-		err = state.postgres.RequestPhotoArchive.UpdateEvent(ctx, photoID, eventNumber)
+		err = state.postgres.RequestPhotoArchive.UpdateEvent(ctx, photoID, eventNumber-1)
 		if err != nil {
 			return eventNamePhotoArchive, []*params.MessagesSendBuilder{}, err
 		}
