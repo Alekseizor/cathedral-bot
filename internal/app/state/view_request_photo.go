@@ -42,11 +42,7 @@ func (state ViewRequestsPhotoState) Handler(ctx context.Context, msg object.Mess
 		}
 		return viewRequestsPhoto, nil, nil
 	case "Редактировать":
-		err := state.postgres.ViewRequestPhoto.DeletePointer(msg.PeerID)
-		if err != nil {
-			return viewRequestsPhoto, nil, err
-		}
-		return photoStart, nil, nil
+		return editRequestPhoto, nil, nil
 	case "Завершить просмотр заявок":
 		err := state.postgres.ViewRequestPhoto.DeletePointer(msg.PeerID)
 		if err != nil {
