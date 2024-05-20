@@ -2,7 +2,6 @@ package view_request_photo
 
 import (
 	"bytes"
-	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -97,10 +96,10 @@ func (r *Repo) GetRequestPhoto(vkID int) (string, string, int, int, error) {
 }
 
 // CreatePersonalAccountPhoto создает запись в личном кабинете пользователя
-func (r *Repo) CreatePersonalAccountPhoto(ctx context.Context, vkID int) error {
-	_, err := r.db.ExecContext(ctx, "INSERT INTO view_request_photo (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING", vkID)
+func (r *Repo) CreatePersonalAccountPhoto(vkID int) error {
+	_, err := r.db.Exec("INSERT INTO view_request_photo (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING", vkID)
 	if err != nil {
-		return fmt.Errorf("[db.ExecContext]: %w", err)
+		return fmt.Errorf("[db.Exec]: %w", err)
 	}
 
 	return nil

@@ -171,8 +171,6 @@ const (
 	changeUserNameTeacherPhoto    = stateName("changeUserNameTeacherPhoto")
 	changeDescriptionPhotoTeacher = stateName("changeDescriptionPhotoTeacher")
 
-	viewRequestsPhoto = stateName("viewRequestsPhoto")
-
 	editRequestPhoto                = stateName("editRequestPhoto")
 	editEventYearRequestPhoto       = stateName("editEventYearRequestPhoto")
 	editStudyProgramRequestPhoto    = stateName("editStudyProgramRequestPhoto")
@@ -355,6 +353,7 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK, groupID int) error {
 	workingAlbumsFromStudentsState := &WorkingAlbumsFromStudentsState{postgres: postgresRepo}
 	workingAlbumsFromTeacherState := &WorkingAlbumsFromTeacherState{postgres: postgresRepo}
 	actionOnPhotoState := &ActionOnPhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
+	requestPhotoFromQueueState := &RequestPhotoFromQueueState{postgres: postgresRepo, vk: vk, vkUser: vkUser, groupID: groupID}
 
 	// администратор изменяет информацию об опубликованных студенческих альбомах
 	changeAlbumsState := &ChangeAlbumsState{postgres: postgresRepo}
@@ -374,8 +373,6 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK, groupID int) error {
 	// добавление/удаление новых админов фотоархива
 	addPhotoAdministratorState := &AddPhotoAdministratorState{postgres: postgresRepo}
 	removePhotoAdministratorState := &RemovePhotoAdministratorState{postgres: postgresRepo}
-
-	viewRequestsPhotoState := &ViewRequestsPhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser, groupID: groupID}
 
 	editRequestPhotoState := &EditRequestPhotoState{postgres: postgresRepo}
 	editEventYearRequestPhotoState := &EditEventYearRequestPhotoState{postgres: postgresRepo}
@@ -532,6 +529,7 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK, groupID int) error {
 		workingAlbumsFromTeacherState.Name():  workingAlbumsFromTeacherState,
 		actionOnPhotoState.Name():             actionOnPhotoState,
 		changeAlbumsState.Name():              changeAlbumsState,
+		requestPhotoFromQueueState.Name():     requestPhotoFromQueueState,
 
 		// администратор изменяет информацию об опубликованных студенческих альбомах
 		changeEventYearPhotoState.Name():     changeEventYearPhotoState,
@@ -550,8 +548,6 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK, groupID int) error {
 		// добавление/удаление новых админов фотоархива
 		addPhotoAdministratorState.Name():    addPhotoAdministratorState,
 		removePhotoAdministratorState.Name(): removePhotoAdministratorState,
-
-		viewRequestsPhotoState.Name(): viewRequestsPhotoState,
 
 		editRequestPhotoState.Name():                editRequestPhotoState,
 		editEventYearRequestPhotoState.Name():       editEventYearRequestPhotoState,

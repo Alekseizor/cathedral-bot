@@ -29,7 +29,7 @@ func (state EditRequestPhotoState) Handler(ctx context.Context, msg object.Messa
 	case "Отмеченные люди":
 		return editIsPeoplePresentRequestPhoto, nil, nil
 	case "Назад":
-		return viewRequestsPhoto, nil, nil
+		return requestPhotoFromQueue, nil, nil
 	default:
 		return editRequestPhoto, nil, nil
 	}
@@ -93,7 +93,7 @@ func (state EditEventYearRequestPhotoState) Handler(ctx context.Context, msg obj
 		if err != nil {
 			return editEventYearRequestPhoto, []*params.MessagesSendBuilder{}, err
 		}
-		return viewRequestsPhoto, nil, nil
+		return requestPhotoFromQueue, nil, nil
 	}
 }
 
@@ -148,7 +148,7 @@ func (state EditStudyProgramRequestPhotoState) Handler(ctx context.Context, msg 
 	if err != nil {
 		return editStudyProgramRequestPhoto, []*params.MessagesSendBuilder{}, err
 	}
-	return viewRequestsPhoto, nil, nil
+	return requestPhotoFromQueue, nil, nil
 }
 
 func (state EditStudyProgramRequestPhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
@@ -214,7 +214,7 @@ func (state EditEventNameRequestPhotoState) Handler(ctx context.Context, msg obj
 		if err != nil {
 			return editEventNameRequestPhoto, []*params.MessagesSendBuilder{}, err
 		}
-		return viewRequestsPhoto, nil, nil
+		return requestPhotoFromQueue, nil, nil
 	}
 }
 
@@ -263,7 +263,7 @@ func (state EditUserEventNameRequestPhotoState) Handler(ctx context.Context, msg
 		if err != nil {
 			return editUserEventNameRequestPhoto, []*params.MessagesSendBuilder{}, err
 		}
-		return viewRequestsPhoto, nil, nil
+		return requestPhotoFromQueue, nil, nil
 	}
 }
 
@@ -306,7 +306,7 @@ func (state EditDescriptionRequestPhotoState) Handler(ctx context.Context, msg o
 		if err != nil {
 			return editDescriptionRequestPhoto, []*params.MessagesSendBuilder{}, err
 		}
-		return viewRequestsPhoto, nil, nil
+		return requestPhotoFromQueue, nil, nil
 	}
 }
 

@@ -29,7 +29,7 @@ func (state EditIsPeoplePresentRequestPhotoState) Handler(ctx context.Context, m
 		if err != nil {
 			return editIsPeoplePresentRequestPhoto, []*params.MessagesSendBuilder{}, err
 		}
-		return viewRequestsPhoto, nil, nil
+		return requestPhotoFromQueue, nil, nil
 	case "Назад":
 		return editPhoto, nil, nil
 	default:
@@ -132,11 +132,11 @@ func (state EditMarkedPeopleRequestPhotoState) Handler(ctx context.Context, msg 
 			return editMarkedPeopleRequestPhoto, []*params.MessagesSendBuilder{}, err
 		}
 		if allMarked {
-			return viewRequestsPhoto, nil, nil
+			return requestPhotoFromQueue, nil, nil
 		}
 		return editMarkedPeopleRequestPhoto, nil, nil
 	case "Закончить отмечать людей":
-		return viewRequestsPhoto, nil, nil
+		return requestPhotoFromQueue, nil, nil
 	case "Назад":
 		return editCountPeopleRequestPhoto, nil, nil
 	default:
@@ -296,7 +296,7 @@ func (state EditTeacherNameRequestPhotoState) Handler(ctx context.Context, msg o
 		}
 
 		if allMarked {
-			return viewRequestsPhoto, nil, nil
+			return requestPhotoFromQueue, nil, nil
 		}
 
 		return editMarkedPeopleRequestPhoto, nil, nil
@@ -365,7 +365,7 @@ func (state EditUserTeacherNameRequestPhotoState) Handler(ctx context.Context, m
 		}
 
 		if allMarked {
-			return viewRequestsPhoto, nil, nil
+			return requestPhotoFromQueue, nil, nil
 		}
 
 		return editMarkedPeopleRequestPhoto, nil, nil
@@ -413,7 +413,7 @@ func (state EditStudentNameRequestPhotoState) Handler(ctx context.Context, msg o
 		}
 
 		if allMarked {
-			return viewRequestsPhoto, nil, nil
+			return requestPhotoFromQueue, nil, nil
 		}
 
 		return editMarkedPeopleRequestPhoto, nil, nil
