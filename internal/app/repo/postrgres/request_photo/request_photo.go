@@ -89,8 +89,7 @@ func (r *Repo) UploadPhoto(ctx context.Context, VK *api.VK, photoData []byte, vk
 	}
 
 	attachment := "photo" + strconv.Itoa(savedPhoto[0].OwnerID) + "_" + strconv.Itoa(savedPhoto[0].ID)
-
-	_, err = r.db.ExecContext(ctx, "INSERT INTO request_photo(attachment, user_id) VALUES ($1, $2)", attachment, vkID)
+	_, err = r.db.ExecContext(ctx, "INSERT INTO request_photo(attachment, user_id, url) VALUES ($1, $2, $3)", attachment, vkID, savedPhoto[0].Sizes[7].URL)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}

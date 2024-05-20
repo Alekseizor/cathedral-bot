@@ -5,11 +5,11 @@ CREATE TABLE teacher_albums
     id    serial PRIMARY KEY,
     name  VARCHAR(100),
     url   VARCHAR(255),
-    vk_id VARCHAR(255)
+    vk_id INT
 );
 
 INSERT INTO teacher_albums (name, url, vk_id)
-VALUES ('Абулкасимов Манас Мукитович', 'https://vk.com/album-211704031_283523239', '123'),
+VALUES ('Абулкасимов Манас Мукитович', 'https://vk.com/album-211704031_283523239', 123),
        ('Аксёнова Мария Владимировна', 'https://vk.com/album-211704031_283523240', '123'),
        ('Аладин Дмитрий Владимирович', 'https://vk.com/album-211704031_283523241', '123'),
        ('Али Диб Ахмада', 'https://vk.com/album-211704031_283523242', '123'),

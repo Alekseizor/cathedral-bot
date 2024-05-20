@@ -11,6 +11,7 @@ import (
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/request_photo_archive"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/search_album"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/search_document"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/view_request_photo"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/Alekseizor/cathedral-bot/internal/app/config"
@@ -40,6 +41,7 @@ type Repo struct {
 	PersonalAccountPhoto *personal_account_photo.Repo
 	CreateAlbum          *create_album.Repo
 	AddPhotoToAlbum      *add_photo_to_album.Repo
+	ViewRequestPhoto     *view_request_photo.Repo
 }
 
 // New - создаем новое объект репо, подключения к бд еще нет!
@@ -71,6 +73,7 @@ func (r *Repo) Init() error {
 	r.PersonalAccountPhoto = personal_account_photo.New(db)
 	r.CreateAlbum = create_album.New(db)
 	r.AddPhotoToAlbum = add_photo_to_album.New(db)
+	r.ViewRequestPhoto = view_request_photo.New(db)
 
 	return nil
 }
