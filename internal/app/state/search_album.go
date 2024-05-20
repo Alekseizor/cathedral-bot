@@ -616,7 +616,7 @@ func (state EventSearchAlbumState) Handler(ctx context.Context, msg object.Messa
 			return eventSearchAlbum, []*params.MessagesSendBuilder{b}, nil
 		}
 
-		err = state.postgres.SearchAlbum.UpdateEvent(ctx, msg.PeerID, eventNumber)
+		err = state.postgres.SearchAlbum.UpdateEvent(ctx, msg.PeerID, eventNumber-1)
 		if err != nil {
 			return eventSearchAlbum, []*params.MessagesSendBuilder{}, err
 		}

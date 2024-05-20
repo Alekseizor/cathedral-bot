@@ -266,7 +266,7 @@ func (state EventNamePhotoState) Handler(ctx context.Context, msg object.Message
 			return eventNamePhoto, []*params.MessagesSendBuilder{b}, nil
 		}
 
-		err = state.postgres.RequestPhoto.UpdateEvent(ctx, photoID, eventNumber)
+		err = state.postgres.RequestPhoto.UpdateEvent(ctx, photoID, eventNumber-1)
 		if err != nil {
 			return eventNamePhoto, []*params.MessagesSendBuilder{}, err
 		}

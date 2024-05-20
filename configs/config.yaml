@@ -6,7 +6,8 @@ listener:
 
 bot:
   token: vk1.a.xor1NCLq_CEWCtDdFOTsqYpSHtXWK9DCDqV2YbF8to4ZMw0bNgXyziEiOPz10AV6VmGNyIdKfP3b-PXcaJ-dfKTTwAhXlDLHl0mNffeXW3cFudt_eOHLfD9t6iKa3jV1io8018u4anxgd8SPFIld4qAyowXcoDO7jjOTML9elPGPosr7u092BdzE1wOTS-8w
-
+  user_token: vk1.a.spEzJY-8CV7ysLJmjI_O3CL2eA6mO9gCY6RXfWFe0x45Zp7tqTSZBahrZ5ujoWEhG-d_013MhAa9ZvSlNQP65yNSte5U5m4nuNp1_7rO1xxjaR-EGiOvOvUxVaBooJ591GiDRQhKt0vQLhezQ_DWUM7hJkHWId7MxLnJSEdLwzBhEKIzE9EAhBEte8M5j0GuQi2uIXrW6gSvwPmaPHe_5w
+  group_id: 214652560
 clients:
   postgres:
     name: dev_db

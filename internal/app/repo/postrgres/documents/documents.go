@@ -125,13 +125,13 @@ func (r *Repo) SearchDocuments(ctx context.Context, params ds.SearchDocument, vk
 
 	if params.Title.Valid {
 		title, _ := params.Title.Value()
-		conditions = append(conditions, "title = $"+strconv.Itoa(len(values)+1))
+		conditions = append(conditions, "Lower(title) like lower('%'||$"+strconv.Itoa(len(values)+1)+"||'%')")
 		values = append(values, title)
 	}
 
 	if params.Author.Valid {
 		author, _ := params.Author.Value()
-		conditions = append(conditions, "author = $"+strconv.Itoa(len(values)+1))
+		conditions = append(conditions, "Lower(author) like lower('%'||$"+strconv.Itoa(len(values)+1)+"||'%')")
 		values = append(values, author)
 	}
 
@@ -143,7 +143,7 @@ func (r *Repo) SearchDocuments(ctx context.Context, params ds.SearchDocument, vk
 
 	if len(params.Hashtags) > 0 {
 		placeholder := "$" + strconv.Itoa(len(values)+1)
-		conditions = append(conditions, "hashtags = ANY("+placeholder+")")
+		conditions = append(conditions, placeholder+" && hashtags")
 		values = append(values, pq.Array(params.Hashtags))
 	}
 
@@ -185,7 +185,7 @@ func (r *Repo) GetSearchDocuments(ctx context.Context, vkID int) (string, error)
 	var params ds.SearchDocument
 	err := r.db.QueryRowContext(ctx, "SELECT documents, pointer_doc FROM search_document WHERE user_id = $1", vkID).Scan(&params.Documents, &params.PointerDoc)
 
-	query := `SELECT id, title, category
+	query := `SELECT id, title, author, year, category
 		FROM documents
 		WHERE id = ANY ($1)`
 
@@ -200,20 +200,25 @@ func (r *Repo) GetSearchDocuments(ctx context.Context, vkID int) (string, error)
 	if err != nil {
 		return "", fmt.Errorf("[db.QueryContext]: %w", err)
 	}
-	//rows, err := r.db.QueryContext(ctx, query, pq.Array([]int{1, 11, 21, 31, 41}))
-	//if err != nil {
-	//	return "", fmt.Errorf("[db.QueryContext]: %w", err)
-	//}
+
 	defer rows.Close()
 
 	var output string
 	for rows.Next() {
 		var doc ds.Document
-		if err := rows.Scan(&doc.ID, &doc.Title, &doc.Category); err != nil {
+		if err := rows.Scan(&doc.ID, &doc.Title, &doc.Author, &doc.Year, &doc.Category); err != nil {
 			return "", err
 		}
 		index := params.PointerDoc + 1
-		output += fmt.Sprintf("[%d]. Название: %s. Категория: %s\n", index, *doc.Title, *doc.Category)
+		if doc.Author == nil {
+			text := "Автор не указан"
+			doc.Author = &text
+		}
+		if doc.Year != nil {
+			output += fmt.Sprintf("[%d]. %s, %s, %d (%s)\n", index, *doc.Title, *doc.Author, *doc.Year, *doc.Category)
+		} else {
+			output += fmt.Sprintf("[%d]. %s, %s (%s)\n", index, *doc.Title, *doc.Author, *doc.Category)
+		}
 		params.PointerDoc++
 	}
 	if err := rows.Err(); err != nil {

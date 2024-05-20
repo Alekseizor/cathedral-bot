@@ -19,7 +19,6 @@ const (
 	start                                   = stateName("start")
 	selectArchive                           = stateName("selectArchive")
 	documentStart                           = stateName("documentStart")
-	photoStub                               = stateName("photoStub")
 	loadDocument                            = stateName("loadDocument")
 	nameDocument                            = stateName("nameDocument")
 	authorDocument                          = stateName("authorDocument")
@@ -147,6 +146,47 @@ const (
 	teacherSearchAlbum               = stateName("teacherSearchAlbum")
 
 	personalAccountPhoto = stateName("personalAccountPhoto")
+
+	// стейты администратора фотоархива
+	workingRequestPhoto             = stateName("workingRequestPhoto")
+	workingAlbums                   = stateName("workingAlbums")
+	workingAlbumsFromStudents       = stateName("workingAlbumsFromStudents")
+	workingAlbumsFromTeachers       = stateName("workingAlbumsFromTeachers")
+	addPhotoAdministrator           = stateName("addPhotoAdministrator")
+	removePhotoAdministrator        = stateName("removePhotoAdministrator")
+	requestPhotoFromQueue           = stateName("requestPhotoFromQueue")
+	requestPhotoSpecificApplication = stateName("requestPhotoSpecificApplication")
+	actionOnPhoto                   = stateName("actionOnPhoto")
+	changeAlbums                    = stateName("changeAlbums")
+	changeEventYearPhoto            = stateName("changeEventYearPhoto")
+	changeUserEventNamePhoto        = stateName("changeUserEventNamePhoto")
+	changeStudyProgramPhoto         = stateName("changeStudyProgramPhoto")
+	changeEventNamePhoto            = stateName("changeEventNamePhoto")
+	changeDescriptionPhoto          = stateName("changeDescriptionPhoto")
+
+	// работа с альбомами преподавателя
+	actionOnPhotoTeacher          = stateName("actionOnPhotoTeacher")
+	changeAlbumsTeacher           = stateName("changeAlbumsTeacher")
+	changeNameTeacherPhoto        = stateName("changeNameTeacherPhoto")
+	changeUserNameTeacherPhoto    = stateName("changeUserNameTeacherPhoto")
+	changeDescriptionPhotoTeacher = stateName("changeDescriptionPhotoTeacher")
+
+	editRequestPhoto                = stateName("editRequestPhoto")
+	editEventYearRequestPhoto       = stateName("editEventYearRequestPhoto")
+	editStudyProgramRequestPhoto    = stateName("editStudyProgramRequestPhoto")
+	editEventNameRequestPhoto       = stateName("editEventNameRequestPhoto")
+	editUserEventNameRequestPhoto   = stateName("editUserEventNameRequestPhoto")
+	editDescriptionRequestPhoto     = stateName("editDescriptionRequestPhoto")
+	editIsPeoplePresentRequestPhoto = stateName("editIsPeoplePresentRequestPhoto")
+	editCountPeopleRequestPhoto     = stateName("editCountPeopleRequestPhoto")
+	editMarkedPeopleRequestPhoto    = stateName("editMarkedPeopleRequestPhoto")
+	editIsTeacherRequestPhoto       = stateName("editIsTeacherRequestPhoto")
+	editTeacherNameRequestPhoto     = stateName("editTeacherNameRequestPhoto")
+	editUserTeacherNameRequestPhoto = stateName("editUserTeacherNameRequestPhoto")
+	editStudentNameRequestPhoto     = stateName("editStudentNameRequestPhoto")
+
+	showUserDocumentPublication = stateName("showUserDocumentPublication")
+	showUserDocumentApproved    = stateName("showUserDocumentApproved")
 )
 
 type State interface {
@@ -167,7 +207,7 @@ func New(cfg config.Config) *States {
 	}
 }
 
-func (s *States) Init(vk *api.VK) error {
+func (s *States) Init(vk *api.VK, vkUser *api.VK, groupID int) error {
 	postgresRepo := postrgres.New(s.cfg.ClientsConfig.PostgresConfig)
 
 	err := postgresRepo.Init()
@@ -208,7 +248,6 @@ func (s *States) Init(vk *api.VK) error {
 	descriptionArchiveState := &DescriptionArchiveState{postgres: postgresRepo}
 	hashtagArchiveState := &HashtagArchiveState{postgres: postgresRepo}
 	checkArchiveState := &CheckArchiveState{postgres: postgresRepo}
-	albumsCabinetState := &AlbumsCabinetState{postgres: postgresRepo}
 	documentCabinetState := &DocumentCabinetState{postgres: postgresRepo}
 	blockUserState := &BlockUserState{postgres: postgresRepo}
 	blockingState := &BlockingState{}
@@ -309,6 +348,51 @@ func (s *States) Init(vk *api.VK) error {
 	teacherSearchAlbumState := &TeacherSearchAlbumState{postgres: postgresRepo}
 
 	personalAccountPhotoState := &PersonalAccountPhotoState{postgres: postgresRepo}
+
+	// стейты администратора фотоархива
+	albumsCabinetState := &AlbumsCabinetState{postgres: postgresRepo}
+	workingRequestPhotoState := &WorkingRequestPhotoState{}
+	workingAlbumsState := &WorkingAlbumsState{}
+	workingAlbumsFromStudentsState := &WorkingAlbumsFromStudentsState{postgres: postgresRepo}
+	workingAlbumsFromTeacherState := &WorkingAlbumsFromTeacherState{postgres: postgresRepo}
+	actionOnPhotoState := &ActionOnPhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
+	requestPhotoFromQueueState := &RequestPhotoFromQueueState{postgres: postgresRepo, vk: vk, vkUser: vkUser, groupID: groupID}
+
+	// администратор изменяет информацию об опубликованных студенческих альбомах
+	changeAlbumsState := &ChangeAlbumsState{postgres: postgresRepo}
+	changeEventYearPhotoState := &ChangeEventYearPhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
+	changeStudyProgramPhotoState := &ChangeStudyProgramPhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
+	changeEventNamePhotoState := &ChangeEventNamePhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
+	changeUserEventNamePhotoState := &ChangeUserEventNamePhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
+	changeDescriptionPhotoState := &ChangeDescriptionPhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
+
+	// администратор изменяет информацию об опубликованных альбомах преподавателей
+	actionOnPhotoTeacherState := &ActionOnPhotoTeacherState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
+	changeAlbumsTeacherState := &ChangeAlbumsTeacherState{postgres: postgresRepo}
+	changeNameTeacherPhotoState := &ChangeNameTeacherPhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
+	changeUserNameTeacherPhotoState := &ChangeUserNameTeacherPhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
+	changeDescriptionPhotoTeacherState := &ChangeDescriptionPhotoTeacherState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
+
+	// добавление/удаление новых админов фотоархива
+	addPhotoAdministratorState := &AddPhotoAdministratorState{postgres: postgresRepo}
+	removePhotoAdministratorState := &RemovePhotoAdministratorState{postgres: postgresRepo}
+
+	editRequestPhotoState := &EditRequestPhotoState{postgres: postgresRepo}
+	editEventYearRequestPhotoState := &EditEventYearRequestPhotoState{postgres: postgresRepo}
+	editStudyProgramRequestPhotoState := &EditStudyProgramRequestPhotoState{postgres: postgresRepo}
+	editEventNameRequestPhotoState := &EditEventNameRequestPhotoState{postgres: postgresRepo}
+	editUserEventNameRequestPhotoState := &EditUserEventNameRequestPhotoState{postgres: postgresRepo}
+	editDescriptionRequestPhotoState := &EditDescriptionRequestPhotoState{postgres: postgresRepo}
+	editIsPeoplePresentRequestPhotoState := &EditIsPeoplePresentRequestPhotoState{postgres: postgresRepo}
+	editCountPeopleRequestPhotoState := &EditCountPeopleRequestPhotoState{postgres: postgresRepo}
+	editMarkedPeopleRequestPhotoState := &EditMarkedPeopleRequestPhotoState{postgres: postgresRepo}
+	editIsTeacherRequestPhotoState := &EditIsTeacherRequestPhotoState{postgres: postgresRepo}
+	editTeacherNameRequestPhotoState := &EditTeacherNameRequestPhotoState{postgres: postgresRepo}
+	editUserTeacherNameRequestPhotoState := &EditUserTeacherNameRequestPhotoState{postgres: postgresRepo}
+	editStudentNameRequestPhotoState := &EditStudentNameRequestPhotoState{postgres: postgresRepo}
+
+	showUserDocumentPublicationState := &ShowUserDocumentPublicationsState{postgres: postgresRepo}
+	showUserDocumentApprovedState := &ShowUserDocumentApprovedState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -442,6 +526,51 @@ func (s *States) Init(vk *api.VK) error {
 		teacherSearchAlbumState.Name():               teacherSearchAlbumState,
 
 		personalAccountPhotoState.Name(): personalAccountPhotoState,
+
+		// стейты администратора фотоархива
+		albumsCabinetState.Name():             albumsCabinetState,
+		workingRequestPhotoState.Name():       workingRequestPhotoState,
+		workingAlbumsState.Name():             workingAlbumsState,
+		workingAlbumsFromStudentsState.Name(): workingAlbumsFromStudentsState,
+		workingAlbumsFromTeacherState.Name():  workingAlbumsFromTeacherState,
+		actionOnPhotoState.Name():             actionOnPhotoState,
+		changeAlbumsState.Name():              changeAlbumsState,
+		requestPhotoFromQueueState.Name():     requestPhotoFromQueueState,
+
+		// администратор изменяет информацию об опубликованных студенческих альбомах
+		changeEventYearPhotoState.Name():     changeEventYearPhotoState,
+		changeStudyProgramPhotoState.Name():  changeStudyProgramPhotoState,
+		changeEventNamePhotoState.Name():     changeEventNamePhotoState,
+		changeUserEventNamePhotoState.Name(): changeUserEventNamePhotoState,
+		changeDescriptionPhotoState.Name():   changeDescriptionPhotoState,
+
+		// администратор изменяет информацию об опубликованных альбомах преподавателей
+		actionOnPhotoTeacherState.Name():          actionOnPhotoTeacherState,
+		changeAlbumsTeacherState.Name():           changeAlbumsTeacherState,
+		changeNameTeacherPhotoState.Name():        changeNameTeacherPhotoState,
+		changeUserNameTeacherPhotoState.Name():    changeUserNameTeacherPhotoState,
+		changeDescriptionPhotoTeacherState.Name(): changeDescriptionPhotoTeacherState,
+
+		// добавление/удаление новых админов фотоархива
+		addPhotoAdministratorState.Name():    addPhotoAdministratorState,
+		removePhotoAdministratorState.Name(): removePhotoAdministratorState,
+
+		editRequestPhotoState.Name():                editRequestPhotoState,
+		editEventYearRequestPhotoState.Name():       editEventYearRequestPhotoState,
+		editStudyProgramRequestPhotoState.Name():    editStudyProgramRequestPhotoState,
+		editEventNameRequestPhotoState.Name():       editEventNameRequestPhotoState,
+		editUserEventNameRequestPhotoState.Name():   editUserEventNameRequestPhotoState,
+		editDescriptionRequestPhotoState.Name():     editDescriptionRequestPhotoState,
+		editIsPeoplePresentRequestPhotoState.Name(): editIsPeoplePresentRequestPhotoState,
+		editCountPeopleRequestPhotoState.Name():     editCountPeopleRequestPhotoState,
+		editMarkedPeopleRequestPhotoState.Name():    editMarkedPeopleRequestPhotoState,
+		editIsTeacherRequestPhotoState.Name():       editIsTeacherRequestPhotoState,
+		editTeacherNameRequestPhotoState.Name():     editTeacherNameRequestPhotoState,
+		editUserTeacherNameRequestPhotoState.Name(): editUserTeacherNameRequestPhotoState,
+		editStudentNameRequestPhotoState.Name():     editStudentNameRequestPhotoState,
+
+		showUserDocumentPublicationState.Name(): showUserDocumentPublicationState,
+		showUserDocumentApprovedState.Name():    showUserDocumentApprovedState,
 	}
 
 	return nil

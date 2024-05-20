@@ -68,6 +68,8 @@ func (state AuthorSearchDocumentState) Handler(ctx context.Context, msg object.M
 		return nameSearchDocument, nil, nil
 	case "Пропустить":
 		return yearSearchDocument, nil, nil
+	case "Перейти к поиску":
+		return doSearchDocument, nil, nil
 	default:
 		if len(messageText) > 60 {
 			b := params.NewMessagesSendBuilder()
@@ -99,6 +101,8 @@ func (state AuthorSearchDocumentState) Show(ctx context.Context, vkID int) ([]*p
 	k.AddTextButton("Назад", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Перейти к поиску", "", "secondary")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -120,6 +124,8 @@ func (state YearSearchDocumentState) Handler(ctx context.Context, msg object.Mes
 		return authorSearchDocument, nil, nil
 	case "Пропустить":
 		return categoriesSearchDocument, nil, nil
+	case "Перейти к поиску":
+		return doSearchDocument, nil, nil
 	default:
 		if len(messageText) == 4 {
 			year, err := strconv.Atoi(messageText)
@@ -191,6 +197,8 @@ func (state YearSearchDocumentState) Show(ctx context.Context, vkID int) ([]*par
 	k.AddTextButton("Назад", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Перейти к поиску", "", "secondary")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -212,6 +220,8 @@ func (state CategoriesSearchDocumentState) Handler(ctx context.Context, msg obje
 		return yearSearchDocument, nil, nil
 	case "Пропустить":
 		return hashtagSearchDocument, nil, nil
+	case "Перейти к поиску":
+		return doSearchDocument, nil, nil
 	default:
 		maxID, err := state.postgres.RequestsDocuments.GetCategoryMaxID()
 		if err != nil {
@@ -256,6 +266,8 @@ func (state CategoriesSearchDocumentState) Show(ctx context.Context, vkID int) (
 	k.AddTextButton("Назад", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Перейти к поиску", "", "secondary")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -277,6 +289,8 @@ func (state HashtagSearchDocumentState) Handler(ctx context.Context, msg object.
 		return categoriesSearchDocument, nil, nil
 	case "Пропустить":
 		return checkSearchDocument, nil, nil
+	case "Перейти к поиску":
+		return doSearchDocument, nil, nil
 	default:
 		hashtags := strings.Split(messageText, " ")
 		err := state.postgres.SearchDocument.UpdateHashtagsSearch(ctx, hashtags, msg.PeerID)
@@ -296,6 +310,8 @@ func (state HashtagSearchDocumentState) Show(ctx context.Context, vkID int) ([]*
 	k.AddTextButton("Назад", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Пропустить", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Перейти к поиску", "", "secondary")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -316,7 +332,18 @@ func (state CheckSearchDocumentState) Handler(ctx context.Context, msg object.Me
 	case "Назад":
 		return hashtagSearchDocument, nil, nil
 	case "Найти":
-		return doSearchDocument, nil, nil
+		isNull, err := state.postgres.SearchDocument.SearchParamsIsNULL(ctx, msg.PeerID)
+		if err != nil {
+			return checkSearchDocument, []*params.MessagesSendBuilder{}, err
+		}
+		if isNull {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("Необходимо указать хотя бы один параметр поиска")
+			return checkSearchDocument, []*params.MessagesSendBuilder{b}, nil
+		} else {
+			return doSearchDocument, nil, nil
+		}
 	case "Редактировать параметры":
 		return editSearchDocument, nil, nil
 	default:
