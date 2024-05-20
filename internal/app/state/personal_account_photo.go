@@ -25,6 +25,8 @@ func (state PersonalAccountPhotoState) Handler(ctx context.Context, msg object.M
 			return personalAccountPhoto, nil, err
 		}
 		return photoStart, nil, nil
+	case "Редактировать":
+		return editParamsPhoto, nil, nil
 	case "⬅️":
 		err := state.postgres.PersonalAccountPhoto.ChangePointer(msg.PeerID, false)
 		if err != nil {
@@ -50,6 +52,16 @@ func (state PersonalAccountPhotoState) Show(ctx context.Context, vkID int) ([]*p
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
 	}
+	if message == "" {
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Заявок нет")
+		k := object.NewMessagesKeyboard(true)
+		k.AddRow()
+		k.AddTextButton("Завершить просмотр заявок", "", "negative")
+		b.Keyboard(k)
+		return []*params.MessagesSendBuilder{b}, err
+	}
 
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
@@ -66,6 +78,7 @@ func (state PersonalAccountPhotoState) Show(ctx context.Context, vkID int) ([]*p
 		}
 	}
 	k.AddRow()
+	k.AddTextButton("Редактировать", "", "secondary")
 	k.AddTextButton("Завершить просмотр заявок", "", "negative")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil

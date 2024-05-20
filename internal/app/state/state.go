@@ -187,6 +187,20 @@ const (
 
 	showUserDocumentPublication = stateName("showUserDocumentPublication")
 	showUserDocumentApproved    = stateName("showUserDocumentApproved")
+
+	editParamsPhoto                = stateName("editParamsPhoto")
+	editEventYearParamsPhoto       = stateName("editEventYearParamsPhoto")
+	editStudyProgramParamsPhoto    = stateName("editStudyProgramParamsPhoto")
+	editEventNameParamsPhoto       = stateName("editEventNameParamsPhoto")
+	editUserEventNameParamsPhoto   = stateName("editUserEventNameParamsPhoto")
+	editDescriptionParamsPhoto     = stateName("editDescriptionParamsPhoto")
+	editIsPeoplePresentParamsPhoto = stateName("editIsPeoplePresentParamsPhoto")
+	editCountPeopleParamsPhoto     = stateName("editCountPeopleParamsPhoto")
+	editMarkedPeopleParamsPhoto    = stateName("editMarkedPeopleParamsPhoto")
+	editIsTeacherParamsPhoto       = stateName("editIsTeacherParamsPhoto")
+	editTeacherNameParamsPhoto     = stateName("editTeacherNameParamsPhoto")
+	editUserTeacherNameParamsPhoto = stateName("editUserTeacherNameParamsPhoto")
+	editStudentNameParamsPhoto     = stateName("editStudentNameParamsPhoto")
 )
 
 type State interface {
@@ -394,6 +408,20 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK, groupID int) error {
 	showUserDocumentPublicationState := &ShowUserDocumentPublicationsState{postgres: postgresRepo}
 	showUserDocumentApprovedState := &ShowUserDocumentApprovedState{postgres: postgresRepo}
 
+	editParamsPhotoState := &EditParamsPhotoState{postgres: postgresRepo}
+	editEventYearParamsPhotoState := &EditEventYearParamsPhotoState{postgres: postgresRepo}
+	editStudyProgramParamsPhotoState := &EditStudyProgramParamsPhotoState{postgres: postgresRepo}
+	editEventNameParamsPhotoState := &EditEventNameParamsPhotoState{postgres: postgresRepo}
+	editUserEventNameParamsPhotoState := &EditUserEventNameParamsPhotoState{postgres: postgresRepo}
+	editDescriptionParamsPhotoState := &EditDescriptionParamsPhotoState{postgres: postgresRepo}
+	editIsPeoplePresentParamsPhotoState := &EditIsPeoplePresentParamsPhotoState{postgres: postgresRepo}
+	editCountPeopleParamsPhotoState := &EditCountPeopleParamsPhotoState{postgres: postgresRepo}
+	editMarkedPeopleParamsPhotoState := &EditMarkedPeopleParamsPhotoState{postgres: postgresRepo}
+	editIsTeacherParamsPhotoState := &EditIsTeacherParamsPhotoState{postgres: postgresRepo}
+	editTeacherNameParamsPhotoState := &EditTeacherNameParamsPhotoState{postgres: postgresRepo}
+	editUserTeacherNameParamsPhotoState := &EditUserTeacherNameParamsPhotoState{postgres: postgresRepo}
+	editStudentNameParamsPhotoState := &EditStudentNameParamsPhotoState{postgres: postgresRepo}
+
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
 		startState.Name():                                   startState,
@@ -571,6 +599,20 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK, groupID int) error {
 
 		showUserDocumentPublicationState.Name(): showUserDocumentPublicationState,
 		showUserDocumentApprovedState.Name():    showUserDocumentApprovedState,
+
+		editParamsPhotoState.Name():                editParamsPhotoState,
+		editEventYearParamsPhotoState.Name():       editEventYearParamsPhotoState,
+		editStudyProgramParamsPhotoState.Name():    editStudyProgramParamsPhotoState,
+		editEventNameParamsPhotoState.Name():       editEventNameParamsPhotoState,
+		editUserEventNameParamsPhotoState.Name():   editUserEventNameParamsPhotoState,
+		editDescriptionParamsPhotoState.Name():     editDescriptionParamsPhotoState,
+		editIsPeoplePresentParamsPhotoState.Name(): editIsPeoplePresentParamsPhotoState,
+		editCountPeopleParamsPhotoState.Name():     editCountPeopleParamsPhotoState,
+		editMarkedPeopleParamsPhotoState.Name():    editMarkedPeopleParamsPhotoState,
+		editIsTeacherParamsPhotoState.Name():       editIsTeacherParamsPhotoState,
+		editTeacherNameParamsPhotoState.Name():     editTeacherNameParamsPhotoState,
+		editUserTeacherNameParamsPhotoState.Name(): editUserTeacherNameParamsPhotoState,
+		editStudentNameParamsPhotoState.Name():     editStudentNameParamsPhotoState,
 	}
 
 	return nil
