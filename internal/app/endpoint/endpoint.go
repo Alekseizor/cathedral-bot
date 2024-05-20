@@ -34,7 +34,9 @@ func New(cfg config.Config) *Endpoint {
 
 func (e *Endpoint) Init(ctx context.Context) error {
 	vk := api.NewVK(e.cfg.BotConfig.Token)
-	err := e.states.Init(vk)
+	vkUser := api.NewVK(e.cfg.BotConfig.UserToken)
+	groupID := e.cfg.BotConfig.GroupID
+	err := e.states.Init(vk, vkUser, groupID)
 	if err != nil {
 		return fmt.Errorf("[state.Init]: %w", err)
 	}

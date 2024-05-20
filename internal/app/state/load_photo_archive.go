@@ -74,6 +74,7 @@ func (state LoadPhotoArchiveState) Handler(ctx context.Context, msg object.Messa
 		}
 
 		attachments := make([]string, 0)
+		urls := make([]string, 0)
 		for {
 			filePhoto, err := r.Read()
 			if err != nil {
@@ -103,15 +104,16 @@ func (state LoadPhotoArchiveState) Handler(ctx context.Context, msg object.Messa
 				}
 			}
 
-			attach, err := state.postgres.RequestPhotoArchive.GetAttachmentPhoto(ctx, state.vk, photo, msg.PeerID)
+			attach, url, err := state.postgres.RequestPhotoArchive.GetAttachmentPhoto(ctx, state.vk, photo, msg.PeerID)
 			if err != nil {
 				return loadPhotoArchive, nil, err
 			}
 
 			attachments = append(attachments, attach)
+			urls = append(urls, url)
 		}
 
-		err = state.postgres.RequestPhotoArchive.UploadArchivePhoto(ctx, state.vk, attachments, msg.PeerID)
+		err = state.postgres.RequestPhotoArchive.UploadArchivePhoto(ctx, state.vk, attachments, urls, msg.PeerID)
 		if err != nil {
 			return loadPhotoArchive, nil, err
 		}
@@ -301,7 +303,7 @@ func (state EventNamePhotoArchiveState) Handler(ctx context.Context, msg object.
 			return eventNamePhotoArchive, []*params.MessagesSendBuilder{b}, nil
 		}
 
-		err = state.postgres.RequestPhotoArchive.UpdateEvent(ctx, photoID, eventNumber)
+		err = state.postgres.RequestPhotoArchive.UpdateEvent(ctx, photoID, eventNumber-1)
 		if err != nil {
 			return eventNamePhotoArchive, []*params.MessagesSendBuilder{}, err
 		}

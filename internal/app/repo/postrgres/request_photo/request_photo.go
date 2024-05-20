@@ -5,14 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
-	"github.com/SevereCloud/vksdk/v2/api"
-	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"strconv"
+
+	"github.com/Alekseizor/cathedral-bot/internal/app/ds"
+	"github.com/SevereCloud/vksdk/v2/api"
+	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 // Repo инстанс репо для работы с фотографиями пользователя
@@ -89,8 +90,7 @@ func (r *Repo) UploadPhoto(ctx context.Context, VK *api.VK, photoData []byte, vk
 	}
 
 	attachment := "photo" + strconv.Itoa(savedPhoto[0].OwnerID) + "_" + strconv.Itoa(savedPhoto[0].ID)
-
-	_, err = r.db.ExecContext(ctx, "INSERT INTO request_photo(attachment, user_id) VALUES ($1, $2)", attachment, vkID)
+	_, err = r.db.ExecContext(ctx, "INSERT INTO request_photo(attachment, user_id, url) VALUES ($1, $2, $3)", attachment, vkID, savedPhoto[0].Sizes[7].URL)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -122,6 +122,23 @@ func (r *Repo) DeleteMarksOnPhoto(ctx context.Context, photoID int) error {
 func (r *Repo) GetPhotoLastID(ctx context.Context, vkID int) (int, error) {
 	var photo ds.RequestPhoto
 	err := r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo WHERE user_id = $1 ORDER BY id DESC LIMIT 1", vkID)
+	if err != nil {
+		return 0, fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	return photo.ID, nil
+}
+
+// GetPhotoRequestID возвращает ID заявки, которую смотрит админ сейчас
+func (r *Repo) GetPhotoRequestID(ctx context.Context, vkID int) (int, error) {
+	var pointer int
+	err := r.db.Get(&pointer, "SELECT pointer FROM view_request_photo WHERE user_id = $1", vkID)
+	if err != nil {
+		return 0, fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	var photo ds.RequestPhoto
+	err = r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo ORDER BY id OFFSET $1 LIMIT 1", pointer)
 	if err != nil {
 		return 0, fmt.Errorf("[db.GetContext]: %w", err)
 	}
@@ -208,6 +225,28 @@ func (r *Repo) GetTeacherNames(vkID int) (string, int, int, error) {
 	}
 
 	return teacherNames, pointer, count, nil
+}
+
+// GetAllTeacherNames возвращает все имеющиеся ФИО преподавателей разом
+func (r *Repo) GetAllTeacherNames() (string, error) {
+	var teacherNames string
+
+	rows, err := r.db.Query("SELECT CONCAT(id, ') ', name) AS formatted_string FROM teacher_albums")
+	if err != nil {
+		return "", fmt.Errorf("[db.Query]: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var formattedString string
+		err := rows.Scan(&formattedString)
+		if err != nil {
+			return "", fmt.Errorf("[db.Scan]: %w", err)
+		}
+		teacherNames += formattedString + "\n"
+	}
+
+	return teacherNames, nil
 }
 
 // ChangePointer меняет указатель
@@ -343,7 +382,7 @@ func (r *Repo) GetEventMaxID() (int, error) {
 // UpdateEvent добавляет событие для фотографии
 func (r *Repo) UpdateEvent(ctx context.Context, photoID, eventNumber int) error {
 	var name string
-	err := r.db.Get(&name, "SELECT name FROM events WHERE id = $1", eventNumber)
+	err := r.db.Get(&name, "SELECT name FROM events ORDER BY name OFFSET $1 LIMIT 1", eventNumber)
 	if err != nil {
 		return fmt.Errorf("[db.Get]: %w", err)
 	}

@@ -12,9 +12,11 @@ CREATE TABLE request_photo
     marked_person INT,
     marked_people TEXT[],
     teachers      TEXT[],
-    pointer       INT DEFAULT 0,
+    pointer       INT          DEFAULT 0,
     attachment    VARCHAR(255),
     attachments   TEXT[],
+    url           VARCHAR(255),
+    urls          TEXT[],
     user_id       INT NOT NULL,
     status        INT NOT NULL DEFAULT 0
 );
