@@ -73,6 +73,12 @@ func (state EditNameSearchDocumentState) Handler(ctx context.Context, msg object
 	switch messageText {
 	case "Назад":
 		return checkSearchDocument, nil, nil
+	case "Очистить параметр":
+		err := state.postgres.SearchDocument.NullNameSearch(ctx, msg.PeerID)
+		if err != nil {
+			return editNameSearchDocument, []*params.MessagesSendBuilder{}, err
+		}
+		return checkSearchDocument, nil, nil
 	default:
 		err := state.postgres.SearchDocument.UpdateNameSearch(ctx, messageText, msg.PeerID)
 		if err != nil {
@@ -89,6 +95,8 @@ func (state EditNameSearchDocumentState) Show(ctx context.Context, vkID int) ([]
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Очистить параметр", "", "secondary")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -107,6 +115,12 @@ func (state EditAuthorSearchDocumentState) Handler(ctx context.Context, msg obje
 
 	switch messageText {
 	case "Назад":
+		return checkSearchDocument, nil, nil
+	case "Очистить параметр":
+		err := state.postgres.SearchDocument.NullAuthorSearch(ctx, msg.PeerID)
+		if err != nil {
+			return editAuthorSearchDocument, []*params.MessagesSendBuilder{}, err
+		}
 		return checkSearchDocument, nil, nil
 	default:
 		if len(messageText) > 60 {
@@ -137,6 +151,8 @@ func (state EditAuthorSearchDocumentState) Show(ctx context.Context, vkID int) (
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Очистить параметр", "", "secondary")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -155,6 +171,12 @@ func (state EditYearSearchDocumentState) Handler(ctx context.Context, msg object
 
 	switch messageText {
 	case "Назад":
+		return checkSearchDocument, nil, nil
+	case "Очистить параметр":
+		err := state.postgres.SearchDocument.NullYearSearch(ctx, msg.PeerID)
+		if err != nil {
+			return editYearSearchDocument, []*params.MessagesSendBuilder{}, err
+		}
 		return checkSearchDocument, nil, nil
 	default:
 		if len(messageText) == 4 {
@@ -225,6 +247,8 @@ func (state EditYearSearchDocumentState) Show(ctx context.Context, vkID int) ([]
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Очистить параметр", "", "secondary")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -243,6 +267,12 @@ func (state EditCategoriesSearchDocumentState) Handler(ctx context.Context, msg 
 
 	switch messageText {
 	case "Назад":
+		return checkSearchDocument, nil, nil
+	case "Очистить параметр":
+		err := state.postgres.SearchDocument.NullCategoriesSearch(ctx, msg.PeerID)
+		if err != nil {
+			return editCategoriesSearchDocument, []*params.MessagesSendBuilder{}, err
+		}
 		return checkSearchDocument, nil, nil
 	default:
 		maxID, err := state.postgres.RequestsDocuments.GetCategoryMaxID()
@@ -286,6 +316,8 @@ func (state EditCategoriesSearchDocumentState) Show(ctx context.Context, vkID in
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Очистить параметр", "", "secondary")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }
@@ -305,6 +337,12 @@ func (state EditHashtagSearchDocumentState) Handler(ctx context.Context, msg obj
 	switch messageText {
 	case "Назад":
 		return checkSearchDocument, nil, nil
+	case "Очистить параметр":
+		err := state.postgres.SearchDocument.NullHashtagsSearch(ctx, msg.PeerID)
+		if err != nil {
+			return editHashtagSearchDocument, []*params.MessagesSendBuilder{}, err
+		}
+		return checkSearchDocument, nil, nil
 	default:
 		hashtags := strings.Split(messageText, " ")
 		err := state.postgres.SearchDocument.UpdateHashtagsSearch(ctx, hashtags, msg.PeerID)
@@ -322,6 +360,8 @@ func (state EditHashtagSearchDocumentState) Show(ctx context.Context, vkID int) 
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Очистить параметр", "", "secondary")
 	b.Keyboard(k)
 	return []*params.MessagesSendBuilder{b}, nil
 }

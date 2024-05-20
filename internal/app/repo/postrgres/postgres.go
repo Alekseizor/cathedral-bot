@@ -12,6 +12,8 @@ import (
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/search_document"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/student_albums"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/teacher_albums"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/user_document_approved"
+	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/user_document_publication"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/view_request_photo"
 	"github.com/jmoiron/sqlx"
 
@@ -28,21 +30,23 @@ const (
 
 // Repo инстанс репо для работы с postgres
 type Repo struct {
-	repoCfg              config.PostgresConfig
-	State                *state.Repo
-	Document             *documents.Repo
-	RequestsDocuments    *requests_documents.Repo
-	RequestPhoto         *request_photo.Repo
-	RequestPhotoArchive  *request_photo_archive.Repo
-	SearchAlbum          *search_album.Repo
-	Admin                *admin.Repo
-	Documents            *documents.Repo
-	SearchDocument       *search_document.Repo
-	ObjectAdmin          *object_admin.Repo
-	PersonalAccountPhoto *personal_account_photo.Repo
-	StudentAlbums        *student_albums.Repo
-	TeacherAlbums        *teacher_albums.Repo
-	ViewRequestPhoto     *view_request_photo.Repo
+	repoCfg                 config.PostgresConfig
+	State                   *state.Repo
+	Document                *documents.Repo
+	RequestsDocuments       *requests_documents.Repo
+	RequestPhoto            *request_photo.Repo
+	RequestPhotoArchive     *request_photo_archive.Repo
+	SearchAlbum             *search_album.Repo
+	Admin                   *admin.Repo
+	Documents               *documents.Repo
+	SearchDocument          *search_document.Repo
+	ObjectAdmin             *object_admin.Repo
+	PersonalAccountPhoto    *personal_account_photo.Repo
+	StudentAlbums           *student_albums.Repo
+	TeacherAlbums           *teacher_albums.Repo
+	ViewRequestPhoto        *view_request_photo.Repo
+	UserDocumentPublication *user_document_publication.Repo
+	UserDocumentApproved    *user_document_approved.Repo
 }
 
 // New - создаем новое объект репо, подключения к бд еще нет!
@@ -75,6 +79,8 @@ func (r *Repo) Init() error {
 	r.StudentAlbums = student_albums.New(db)
 	r.TeacherAlbums = teacher_albums.New(db)
 	r.ViewRequestPhoto = view_request_photo.New(db)
+	r.UserDocumentPublication = user_document_publication.New(db)
+	r.UserDocumentApproved = user_document_approved.New(db)
 
 	return nil
 }

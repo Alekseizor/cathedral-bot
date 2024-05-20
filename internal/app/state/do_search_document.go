@@ -40,10 +40,16 @@ func (state DoSearchDocumentState) Show(ctx context.Context, vkID int) ([]*param
 	}
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message(fmt.Sprintf("По вашему запросу нашлось %v документов. Показать документы или уточнить параметры?", docNumber))
+	if docNumber != 0 {
+		b.Message(fmt.Sprintf("По вашему запросу нашлось %v документов. Показать документы или уточнить параметры?", docNumber))
+	} else {
+		b.Message(fmt.Sprintf("По вашему запросу нашлось %v документов. Уточните параметры поиска", docNumber))
+	}
 	k := object.NewMessagesKeyboard(true)
-	k.AddRow()
-	k.AddTextButton("Показать документы", "", "secondary")
+	if docNumber != 0 {
+		k.AddRow()
+		k.AddTextButton("Показать документы", "", "secondary")
+	}
 	k.AddRow()
 	k.AddTextButton("Редактировать параметры", "", "secondary")
 	b.Keyboard(k)

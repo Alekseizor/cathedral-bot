@@ -50,6 +50,16 @@ func (r *Repo) UpdateNameSearch(ctx context.Context, name string, vkID int) erro
 	return nil
 }
 
+// NullNameSearch обнуляет название документа для поиска
+func (r *Repo) NullNameSearch(ctx context.Context, vkID int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE search_document SET title = NULL WHERE user_id = $1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
 // UpdateAuthorSearch добавляет ФИО автора документа для поиска
 func (r *Repo) UpdateAuthorSearch(ctx context.Context, author string, vkID int) error {
 	_, err := r.db.ExecContext(ctx, "UPDATE search_document SET author = $1 WHERE user_id = $2", author, vkID)
@@ -60,9 +70,29 @@ func (r *Repo) UpdateAuthorSearch(ctx context.Context, author string, vkID int) 
 	return nil
 }
 
+// NullAuthorSearch обнуляет ФИО автора документа для поиска
+func (r *Repo) NullAuthorSearch(ctx context.Context, vkID int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE search_document SET author = NULL WHERE user_id = $1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
 // UpdateYearSearch добавляет год создания документа для поиска
 func (r *Repo) UpdateYearSearch(ctx context.Context, year, vkID int) error {
 	_, err := r.db.ExecContext(ctx, "UPDATE search_document SET (year, start_year, end_year) = ($1, NULL, NULL) WHERE user_id = $2", year, vkID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// NullYearSearch обнуляет год создания документа для поиска
+func (r *Repo) NullYearSearch(ctx context.Context, vkID int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE search_document SET (year, start_year, end_year) = (NULL, NULL, NULL) WHERE user_id = $1", vkID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -96,9 +126,29 @@ func (r *Repo) UpdateCategoriesSearch(ctx context.Context, categories []int, vkI
 	return nil
 }
 
+// NullCategoriesSearch обнуляет список категорий документа для поиска
+func (r *Repo) NullCategoriesSearch(ctx context.Context, vkID int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE search_document SET categories = NULL WHERE user_id = $1", vkID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
 // UpdateHashtagsSearch добавляет список хештегов документа для поиска
 func (r *Repo) UpdateHashtagsSearch(ctx context.Context, hashtags []string, vkID int) error {
 	_, err := r.db.ExecContext(ctx, "UPDATE search_document SET hashtags = $1 WHERE user_id = $2", pq.Array(hashtags), vkID)
+	if err != nil {
+		return fmt.Errorf("[db.ExecContext]: %w", err)
+	}
+
+	return nil
+}
+
+// NullHashtagsSearch обнуляет список хештегов документа для поиска
+func (r *Repo) NullHashtagsSearch(ctx context.Context, vkID int) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE search_document SET hashtags = NULL WHERE user_id = $1", vkID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -134,6 +184,40 @@ func (r *Repo) CheckSearchParams(ctx context.Context, vkID int) (string, error) 
 	output := fmt.Sprintf("Ваши параметры для поиска:\n %s\n%s\n%s\n%s\n%s\n", searchParams.Title, searchParams.Author, searchParams.YearInterval, searchParams.Categories, searchParams.Hashtags)
 
 	return output, nil
+}
+
+// SearchParamsIsNULL проверяет параметры поиска на заполненность
+func (r *Repo) SearchParamsIsNULL(ctx context.Context, vkID int) (bool, error) {
+
+	sqlQuery := `
+	SELECT 
+    CASE
+        WHEN
+            title IS NULL AND
+            author IS NULL AND
+            year IS NULL AND
+            start_year IS NULL AND
+            end_year IS NULL AND
+            categories IS NULL AND
+            hashtags IS NULL
+        THEN
+            TRUE
+        ELSE
+            FALSE
+    END AS allFieldsNull
+FROM
+    search_document
+WHERE
+    user_id = $1;`
+
+	var allFieldsNull bool
+
+	err := r.db.QueryRowContext(ctx, sqlQuery, vkID).Scan(&allFieldsNull)
+	if err != nil {
+		return false, fmt.Errorf("[db.QueryRowContext]: %w", err)
+	}
+
+	return allFieldsNull, nil
 }
 
 // ParseSearch парсит параметры поиска по id юзера

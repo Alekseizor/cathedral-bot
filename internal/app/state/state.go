@@ -184,6 +184,9 @@ const (
 	editTeacherNameRequestPhoto     = stateName("editTeacherNameRequestPhoto")
 	editUserTeacherNameRequestPhoto = stateName("editUserTeacherNameRequestPhoto")
 	editStudentNameRequestPhoto     = stateName("editStudentNameRequestPhoto")
+
+	showUserDocumentPublication = stateName("showUserDocumentPublication")
+	showUserDocumentApproved    = stateName("showUserDocumentApproved")
 )
 
 type State interface {
@@ -388,6 +391,9 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK, groupID int) error {
 	editUserTeacherNameRequestPhotoState := &EditUserTeacherNameRequestPhotoState{postgres: postgresRepo}
 	editStudentNameRequestPhotoState := &EditStudentNameRequestPhotoState{postgres: postgresRepo}
 
+	showUserDocumentPublicationState := &ShowUserDocumentPublicationsState{postgres: postgresRepo}
+	showUserDocumentApprovedState := &ShowUserDocumentApprovedState{postgres: postgresRepo}
+
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
 		startState.Name():                                   startState,
@@ -562,6 +568,9 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK, groupID int) error {
 		editTeacherNameRequestPhotoState.Name():     editTeacherNameRequestPhotoState,
 		editUserTeacherNameRequestPhotoState.Name(): editUserTeacherNameRequestPhotoState,
 		editStudentNameRequestPhotoState.Name():     editStudentNameRequestPhotoState,
+
+		showUserDocumentPublicationState.Name(): showUserDocumentPublicationState,
+		showUserDocumentApprovedState.Name():    showUserDocumentApprovedState,
 	}
 
 	return nil
