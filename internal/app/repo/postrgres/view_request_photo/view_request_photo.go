@@ -145,8 +145,8 @@ func (r *Repo) ApprovePhoto(vkID int, vkUser *api.VK, groupID int) (string, erro
 	}
 
 	var req ds.RequestPhoto
-	err = r.db.QueryRow("SELECT year, study_program, event, teachers, url FROM request_photo WHERE id = (SELECT id FROM request_photo ORDER BY id OFFSET $1 LIMIT 1)", pointer).
-		Scan(&req.Year, &req.StudyProgram, &req.Event, &req.Teachers, &req.URL)
+	err = r.db.QueryRow("SELECT year, study_program, event, description, teachers, url FROM request_photo WHERE id = (SELECT id FROM request_photo ORDER BY id OFFSET $1 LIMIT 1)", pointer).
+		Scan(&req.Year, &req.StudyProgram, &req.Event, &req.Description, &req.Teachers, &req.URL)
 	if err != nil {
 		return "", fmt.Errorf("[db.QueryRow]: %w", err)
 	}
@@ -178,7 +178,7 @@ func (r *Repo) ApprovePhoto(vkID int, vkUser *api.VK, groupID int) (string, erro
 		}
 	}
 
-	err = r.AddPhotoToAlbum(vkUser, *albumID, groupID, req.URL)
+	err = r.AddPhotoToAlbum(vkUser, *albumID, groupID, req.URL, req.Description)
 
 	for _, teacher := range req.Teachers {
 		albumID = nil
@@ -194,7 +194,7 @@ func (r *Repo) ApprovePhoto(vkID int, vkUser *api.VK, groupID int) (string, erro
 			}
 		}
 
-		err = r.AddPhotoToAlbum(vkUser, *albumID, groupID, req.URL)
+		err = r.AddPhotoToAlbum(vkUser, *albumID, groupID, req.URL, req.Description)
 	}
 
 	_, err = r.db.Exec(`UPDATE request_photo SET status = 4 WHERE id = (SELECT id FROM request_photo ORDER BY id OFFSET $1 LIMIT 1)`, pointer)
@@ -264,7 +264,7 @@ type UploadResponse struct {
 	Hash       string `json:"hash"`
 }
 
-func (r *Repo) AddPhotoToAlbum(vkUser *api.VK, albumID int, groupID int, photoURL string) error {
+func (r *Repo) AddPhotoToAlbum(vkUser *api.VK, albumID int, groupID int, photoURL string, description *string) error {
 	// Получаем URL сервера для загрузки фотографии
 	uploadServer, err := vkUser.PhotosGetUploadServer(api.Params{"album_id": albumID, "group_id": groupID})
 	if err != nil {
@@ -308,13 +308,25 @@ func (r *Repo) AddPhotoToAlbum(vkUser *api.VK, albumID int, groupID int, photoUR
 	}
 
 	// Сохраняем фотографию
-	_, err = vkUser.PhotosSave(api.Params{
-		"album_id":    albumID,
-		"group_id":    groupID,
-		"server":      uploadResponse.Server,
-		"photos_list": uploadResponse.PhotosList,
-		"hash":        uploadResponse.Hash,
-	})
+	if description != nil {
+		_, err = vkUser.PhotosSave(api.Params{
+			"album_id":    albumID,
+			"group_id":    groupID,
+			"server":      uploadResponse.Server,
+			"photos_list": uploadResponse.PhotosList,
+			"hash":        uploadResponse.Hash,
+			"caption":     *description,
+		})
+	} else {
+		_, err = vkUser.PhotosSave(api.Params{
+			"album_id":    albumID,
+			"group_id":    groupID,
+			"server":      uploadResponse.Server,
+			"photos_list": uploadResponse.PhotosList,
+			"hash":        uploadResponse.Hash,
+		})
+	}
+
 	if err != nil {
 		return fmt.Errorf("ошибка при сохранении фотографии: %w", err)
 	}

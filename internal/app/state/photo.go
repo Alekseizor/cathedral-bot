@@ -36,10 +36,6 @@ func (state PhotoStartState) Handler(ctx context.Context, msg object.MessagesMes
 		return personalAccountPhoto, nil, nil
 	case "Кабинет администратора фотоархива":
 		return albumsCabinet, nil, nil
-	case "Создать альбом":
-		return createAlbum, nil, nil
-	case "Добавить фото в альбом":
-		return addPhotoToAlbum, nil, nil
 	case "Просмотр заявок":
 		err := state.postgres.ViewRequestPhoto.CreatePersonalAccountPhoto(ctx, msg.PeerID)
 		if err != nil {
@@ -65,8 +61,6 @@ func (state PhotoStartState) Show(ctx context.Context, vkID int) ([]*params.Mess
 	k.AddTextButton("Поиск альбома", "", "secondary")
 	k.AddTextButton("Личный кабинет", "", "secondary")
 	k.AddRow()
-	k.AddTextButton("Создать альбом", "", "secondary")
-	k.AddTextButton("Добавить фото в альбом", "", "secondary")
 	k.AddTextButton("Просмотр заявок", "", "secondary")
 
 	albumsAdmins, err := state.postgres.Admin.GetAlbumsAdmins(ctx)

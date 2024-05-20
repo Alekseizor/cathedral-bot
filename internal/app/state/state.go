@@ -148,12 +148,6 @@ const (
 
 	personalAccountPhoto = stateName("personalAccountPhoto")
 
-	createAlbum        = stateName("createAlbum")
-	createStudentAlbum = stateName("createStudentAlbum")
-	createTeacherAlbum = stateName("createTeacherAlbum")
-
-	addPhotoToAlbum = stateName("addPhotoToAlbum")
-
 	viewRequestsPhoto = stateName("viewRequestsPhoto")
 )
 
@@ -318,12 +312,6 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK, groupID int) error {
 
 	personalAccountPhotoState := &PersonalAccountPhotoState{postgres: postgresRepo}
 
-	createAlbumState := &CreateAlbumState{postgres: postgresRepo, vk: vk}
-	createStudentAlbumState := &CreateStudentAlbumState{postgres: postgresRepo, vk: vk, vkUser: vkUser, groupID: groupID}
-	createTeacherAlbumState := &CreateTeacherAlbumState{postgres: postgresRepo, vk: vk, vkUser: vkUser, groupID: groupID}
-
-	addPhotoToAlbumState := &AddPhotoToAlbumState{postgres: postgresRepo, vk: vk, vkUser: vkUser, groupID: groupID}
-
 	viewRequestsPhotoState := &ViewRequestsPhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser, groupID: groupID}
 
 	//мапаем все стейты
@@ -458,12 +446,6 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK, groupID int) error {
 		teacherSearchAlbumState.Name():               teacherSearchAlbumState,
 
 		personalAccountPhotoState.Name(): personalAccountPhotoState,
-
-		createAlbumState.Name():        createAlbumState,
-		createStudentAlbumState.Name(): createStudentAlbumState,
-		createTeacherAlbumState.Name(): createTeacherAlbumState,
-
-		addPhotoToAlbumState.Name(): addPhotoToAlbumState,
 
 		viewRequestsPhotoState.Name(): viewRequestsPhotoState,
 	}

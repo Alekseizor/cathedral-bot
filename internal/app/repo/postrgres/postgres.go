@@ -2,8 +2,6 @@ package postrgres
 
 import (
 	"fmt"
-	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/add_photo_to_album"
-	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/create_album"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/documents"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/object_admin"
 	"github.com/Alekseizor/cathedral-bot/internal/app/repo/postrgres/personal_account_photo"
@@ -39,8 +37,6 @@ type Repo struct {
 	SearchDocument       *search_document.Repo
 	ObjectAdmin          *object_admin.Repo
 	PersonalAccountPhoto *personal_account_photo.Repo
-	CreateAlbum          *create_album.Repo
-	AddPhotoToAlbum      *add_photo_to_album.Repo
 	ViewRequestPhoto     *view_request_photo.Repo
 }
 
@@ -71,8 +67,6 @@ func (r *Repo) Init() error {
 	r.ObjectAdmin = object_admin.New(db)
 	r.SearchDocument = search_document.New(db)
 	r.PersonalAccountPhoto = personal_account_photo.New(db)
-	r.CreateAlbum = create_album.New(db)
-	r.AddPhotoToAlbum = add_photo_to_album.New(db)
 	r.ViewRequestPhoto = view_request_photo.New(db)
 
 	return nil
