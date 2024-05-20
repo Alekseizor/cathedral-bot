@@ -63,6 +63,7 @@ func (state AlbumsCabinetState) Name() stateName {
 ///////////
 
 type WorkingRequestPhotoState struct {
+	postgres *postrgres.Repo
 }
 
 func (state WorkingRequestPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
@@ -542,4 +543,112 @@ func (state ChangeAlbumsTeacherState) Show(ctx context.Context, vkID int) ([]*pa
 
 func (state ChangeAlbumsTeacherState) Name() stateName {
 	return changeAlbumsTeacher
+}
+
+// RequestPhotoFromQueueState админ смотрит заявки на добавление фото в альбом
+type RequestPhotoFromQueueState struct {
+	postgres *postrgres.Repo
+	vk       *api.VK
+	vkUser   *api.VK
+	groupID  int
+}
+
+func (state RequestPhotoFromQueueState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
+	messageText := msg.Text
+	if messageText == "" {
+		return requestPhotoFromQueue, nil, nil
+	}
+
+	switch messageText {
+	case "Одобрить":
+		comment, err := state.postgres.ViewRequestPhoto.ApprovePhoto(msg.PeerID, state.vkUser, state.groupID)
+		if err != nil {
+			return requestPhotoFromQueue, nil, err
+		}
+		if comment != "" {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message(comment)
+			return requestPhotoFromQueue, []*params.MessagesSendBuilder{b}, nil
+		}
+		return requestPhotoFromQueue, nil, nil
+	case "Отклонить":
+		err := state.postgres.ViewRequestPhoto.RejectPhoto(msg.PeerID)
+		if err != nil {
+			return requestPhotoFromQueue, nil, err
+		}
+		return requestPhotoFromQueue, nil, nil
+	case "Редактировать":
+		return editRequestPhoto, nil, nil
+	case "Завершить просмотр заявок":
+		err := state.postgres.ViewRequestPhoto.DeletePointer(msg.PeerID)
+		if err != nil {
+			return requestPhotoFromQueue, nil, err
+		}
+		return photoStart, nil, nil
+	case "⬅️":
+		err := state.postgres.ViewRequestPhoto.ChangePointer(msg.PeerID, false)
+		if err != nil {
+			return requestPhotoFromQueue, nil, err
+		}
+		return requestPhotoFromQueue, nil, nil
+	case "➡️":
+		err := state.postgres.ViewRequestPhoto.ChangePointer(msg.PeerID, true)
+		if err != nil {
+			return requestPhotoFromQueue, nil, err
+		}
+		return requestPhotoFromQueue, nil, nil
+	default:
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Такого действия нет в предложенных вариантах")
+		return requestPhotoFromQueue, []*params.MessagesSendBuilder{b}, nil
+	}
+}
+
+func (state RequestPhotoFromQueueState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
+	err := state.postgres.ViewRequestPhoto.CreatePersonalAccountPhoto(vkID)
+	if err != nil {
+		return []*params.MessagesSendBuilder{}, err
+	}
+	message, attachment, pointer, count, err := state.postgres.ViewRequestPhoto.GetRequestPhoto(vkID)
+	if err != nil {
+		return []*params.MessagesSendBuilder{}, err
+	}
+	if message == "" {
+		b := params.NewMessagesSendBuilder()
+		b.RandomID(0)
+		b.Message("Заявок нет")
+		k := object.NewMessagesKeyboard(true)
+		k.AddRow()
+		k.AddTextButton("Завершить просмотр заявок", "", "negative")
+		b.Keyboard(k)
+		return []*params.MessagesSendBuilder{b}, err
+	}
+	b := params.NewMessagesSendBuilder()
+	b.RandomID(0)
+	b.Message(message)
+	b.Attachment(attachment)
+	k := object.NewMessagesKeyboard(true)
+	if count > 1 {
+		k.AddRow()
+		if pointer != 0 {
+			k.AddTextButton("⬅️", "", "secondary")
+		}
+		if count-pointer > 1 {
+			k.AddTextButton("➡️", "", "secondary")
+		}
+	}
+	k.AddRow()
+	k.AddTextButton("Одобрить", "", "secondary")
+	k.AddTextButton("Отклонить", "", "secondary")
+	k.AddRow()
+	k.AddTextButton("Редактировать", "", "secondary")
+	k.AddTextButton("Завершить просмотр заявок", "", "negative")
+	b.Keyboard(k)
+	return []*params.MessagesSendBuilder{b}, nil
+}
+
+func (state RequestPhotoFromQueueState) Name() stateName {
+	return requestPhotoFromQueue
 }

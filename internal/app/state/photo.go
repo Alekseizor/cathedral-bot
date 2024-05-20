@@ -50,11 +50,9 @@ func (state PhotoStartState) Show(ctx context.Context, vkID int) ([]*params.Mess
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Загрузка фото", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Загрузка архива", "", "secondary")
 	k.AddRow()
 	k.AddTextButton("Поиск альбома", "", "secondary")
-	k.AddRow()
 	k.AddTextButton("Личный кабинет", "", "secondary")
 
 	albumsAdmins, err := state.postgres.Admin.GetAlbumsAdmins(ctx)

@@ -64,7 +64,7 @@ func (r *Repo) UpdateStudyProgram(ctx context.Context, vkID int, studyProgram st
 // UpdateEvent добавляет название события для поиска альбома
 func (r *Repo) UpdateEvent(ctx context.Context, vkID int, eventNumber int) error {
 	var event string
-	err := r.db.Get(&event, "SELECT name FROM events WHERE id = $1", eventNumber)
+	err := r.db.Get(&event, "SELECT name FROM events ORDER BY name OFFSET $1 LIMIT 1", eventNumber)
 	if err != nil {
 		return fmt.Errorf("[db.Get]: %w", err)
 	}

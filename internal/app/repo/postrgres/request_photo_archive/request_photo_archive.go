@@ -33,13 +33,13 @@ type photosPhoto struct {
 	Hash   string `json:"hash"`
 }
 
-func (r *Repo) GetAttachmentPhoto(ctx context.Context, VK *api.VK, photoData []byte, vkID int) (string, error) {
+func (r *Repo) GetAttachmentPhoto(ctx context.Context, VK *api.VK, photoData []byte, vkID int) (string, string, error) {
 	uploadServer, err := VK.PhotosGetMessagesUploadServer(api.Params{
 		"peer_id": vkID,
 	})
 	if err != nil {
 		log.Println(err)
-		return "", err
+		return "", "", err
 	}
 
 	body := &bytes.Buffer{}
@@ -47,19 +47,19 @@ func (r *Repo) GetAttachmentPhoto(ctx context.Context, VK *api.VK, photoData []b
 	part, err := writer.CreateFormFile("photo", "photo.jpg")
 	if err != nil {
 		log.Println(err)
-		return "", err
+		return "", "", err
 	}
 	_, err = part.Write(photoData)
 	if err != nil {
 		log.Println(err)
-		return "", err
+		return "", "", err
 	}
 	writer.Close()
 
 	req, err := http.NewRequest("POST", uploadServer.UploadURL, body)
 	if err != nil {
 		log.Println(err)
-		return "", err
+		return "", "", err
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
@@ -67,7 +67,7 @@ func (r *Repo) GetAttachmentPhoto(ctx context.Context, VK *api.VK, photoData []b
 	response, err := client.Do(req)
 	if err != nil {
 		log.Println(err)
-		return "", err
+		return "", "", err
 	}
 	defer response.Body.Close()
 
@@ -84,16 +84,16 @@ func (r *Repo) GetAttachmentPhoto(ctx context.Context, VK *api.VK, photoData []b
 	})
 	if err != nil {
 		log.Println(err)
-		return "", err
+		return "", "", err
 	}
 
 	attachment := "photo" + strconv.Itoa(savedPhoto[0].OwnerID) + "_" + strconv.Itoa(savedPhoto[0].ID)
 
-	return attachment, nil
+	return attachment, savedPhoto[0].Sizes[7].URL, nil
 }
 
-func (r *Repo) UploadArchivePhoto(ctx context.Context, VK *api.VK, attachments []string, vkID int) error {
-	_, err := r.db.ExecContext(ctx, "INSERT INTO request_photo(attachments, user_id) VALUES ($1, $2)", pq.Array(attachments), vkID)
+func (r *Repo) UploadArchivePhoto(ctx context.Context, VK *api.VK, attachments []string, urls []string, vkID int) error {
+	_, err := r.db.ExecContext(ctx, "INSERT INTO request_photo(attachments, urls, user_id) VALUES ($1, $2, $3)", pq.Array(attachments), pq.Array(urls), vkID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -145,7 +145,7 @@ func (r *Repo) GetEventMaxID() (int, error) {
 // UpdateEvent добавляет событие для фотографии
 func (r *Repo) UpdateEvent(ctx context.Context, photoID, eventNumber int) error {
 	var name string
-	err := r.db.Get(&name, "SELECT name FROM events WHERE id = $1", eventNumber)
+	err := r.db.Get(&name, "SELECT name FROM events ORDER BY name OFFSET $1 LIMIT 1", eventNumber)
 	if err != nil {
 		return fmt.Errorf("[db.Get]: %w", err)
 	}
@@ -233,6 +233,7 @@ func (r *Repo) ChangeArchiveToPhotos(ctx context.Context, photoID int) error {
     	is_event_new,
     	description,
     	attachments, 
+    	urls, 
     	user_id,
     	status
 	FROM request_photo
@@ -240,14 +241,14 @@ func (r *Repo) ChangeArchiveToPhotos(ctx context.Context, photoID int) error {
 
 	photo := new(ds.RequestPhoto)
 
-	err := r.db.QueryRow(sqlQuery, photoID).Scan(&photo.Year, &photo.StudyProgram, &photo.Event, &photo.IsEventNew, &photo.Description, &photo.Attachments, &photo.UserID, &photo.Status)
+	err := r.db.QueryRow(sqlQuery, photoID).Scan(&photo.Year, &photo.StudyProgram, &photo.Event, &photo.IsEventNew, &photo.Description, &photo.Attachments, &photo.URLS, &photo.UserID, &photo.Status)
 	if err != nil {
 		return fmt.Errorf("[db.QueryRow]: %w", err)
 	}
 
-	for _, attachment := range photo.Attachments {
-		_, err := r.db.ExecContext(ctx, `INSERT INTO request_photo(year, study_program, event, is_event_new, description, attachment, user_id, status) 
-												VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, photo.Year, photo.StudyProgram, photo.Event, photo.IsEventNew, photo.Description, attachment, photo.UserID, photo.Status)
+	for idx, attachment := range photo.Attachments {
+		_, err := r.db.ExecContext(ctx, `INSERT INTO request_photo(year, study_program, event, is_event_new, description, attachment, url, user_id, status) 
+												VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, photo.Year, photo.StudyProgram, photo.Event, photo.IsEventNew, photo.Description, attachment, photo.URLS[idx], photo.UserID, photo.Status)
 		if err != nil {
 			return fmt.Errorf("[db.ExecContext]: %w", err)
 		}

@@ -6,4 +6,5 @@ type StudentAlbum struct {
 	StudyProgram string `db:"study_program"`
 	Event        string `db:"event"`
 	URL          string `db:"url"`
+	VkID         int    `db:"vk_id"`
 }

@@ -97,12 +97,12 @@ func (r *Repo) CheckExistence(ctx context.Context, albumID int) (bool, error) {
 
 func (r *Repo) UpdateName(ctx context.Context, albumID int, eventNumber int) error {
 	var name string
-	err := r.db.Get(&name, "SELECT name FROM teachers WHERE id = $1", eventNumber)
+	err := r.db.Get(&name, "SELECT name FROM teacher_albums WHERE id = $1", eventNumber)
 	if err != nil {
 		return fmt.Errorf("[db.Get]: %w", err)
 	}
 
-	_, err = r.db.ExecContext(ctx, "UPDATE teacher_albums SET teacher = $1 WHERE id = $2", name, albumID)
+	_, err = r.db.ExecContext(ctx, "UPDATE teacher_albums SET name = $1 WHERE id = $2", name, albumID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -111,12 +111,12 @@ func (r *Repo) UpdateName(ctx context.Context, albumID int, eventNumber int) err
 }
 
 func (r *Repo) UpdateNewName(ctx context.Context, albumID int, teacher string) error {
-	_, err := r.db.ExecContext(ctx, "INSERT INTO teachers (name) VALUES ($1)", teacher)
+	_, err := r.db.ExecContext(ctx, "INSERT INTO teacher_albums (name) VALUES ($1)", teacher)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
 
-	_, err = r.db.ExecContext(ctx, "UPDATE teacher_albums SET teacher = $1 WHERE id = $2", teacher, albumID)
+	_, err = r.db.ExecContext(ctx, "UPDATE teacher_albums SET name = $1 WHERE id = $2", teacher, albumID)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -139,21 +139,6 @@ func (r *Repo) GetVKID(ctx context.Context, albumID int) (string, error) {
 		return "", fmt.Errorf("[db.GetContext]: %w", err)
 	}
 	return vkID, nil
-}
-
-func (r *Repo) GetTitle(ctx context.Context, albumID int) (string, error) {
-	var (
-		year         int
-		studyProgram string
-		event        string
-	)
-
-	err := r.db.QueryRowContext(ctx, "SELECT year,study_program,event FROM teacher_albums WHERE id = $1", albumID).Scan(&year, &studyProgram, &event)
-	if err != nil {
-		return "", fmt.Errorf("[db.QueryRowContext]: %w", err)
-	}
-
-	return fmt.Sprintf("%d // %s // %s", year, studyProgram, event), nil
 }
 
 func (r *Repo) Delete(ctx context.Context, albumID int) error {

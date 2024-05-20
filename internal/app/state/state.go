@@ -170,6 +170,20 @@ const (
 	changeNameTeacherPhoto        = stateName("changeNameTeacherPhoto")
 	changeUserNameTeacherPhoto    = stateName("changeUserNameTeacherPhoto")
 	changeDescriptionPhotoTeacher = stateName("changeDescriptionPhotoTeacher")
+
+	editRequestPhoto                = stateName("editRequestPhoto")
+	editEventYearRequestPhoto       = stateName("editEventYearRequestPhoto")
+	editStudyProgramRequestPhoto    = stateName("editStudyProgramRequestPhoto")
+	editEventNameRequestPhoto       = stateName("editEventNameRequestPhoto")
+	editUserEventNameRequestPhoto   = stateName("editUserEventNameRequestPhoto")
+	editDescriptionRequestPhoto     = stateName("editDescriptionRequestPhoto")
+	editIsPeoplePresentRequestPhoto = stateName("editIsPeoplePresentRequestPhoto")
+	editCountPeopleRequestPhoto     = stateName("editCountPeopleRequestPhoto")
+	editMarkedPeopleRequestPhoto    = stateName("editMarkedPeopleRequestPhoto")
+	editIsTeacherRequestPhoto       = stateName("editIsTeacherRequestPhoto")
+	editTeacherNameRequestPhoto     = stateName("editTeacherNameRequestPhoto")
+	editUserTeacherNameRequestPhoto = stateName("editUserTeacherNameRequestPhoto")
+	editStudentNameRequestPhoto     = stateName("editStudentNameRequestPhoto")
 )
 
 type State interface {
@@ -190,7 +204,7 @@ func New(cfg config.Config) *States {
 	}
 }
 
-func (s *States) Init(vk *api.VK, vkUser *api.VK) error {
+func (s *States) Init(vk *api.VK, vkUser *api.VK, groupID int) error {
 	postgresRepo := postrgres.New(s.cfg.ClientsConfig.PostgresConfig)
 
 	err := postgresRepo.Init()
@@ -339,6 +353,7 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK) error {
 	workingAlbumsFromStudentsState := &WorkingAlbumsFromStudentsState{postgres: postgresRepo}
 	workingAlbumsFromTeacherState := &WorkingAlbumsFromTeacherState{postgres: postgresRepo}
 	actionOnPhotoState := &ActionOnPhotoState{postgres: postgresRepo, vk: vk, vkUser: vkUser}
+	requestPhotoFromQueueState := &RequestPhotoFromQueueState{postgres: postgresRepo, vk: vk, vkUser: vkUser, groupID: groupID}
 
 	// администратор изменяет информацию об опубликованных студенческих альбомах
 	changeAlbumsState := &ChangeAlbumsState{postgres: postgresRepo}
@@ -358,6 +373,20 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK) error {
 	// добавление/удаление новых админов фотоархива
 	addPhotoAdministratorState := &AddPhotoAdministratorState{postgres: postgresRepo}
 	removePhotoAdministratorState := &RemovePhotoAdministratorState{postgres: postgresRepo}
+
+	editRequestPhotoState := &EditRequestPhotoState{postgres: postgresRepo}
+	editEventYearRequestPhotoState := &EditEventYearRequestPhotoState{postgres: postgresRepo}
+	editStudyProgramRequestPhotoState := &EditStudyProgramRequestPhotoState{postgres: postgresRepo}
+	editEventNameRequestPhotoState := &EditEventNameRequestPhotoState{postgres: postgresRepo}
+	editUserEventNameRequestPhotoState := &EditUserEventNameRequestPhotoState{postgres: postgresRepo}
+	editDescriptionRequestPhotoState := &EditDescriptionRequestPhotoState{postgres: postgresRepo}
+	editIsPeoplePresentRequestPhotoState := &EditIsPeoplePresentRequestPhotoState{postgres: postgresRepo}
+	editCountPeopleRequestPhotoState := &EditCountPeopleRequestPhotoState{postgres: postgresRepo}
+	editMarkedPeopleRequestPhotoState := &EditMarkedPeopleRequestPhotoState{postgres: postgresRepo}
+	editIsTeacherRequestPhotoState := &EditIsTeacherRequestPhotoState{postgres: postgresRepo}
+	editTeacherNameRequestPhotoState := &EditTeacherNameRequestPhotoState{postgres: postgresRepo}
+	editUserTeacherNameRequestPhotoState := &EditUserTeacherNameRequestPhotoState{postgres: postgresRepo}
+	editStudentNameRequestPhotoState := &EditStudentNameRequestPhotoState{postgres: postgresRepo}
 
 	//мапаем все стейты
 	s.statesList = map[stateName]State{
@@ -390,6 +419,7 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK) error {
 		descriptionArchiveState.Name():                      descriptionArchiveState,
 		hashtagArchiveState.Name():                          hashtagArchiveState,
 		checkArchiveState.Name():                            checkArchiveState,
+		albumsCabinetState.Name():                           albumsCabinetState,
 		documentCabinetState.Name():                         documentCabinetState,
 		blockUserState.Name():                               blockUserState,
 		blockingState.Name():                                blockingState,
@@ -499,6 +529,7 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK) error {
 		workingAlbumsFromTeacherState.Name():  workingAlbumsFromTeacherState,
 		actionOnPhotoState.Name():             actionOnPhotoState,
 		changeAlbumsState.Name():              changeAlbumsState,
+		requestPhotoFromQueueState.Name():     requestPhotoFromQueueState,
 
 		// администратор изменяет информацию об опубликованных студенческих альбомах
 		changeEventYearPhotoState.Name():     changeEventYearPhotoState,
@@ -517,6 +548,20 @@ func (s *States) Init(vk *api.VK, vkUser *api.VK) error {
 		// добавление/удаление новых админов фотоархива
 		addPhotoAdministratorState.Name():    addPhotoAdministratorState,
 		removePhotoAdministratorState.Name(): removePhotoAdministratorState,
+
+		editRequestPhotoState.Name():                editRequestPhotoState,
+		editEventYearRequestPhotoState.Name():       editEventYearRequestPhotoState,
+		editStudyProgramRequestPhotoState.Name():    editStudyProgramRequestPhotoState,
+		editEventNameRequestPhotoState.Name():       editEventNameRequestPhotoState,
+		editUserEventNameRequestPhotoState.Name():   editUserEventNameRequestPhotoState,
+		editDescriptionRequestPhotoState.Name():     editDescriptionRequestPhotoState,
+		editIsPeoplePresentRequestPhotoState.Name(): editIsPeoplePresentRequestPhotoState,
+		editCountPeopleRequestPhotoState.Name():     editCountPeopleRequestPhotoState,
+		editMarkedPeopleRequestPhotoState.Name():    editMarkedPeopleRequestPhotoState,
+		editIsTeacherRequestPhotoState.Name():       editIsTeacherRequestPhotoState,
+		editTeacherNameRequestPhotoState.Name():     editTeacherNameRequestPhotoState,
+		editUserTeacherNameRequestPhotoState.Name(): editUserTeacherNameRequestPhotoState,
+		editStudentNameRequestPhotoState.Name():     editStudentNameRequestPhotoState,
 	}
 
 	return nil

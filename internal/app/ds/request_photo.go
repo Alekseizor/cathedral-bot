@@ -18,6 +18,8 @@ type RequestPhoto struct {
 	Pointer      int            `db:"pointer"`
 	Attachment   string         `db:"attachment"`
 	Attachments  pq.StringArray `db:"attachments"`
+	URL          string         `db:"url"`
+	URLS         pq.StringArray `db:"urls"`
 	UserID       int            `db:"user_id"`
 	Status       int            `db:"status"`
 }
