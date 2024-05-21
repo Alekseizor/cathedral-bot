@@ -191,6 +191,9 @@ func (r *Repo) ApprovePhoto(vkID int, vkUser *api.VK, groupID int) (string, erro
 	}
 
 	err = r.AddPhotoToAlbum(vkUser, *albumID, groupID, req.URL, description)
+	if err != nil {
+		return "", err
+	}
 
 	for _, teacher := range req.Teachers {
 		albumID = nil
@@ -207,6 +210,9 @@ func (r *Repo) ApprovePhoto(vkID int, vkUser *api.VK, groupID int) (string, erro
 		}
 
 		err = r.AddPhotoToAlbum(vkUser, *albumID, groupID, req.URL, description)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	_, err = r.db.Exec(`UPDATE request_photo SET status = 4 WHERE id = (SELECT id FROM request_photo ORDER BY id OFFSET $1 LIMIT 1)`, pointer)
