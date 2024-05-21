@@ -30,13 +30,33 @@ func (state DocumentStartState) Handler(ctx context.Context, msg object.Messages
 	case "Кабинет администратора документоархива":
 		return documentCabinet, nil, nil
 	case "Мои заявки":
-		err := state.postgres.UserDocumentPublication.CreateUserDocumentPublication(ctx, msg.PeerID)
+		ok, err := state.postgres.RequestsDocuments.IfRequestExists(msg.PeerID)
+		if err != nil {
+			return documentStart, []*params.MessagesSendBuilder{}, err
+		}
+		if !ok {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("У вас пока нет заявок, создайте их через \"Загрузку документа\"")
+			return documentStart, []*params.MessagesSendBuilder{b}, nil
+		}
+		err = state.postgres.UserDocumentPublication.CreateUserDocumentPublication(ctx, msg.PeerID)
 		if err != nil {
 			return documentStart, []*params.MessagesSendBuilder{}, err
 		}
 		return showUserDocumentPublication, nil, nil
 	case "Мои документы":
-		err := state.postgres.UserDocumentApproved.CreateUserDocumentApproved(ctx, msg.PeerID)
+		ok, err := state.postgres.Documents.IfDocumentsExists(msg.PeerID)
+		if err != nil {
+			return documentStart, []*params.MessagesSendBuilder{}, err
+		}
+		if !ok {
+			b := params.NewMessagesSendBuilder()
+			b.RandomID(0)
+			b.Message("У вас пока нет документов, создайте заявку через \"Загрузку документа\" и дождитесь одобрения администратора")
+			return documentStart, []*params.MessagesSendBuilder{b}, nil
+		}
+		err = state.postgres.UserDocumentApproved.CreateUserDocumentApproved(ctx, msg.PeerID)
 		if err != nil {
 			return documentStart, []*params.MessagesSendBuilder{}, err
 		}

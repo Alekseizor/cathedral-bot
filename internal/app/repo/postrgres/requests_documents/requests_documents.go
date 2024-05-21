@@ -35,6 +35,18 @@ type docsDoc struct {
 	File string `json:"file"`
 }
 
+func (r *Repo) IfRequestExists(vkID int) (bool, error) {
+	var count int
+	err := r.db.Get(&count, "SELECT COUNT(*) FROM requests_documents WHERE user_id = $1", vkID)
+	if err != nil {
+		return false, fmt.Errorf("[db.Get]: %w", err)
+	}
+	if count > 0 {
+		return true, nil
+	}
+	return false, nil
+}
+
 // UpdateStatus изменяет статус заявки на загрузку документа по ID заявки
 func (r *Repo) UpdateStatus(ctx context.Context, status int, reqDocID int) error {
 	_, err := r.db.ExecContext(ctx, "UPDATE requests_documents SET status = $1 WHERE id = $2", status, reqDocID)

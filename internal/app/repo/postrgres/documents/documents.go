@@ -24,6 +24,18 @@ func New(db *sqlx.DB) *Repo {
 	}
 }
 
+func (r *Repo) IfDocumentsExists(vkID int) (bool, error) {
+	var count int
+	err := r.db.Get(&count, "SELECT COUNT(*) FROM documents WHERE user_id = $1", vkID)
+	if err != nil {
+		return false, fmt.Errorf("[db.Get]: %w", err)
+	}
+	if count > 0 {
+		return true, nil
+	}
+	return false, nil
+}
+
 func (r *Repo) UploadDocument(ctx context.Context, document ds.RequestDocument) error {
 	query := `
         INSERT INTO documents (title, author, year, category, description, hashtags, attachment, user_id)
