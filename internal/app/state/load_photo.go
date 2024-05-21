@@ -94,7 +94,11 @@ func (state LoadPhotoState) Handler(ctx context.Context, msg object.MessagesMess
 func (state LoadPhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Загрузите фото или документ. Допустимые форматы: jpg, jpeg, png, tif, tiff")
+	b.Message("Загрузите фото или документ с фото\n" +
+		"Допустимые форматы: jpg, jpeg, png, tif, tiff\n" +
+		"Максимальный размер фото - 50 Мб\n" +
+		"Фото должно соответствовать нормам приличия\n" +
+		"Соблюдайте авторские права")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "negative")

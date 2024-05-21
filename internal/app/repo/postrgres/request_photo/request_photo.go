@@ -90,7 +90,7 @@ func (r *Repo) UploadPhoto(ctx context.Context, VK *api.VK, photoData []byte, vk
 	}
 
 	attachment := "photo" + strconv.Itoa(savedPhoto[0].OwnerID) + "_" + strconv.Itoa(savedPhoto[0].ID)
-	_, err = r.db.ExecContext(ctx, "INSERT INTO request_photo(attachment, user_id, url) VALUES ($1, $2, $3)", attachment, vkID, savedPhoto[0].Sizes[7].URL)
+	_, err = r.db.ExecContext(ctx, "INSERT INTO request_photo(attachment, user_id, url) VALUES ($1, $2, $3)", attachment, vkID, savedPhoto[0].Sizes[4].URL)
 	if err != nil {
 		return fmt.Errorf("[db.ExecContext]: %w", err)
 	}
@@ -133,6 +133,23 @@ func (r *Repo) GetPhotoLastID(ctx context.Context, vkID int) (int, error) {
 func (r *Repo) GetPhotoRequestID(ctx context.Context, vkID int) (int, error) {
 	var pointer int
 	err := r.db.Get(&pointer, "SELECT pointer FROM view_request_photo WHERE user_id = $1", vkID)
+	if err != nil {
+		return 0, fmt.Errorf("[db.Get]: %w", err)
+	}
+
+	var photo ds.RequestPhoto
+	err = r.db.GetContext(ctx, &photo, "SELECT id FROM request_photo ORDER BY id OFFSET $1 LIMIT 1", pointer)
+	if err != nil {
+		return 0, fmt.Errorf("[db.GetContext]: %w", err)
+	}
+
+	return photo.ID, nil
+}
+
+// GetPhotoClientID возвращает ID заявки, которую смотрит админ сейчас
+func (r *Repo) GetPhotoClientID(ctx context.Context, vkID int) (int, error) {
+	var pointer int
+	err := r.db.Get(&pointer, "SELECT pointer FROM personal_account_photo WHERE user_id = $1", vkID)
 	if err != nil {
 		return 0, fmt.Errorf("[db.Get]: %w", err)
 	}

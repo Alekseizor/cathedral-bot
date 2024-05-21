@@ -64,7 +64,7 @@ type EditEventYearParamsPhotoState struct {
 
 func (state EditEventYearParamsPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	photoID, err := state.postgres.RequestPhoto.GetPhotoRequestID(ctx, msg.PeerID)
+	photoID, err := state.postgres.RequestPhoto.GetPhotoClientID(ctx, msg.PeerID)
 	if err != nil {
 		return editEventYearRequestPhoto, []*params.MessagesSendBuilder{}, err
 	}
@@ -119,7 +119,7 @@ type EditStudyProgramParamsPhotoState struct {
 
 func (state EditStudyProgramParamsPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	photoID, err := state.postgres.RequestPhoto.GetPhotoRequestID(ctx, msg.PeerID)
+	photoID, err := state.postgres.RequestPhoto.GetPhotoClientID(ctx, msg.PeerID)
 	if err != nil {
 		return editStudyProgramParamsPhoto, []*params.MessagesSendBuilder{}, err
 	}
@@ -179,7 +179,7 @@ type EditEventNameParamsPhotoState struct {
 
 func (state EditEventNameParamsPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	photoID, err := state.postgres.RequestPhoto.GetPhotoRequestID(ctx, msg.PeerID)
+	photoID, err := state.postgres.RequestPhoto.GetPhotoClientID(ctx, msg.PeerID)
 	if err != nil {
 		return editEventNameParamsPhoto, []*params.MessagesSendBuilder{}, err
 	}
@@ -250,7 +250,7 @@ func (state EditUserEventNameParamsPhotoState) Handler(ctx context.Context, msg 
 		return editUserEventNameParamsPhoto, nil, nil
 	}
 
-	photoID, err := state.postgres.RequestPhoto.GetPhotoRequestID(ctx, msg.PeerID)
+	photoID, err := state.postgres.RequestPhoto.GetPhotoClientID(ctx, msg.PeerID)
 	if err != nil {
 		return editUserEventNameParamsPhoto, []*params.MessagesSendBuilder{}, err
 	}
@@ -293,7 +293,7 @@ func (state EditDescriptionParamsPhotoState) Handler(ctx context.Context, msg ob
 		return editDescriptionParamsPhoto, nil, nil
 	}
 
-	photoID, err := state.postgres.RequestPhoto.GetPhotoRequestID(ctx, msg.PeerID)
+	photoID, err := state.postgres.RequestPhoto.GetPhotoClientID(ctx, msg.PeerID)
 	if err != nil {
 		return editDescriptionParamsPhoto, []*params.MessagesSendBuilder{}, err
 	}

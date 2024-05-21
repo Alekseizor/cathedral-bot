@@ -16,7 +16,7 @@ type EditIsPeoplePresentParamsPhotoState struct {
 
 func (state EditIsPeoplePresentParamsPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	photoID, err := state.postgres.RequestPhoto.GetPhotoRequestID(ctx, msg.PeerID)
+	photoID, err := state.postgres.RequestPhoto.GetPhotoClientID(ctx, msg.PeerID)
 	if err != nil {
 		return editIsPeoplePresentParamsPhoto, []*params.MessagesSendBuilder{}, err
 	}
@@ -65,7 +65,7 @@ type EditCountPeopleParamsPhotoState struct {
 
 func (state EditCountPeopleParamsPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	photoID, err := state.postgres.RequestPhoto.GetPhotoRequestID(ctx, msg.PeerID)
+	photoID, err := state.postgres.RequestPhoto.GetPhotoClientID(ctx, msg.PeerID)
 	if err != nil {
 		return editCountPeopleParamsPhoto, []*params.MessagesSendBuilder{}, err
 	}
@@ -118,7 +118,7 @@ type EditMarkedPeopleParamsPhotoState struct {
 
 func (state EditMarkedPeopleParamsPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	photoID, err := state.postgres.RequestPhoto.GetPhotoRequestID(ctx, msg.PeerID)
+	photoID, err := state.postgres.RequestPhoto.GetPhotoClientID(ctx, msg.PeerID)
 	if err != nil {
 		return editMarkedPeopleParamsPhoto, []*params.MessagesSendBuilder{}, err
 	}
@@ -148,7 +148,7 @@ func (state EditMarkedPeopleParamsPhotoState) Handler(ctx context.Context, msg o
 }
 
 func (state EditMarkedPeopleParamsPhotoState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
-	photoID, err := state.postgres.RequestPhoto.GetPhotoRequestID(ctx, vkID)
+	photoID, err := state.postgres.RequestPhoto.GetPhotoClientID(ctx, vkID)
 	if err != nil {
 		return []*params.MessagesSendBuilder{}, err
 	}
@@ -228,7 +228,7 @@ type EditTeacherNameParamsPhotoState struct {
 
 func (state EditTeacherNameParamsPhotoState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
-	photoID, err := state.postgres.RequestPhoto.GetPhotoRequestID(ctx, msg.PeerID)
+	photoID, err := state.postgres.RequestPhoto.GetPhotoClientID(ctx, msg.PeerID)
 	if err != nil {
 		return editTeacherNameParamsPhoto, []*params.MessagesSendBuilder{}, err
 	}
@@ -345,7 +345,7 @@ func (state EditUserTeacherNameParamsPhotoState) Handler(ctx context.Context, ms
 		return editUserTeacherNameParamsPhoto, nil, nil
 	}
 
-	photoID, err := state.postgres.RequestPhoto.GetPhotoRequestID(ctx, msg.PeerID)
+	photoID, err := state.postgres.RequestPhoto.GetPhotoClientID(ctx, msg.PeerID)
 	if err != nil {
 		return editUserTeacherNameParamsPhoto, []*params.MessagesSendBuilder{}, err
 	}
@@ -398,7 +398,7 @@ func (state EditStudentNameParamsPhotoState) Handler(ctx context.Context, msg ob
 		return editStudentNameParamsPhoto, nil, nil
 	}
 
-	photoID, err := state.postgres.RequestPhoto.GetPhotoRequestID(ctx, msg.PeerID)
+	photoID, err := state.postgres.RequestPhoto.GetPhotoClientID(ctx, msg.PeerID)
 	if err != nil {
 		return editStudentNameParamsPhoto, []*params.MessagesSendBuilder{}, err
 	}

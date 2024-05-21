@@ -127,7 +127,13 @@ func (state LoadPhotoArchiveState) Handler(ctx context.Context, msg object.Messa
 func (state LoadPhotoArchiveState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Загрузите архив rar. Фото в архиве должны быть одной категории. Допустимые форматы фото: jpg, jpeg, png, tiff")
+	b.Message("Загрузите архив rar\n" +
+		"В архиве должны быть фото с одного события\n" +
+		"Допустимые форматы фото: jpg, jpeg, png, tiff\n" +
+		"Максимальный размер фото - 50 Мб\n" +
+		"Максимальный размер архива - 4 Гб\n" +
+		"Фото должно соответствовать нормам приличия\n" +
+		"Соблюдайте авторские права")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Назад", "", "negative")

@@ -46,7 +46,11 @@ func (state PhotoStartState) Handler(ctx context.Context, msg object.MessagesMes
 func (state PhotoStartState) Show(ctx context.Context, vkID int) ([]*params.MessagesSendBuilder, error) {
 	b := params.NewMessagesSendBuilder()
 	b.RandomID(0)
-	b.Message("Добро пожаловать в архив фотографий. Выберите нужное действие")
+	b.Message("Добро пожаловать в архив фотографий. Здесь Вы можете: \n" +
+		"1) Загрузить фото\n" +
+		"2) Если много фото с одного события, то можете загрузить архив с ними\n" +
+		"3) Найти альбом студентов или преподавателя\n" +
+		"4) Просмотреть в личном кабинете свои заявки")
 	k := object.NewMessagesKeyboard(true)
 	k.AddRow()
 	k.AddTextButton("Загрузка фото", "", "secondary")

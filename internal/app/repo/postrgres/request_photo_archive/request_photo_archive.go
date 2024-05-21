@@ -89,7 +89,7 @@ func (r *Repo) GetAttachmentPhoto(ctx context.Context, VK *api.VK, photoData []b
 
 	attachment := "photo" + strconv.Itoa(savedPhoto[0].OwnerID) + "_" + strconv.Itoa(savedPhoto[0].ID)
 
-	return attachment, savedPhoto[0].Sizes[7].URL, nil
+	return attachment, savedPhoto[0].Sizes[4].URL, nil
 }
 
 func (r *Repo) UploadArchivePhoto(ctx context.Context, VK *api.VK, attachments []string, urls []string, vkID int) error {
