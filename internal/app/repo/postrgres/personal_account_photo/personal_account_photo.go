@@ -2,6 +2,8 @@ package personal_account_photo
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"strconv"
@@ -27,15 +29,41 @@ func (r *Repo) GetRequestPhoto(vkID int) (string, string, int, int, error) {
 		return "", "", 0, 0, fmt.Errorf("[db.Get]: %w", err)
 	}
 
-	var status int
-	var attachment string
-	err = r.db.QueryRow("SELECT status, attachment FROM request_photo WHERE user_id = $1 offset $2 limit 1", vkID, pointer).Scan(&status, &attachment)
+	sqlQuery := `
+	SELECT 
+    	'3) Год события: ' || COALESCE(CAST(year AS VARCHAR), 'Не указано') AS year,
+    	'4) Программа обучения: ' || COALESCE(study_program, 'Не указано') AS studyProgram,
+    	'5) Название события: ' || COALESCE(event, 'Не указано') AS event,
+    	'6) Описание: ' || COALESCE(description, 'Не указано') AS description,
+    	'7) Отмеченные люди: ' || COALESCE(array_to_string(marked_people, ', '), 'Не указано') AS markedPeople,
+    	'8) Преподаватели: ' || COALESCE(array_to_string(teachers, ', '), 'Не указано') AS teachers,
+    	status,
+    	attachment
+	FROM request_photo
+	WHERE user_id = $1
+	ORDER BY id
+	offset $2 limit 1;`
+
+	var (
+		year         string
+		studyProgram string
+		event        string
+		description  string
+		markedPeople string
+		teachers     string
+		status       int
+		attachment   string
+	)
+	err = r.db.QueryRow(sqlQuery, vkID, pointer).Scan(&year, &studyProgram, &event, &description, &markedPeople, &teachers, &status, &attachment)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", "", 0, 0, nil
+		}
 		return "", "", 0, 0, fmt.Errorf("[db.QueryRow]: %w", err)
 	}
 
 	var count int
-	err = r.db.Get(&count, "SELECT count(*) FROM request_photo WHERE user_id = $1", vkID)
+	err = r.db.Get(&count, "SELECT count(*) FROM request_photo")
 	if err != nil {
 		return "", "", 0, 0, fmt.Errorf("[db.Get]: %w", err)
 	}
@@ -55,8 +83,8 @@ func (r *Repo) GetRequestPhoto(vkID int) (string, string, int, int, error) {
 	case 4:
 		statusString = "Одобрена"
 	}
-
-	message := fmt.Sprintf("Заявка %s/%s\nСтатус данной заявки: %s", pointerString, countString, statusString)
+	message := fmt.Sprintf("1) Заявка %s/%s\n2) Статус данной заявки: %s\n%s\n%s\n%s\n%s\n%s\n%s",
+		pointerString, countString, statusString, year, studyProgram, event, description, markedPeople, teachers)
 
 	return message, attachment, pointer, count, nil
 }
