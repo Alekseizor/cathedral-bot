@@ -16,7 +16,8 @@ import (
 	"github.com/SevereCloud/vksdk/v2/object"
 )
 
-///////////
+// /////////
+const noExists = "noExists"
 
 type RequestDocumentFromQueueState struct {
 	postgres *postrgres.Repo
@@ -24,6 +25,10 @@ type RequestDocumentFromQueueState struct {
 
 func (state RequestDocumentFromQueueState) Handler(ctx context.Context, msg object.MessagesMessage) (stateName, []*params.MessagesSendBuilder, error) {
 	messageText := msg.Text
+
+	if msg.Payload == "\"noExists\"" {
+		return workingRequestDocument, nil, nil
+	}
 
 	requestID, err := state.postgres.ObjectAdmin.Get(ctx, msg.PeerID)
 	if err != nil {
@@ -97,7 +102,8 @@ func (state RequestDocumentFromQueueState) Show(ctx context.Context, vkID int) (
 			b.RandomID(0)
 			b.Message("Заявок, ожидающих проверки, нет!")
 			k := object.NewMessagesKeyboard(true)
-			addBackButton(k)
+			k.AddRow()
+			k.AddTextButton("Назад", noExists, "negative")
 			b.Keyboard(k)
 			return []*params.MessagesSendBuilder{b}, nil
 		}
